@@ -3,8 +3,7 @@ node_modules
 .env
 
 generated
-
-prisma/dev.db
+dev.db
 
 public/*
 !public/images/

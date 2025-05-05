@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-  res.redirect('/catalog.html');
+  res.redirect("/index.html");
 });
 
 app.use('/api', apiRoutes);
