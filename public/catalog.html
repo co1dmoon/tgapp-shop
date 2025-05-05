@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>b.ZONE pc - Каталог</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            /* Новая цветовая схема по макету */
+            --bg-primary: #1a1a1a; /* Темный фон */
+            --bg-secondary: #2c2c2c; /* Фон карточек/элементов/шапки */
+            --bg-tertiary: #3a3a3a; /* Фон неактивных табов/кнопок */
+            --text-primary: #ffffff; /* Основной белый текст */
+            --text-secondary: #aaaaaa; /* Вторичный серый текст */
+            --accent-primary: #FFFF00; /* Желтый акцент */
+            --border-color: #444444;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            /* Интеграция с темой ТГ */
+            --tg-theme-bg-color: var(--bg-primary);
+            --tg-theme-text-color: var(--text-primary);
+            --tg-theme-hint-color: var(--text-secondary);
+            --tg-theme-link-color: var(--accent-primary);
+            --tg-theme-button-color: var(--accent-primary);
+            --tg-theme-button-text-color: #000000; /* Черный текст на желтой кнопке */
+            --tg-theme-secondary-bg-color: var(--bg-secondary);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* Укажите нужный шрифт, если известен, или оставьте системный */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            -webkit-tap-highlight-color: transparent; /* Убрать синюю подсветку при тапе */
+        }
+        html {
+            background-color: var(--bg-primary); /* Фон для всей страницы */
+        }
+        body {
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            padding: 0;
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.5;
+            overscroll-behavior: none;
+            padding-top: 71px; /* Отступ для фиксированной шапки */
+        }
+        .container {
+             max-width: 100%; /* Полная ширина в WebApp */
+             margin: 0 auto;
+             padding: 0 15px 90px 15px; /* Увеличен отступ снизу для корзины */
+        }
+
+        /* --- Новая шапка --- */
+        .app-header {
+            display: flex;
+            justify-content: space-around; /* Равномерное распределение */
+            align-items: center;
+            background-color: var(--bg-secondary); /* Фон шапки */
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            position: fixed; /* Фиксируем шапку сверху */
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100; /* Над контентом */
+        }
+        .header-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 10px; /* Маленький шрифт под иконкой */
+            font-weight: 500;
+            transition: color 0.2s ease;
+            padding: 5px;
+            border-radius: 8px;
+            flex-basis: 25%; /* Равная ширина для 4х элементов */
+            text-align: center;
+        }
+         .header-item:hover {
+             color: var(--text-primary);
+         }
+        .header-item.active {
+            color: var(--accent-primary); /* Активный пункт желтый */
+            font-weight: 600;
+        }
+        .header-icon {
+            width: 24px; /* Размер иконок из SVG */
+            height: 24px;
+            margin-bottom: 4px;
+        }
+         .header-icon svg {
+             display: block;
+             width: 100%;
+             height: 100%;
+             fill: currentColor; /* Цвет иконки наследуется от .header-item */
+         }
+         /* У активного элемента иконка тоже должна быть желтой */
+         .header-item.active .header-icon svg path {
+            fill: var(--accent-primary);
+         }
+
+        /* --- Основные категории (ПК / Девайсы) --- */
+        .main-categories {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center; /* Центрируем табы */
+        }
+        .main-category-tab {
+            padding: 10px 25px;
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+         /* Стрелка */
+         .main-category-tab svg {
+             width: 14px;
+             height: 14px;
+             fill: none; /* Убираем заливку */
+             stroke: currentColor; /* Цвет линии */
+             stroke-width: 2;
+             transition: transform 0.2s ease;
+         }
+        .main-category-tab.active {
+            background-color: var(--bg-secondary); /* Фон активного таба как у карточек */
+            color: var(--text-primary); /* Текст активного таба */
+            border: 1px solid var(--border-color);
+        }
+         .main-category-tab.active svg {
+             transform: rotate(90deg); /* Поворот стрелки у активного таба */
+         }
+
+        /* --- Подкатегории (Мыши, Клавиатуры...) --- */
+        .sub-categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 5px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE/Edge */
+        }
+         .sub-categories::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+
+        .sub-category-item {
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .sub-category-item:hover {
+            background-color: #4a4a4a;
+            color: var(--text-primary);
+        }
+        .sub-category-item.active {
+            background-color: var(--accent-primary);
+            color: #000000; /* Черный текст на желтом */
+            font-weight: 600;
+            border-color: var(--accent-primary);
+        }
+
+        /* --- Заголовок секции (НАШИ ЛУЧШИЕ ПРЕДЛОЖЕНИЯ) --- */
+        .section-title {
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: 700; /* Пожирнее */
+            color: var(--text-primary);
+        }
+
+         /* --- Стили для Сетки Товаров (Адаптация под новый дизайн) --- */
+         .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 колонки */
+            gap: 15px;
+            padding-bottom: 80px; /* Отступ снизу для корзины */
+         }
+         .product-card {
+             background-color: var(--bg-secondary);
+             border-radius: 15px; /* Более скругленные углы */
+             overflow: hidden;
+             position: relative;
+             box-shadow: 0 5px 15px var(--shadow-color);
+             transition: transform 0.2s ease, box-shadow 0.2s ease;
+             cursor: pointer;
+             display: flex;
+             flex-direction: column;
+             border: 1px solid var(--border-color);
+         }
+         .product-card:hover {
+             transform: translateY(-5px);
+             box-shadow: 0 8px 20px var(--shadow-color);
+         }
+         .product-image-wrapper { /* Обертка для картинки */
+             position: relative;
+             width: 100%;
+             aspect-ratio: 1 / 1; /* Квадратные */
+             background-color: var(--bg-tertiary);
+             overflow: hidden; /* Чтобы тег не вылезал за рамки */
+         }
+         .product-tag { /* Стиль для тегов типа "2K", "FULL HD" */
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: #ffffff;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 1;
+         }
+         .product-image { /* Сама картинка */
+             width: 100%;
+             height: 100%;
+             object-fit: cover; /* Или contain */
+             display: block;
+             background-color: var(--bg-tertiary); /* Фон на случай ошибки загрузки */
+         }
+         .product-content {
+             padding: 12px;
+             flex-grow: 1;
+             display: flex;
+             flex-direction: column;
+             justify-content: space-between; /* Чтобы кнопка прижалась к низу */
+             min-height: 160px; /* Примерная мин. высота контентной части */
+         }
+         .product-name {
+             font-size: 15px;
+             font-weight: 600;
+             color: var(--text-primary);
+             margin-bottom: 4px;
+             /* Ограничение по строкам */
+             display: -webkit-box;
+             -webkit-line-clamp: 2;
+             -webkit-box-orient: vertical;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             min-height: calc(1.5em * 2);
+         }
+         .product-specs {
+             font-size: 12px;
+             color: var(--text-secondary);
+             margin-bottom: 10px;
+             /* Ограничение по строкам */
+             display: -webkit-box;
+             -webkit-line-clamp: 2; /* Меньше строк для спеков в карточке */
+             -webkit-box-orient: vertical;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             min-height: calc(1.5em * 2);
+         }
+         .product-price-container {
+            display: flex;
+            align-items: baseline; /* Выравнивание цен */
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap; /* Перенос на маленьких экранах */
+         }
+         .product-current-price {
+             font-size: 18px;
+             font-weight: 700;
+             color: var(--text-primary); /* Белая текущая цена */
+         }
+         .product-original-price {
+             font-size: 13px;
+             color: var(--text-secondary);
+             text-decoration: line-through; /* Зачеркнутая старая цена */
+         }
+         .product-add-button {
+             display: block;
+             background-color: var(--accent-primary); /* Желтая кнопка */
+             color: #000000; /* Черный текст */
+             text-align: center;
+             padding: 10px 15px;
+             border-radius: 10px; /* Скругление кнопки */
+             border: none;
+             width: 100%;
+             cursor: pointer;
+             font-weight: 700; /* Жирный текст */
+             font-size: 14px;
+             transition: background-color 0.2s ease, transform 0.1s ease, filter 0.2s ease;
+             margin-top: auto; /* Прижимаем кнопку к низу, если контента мало */
+         }
+         .product-add-button:hover {
+             filter: brightness(0.9); /* Легкое затемнение при ховере */
+         }
+          .product-add-button:active {
+              transform: scale(0.97);
+              filter: brightness(0.85);
+          }
+
+         /* --- Стили Корзины (адаптация) --- */
+        .cart-summary {
+            background-color: var(--bg-secondary); /* Фон под дизайн */
+            padding: 15px;
+            border-radius: 12px 12px 0 0; /* Скругляем только верхние углы */
+            position: fixed; /* Фиксируем внизу */
+            bottom: 0; /* Прижимаем к низу */
+            left: 0; /* От края до края */
+            right: 0;
+            width: 100%; /* На всю ширину */
+            box-shadow: 0 -5px 20px var(--shadow-color);
+            z-index: 150; /* Выше шапки */
+            display: none; /* Изначально скрыта */
+            flex-direction: column; /* Элементы друг под другом */
+            gap: 10px;
+            max-height: 50vh; /* Ограничиваем высоту */
+            overflow-y: auto; /* Добавляем скролл при необходимости */
+            border-top: 1px solid var(--border-color);
+        }
+         .cart-info {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             font-size: 16px;
+             font-weight: 600;
+             padding: 0 5px; /* Небольшие отступы по бокам */
+         }
+         .cart-total {
+            color: var(--accent-primary); /* Сумма желтым */
+         }
+        .checkout-button {
+            display: block;
+            width: calc(100% - 10px); /* Чуть меньше полной ширины */
+            margin: 5px 5px 0 5px; /* Отступы */
+            padding: 12px 20px;
+            background-color: var(--tg-theme-button-color); /* Используем переменную ТГ */
+            color: var(--tg-theme-button-text-color); /* Используем переменную ТГ */
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, filter 0.2s ease;
+        }
+         .checkout-button:disabled {
+             opacity: 0.6;
+             cursor: not-allowed;
+         }
+        .checkout-button:not(:disabled):hover {
+            filter: brightness(0.9);
+        }
+         .checkout-button:not(:disabled):active {
+             transform: scale(0.98);
+             filter: brightness(0.85);
+         }
+
+         /* --- Стили Модального Окна --- */
+        .modal {
+          display: none;
+          position: fixed;
+          z-index: 200; /* Выше корзины */
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0,0,0,0.7);
+          -webkit-backdrop-filter: blur(4px);
+          backdrop-filter: blur(4px);
+          padding: 20px; /* Отступы для маленьких экранов */
+          align-items: center; /* Вертикальное центрирование */
+          justify-content: center; /* Горизонтальное центрирование */
+        }
+        .modal.show { /* Класс для показа */
+             display: flex;
+        }
+        .modal-content {
+          background-color: var(--bg-secondary);
+          margin: auto;
+          padding: 20px;
+          border-radius: 15px;
+          max-width: 500px;
+          width: 95%;
+          position: relative;
+          color: var(--text-primary);
+          border: 1px solid var(--border-color);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          max-height: 90vh; /* Ограничение высоты */
+          overflow-y: auto; /* Скролл для контента */
+        }
+        .modal-close-button {
+          color: var(--text-secondary);
+          position: absolute;
+          top: 10px;
+          right: 15px;
+          font-size: 28px;
+          line-height: 1;
+          font-weight: bold;
+          cursor: pointer;
+          transition: color 0.2s ease, transform 0.2s ease;
+          padding: 5px;
+        }
+        .modal-close-button:hover {
+          color: var(--text-primary);
+          transform: rotate(90deg);
+        }
+        /* Стили для контента модалки (названия, описание и т.д.) */
+        #modalProductImage {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            background-color: var(--bg-tertiary);
+            display: block;
+        }
+        #modalProductName {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        #modalProductSpecs, #modalProductDescription {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        #modalProductPrice {
+             font-size: 20px;
+             font-weight: 700;
+             color: var(--text-primary); /* Белая цена */
+             margin-bottom: 20px;
+        }
+        #modalProductOriginalPrice {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-decoration: line-through;
+            margin-left: 10px;
+        }
+        #modalAddToCartButton {
+             /* Стили как у product-add-button */
+             display: block;
+             background-color: var(--accent-primary);
+             color: #000000;
+             text-align: center;
+             padding: 12px 15px; /* Увеличим паддинг */
+             border-radius: 10px;
+             border: none;
+             width: 100%;
+             cursor: pointer;
+             font-weight: 700;
+             font-size: 16px; /* Крупнее */
+             transition: background-color 0.2s ease, transform 0.1s ease, filter 0.2s ease;
+        }
+         #modalAddToCartButton:hover {
+             filter: brightness(0.9);
+         }
+         #modalAddToCartButton:active {
+              transform: scale(0.97);
+              filter: brightness(0.85);
+         }
+        /* Преимущества в модалке */
+        .modal-advantages {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+        .modal-advantages h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        .advantages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Адаптивные колонки */
+            gap: 15px;
+            text-align: center;
+        }
+        .advantage-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .advantage-icon {
+            width: 35px;
+            height: 35px;
+        }
+        .advantage-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--accent-primary); /* Желтые иконки преимуществ */
+        }
+        .advantage-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Стили для спиннера загрузки */
+        .loader-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px; /* Чтобы лоадер был виден */
+            width: 100%;
+            grid-column: 1 / -1; /* Занимает все колонки грида */
+        }
+        .loader {
+          border: 4px solid var(--bg-tertiary);
+          border-top: 4px solid var(--accent-primary);
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--danger-color);
+            padding: 20px;
+        }
+        .empty-message {
+             grid-column: 1 / -1;
+             text-align: center;
+             color: var(--text-secondary);
+             padding: 20px;
+        }
+        /* Скрытие элементов */
+        .hidden {
+            display: none !important;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Новая шапка -->
+    <div class="app-header">
+        <div class="header-item active" id="nav-catalog"> <!-- Делаем каталог активным по умолчанию -->
+            <div class="header-icon">
+                <!-- SVG Каталог -->
+                <svg viewBox="0 0 24 24"><path d="M8.49975 10.7505H2.25C1.0095 10.7505 0 9.741 0 8.5005V2.25C0 1.0095 1.0095 0 2.25 0H8.49975C9.74025 0 10.7498 1.0095 10.7498 2.25V8.5005C10.7498 9.741 9.741 10.7505 8.49975 10.7505ZM21.75 10.7505H15.4995C14.259 10.7505 13.2495 9.741 13.2495 8.5005V2.25C13.2495 1.0095 14.259 0 15.4995 0H21.75C22.9905 0 24 1.0095 24 2.25V8.5005C24 9.741 22.9905 10.7505 21.75 10.7505ZM8.49975 23.9535H2.25C1.0095 23.9535 0 22.944 0 21.7035V15.453C0 14.2125 1.0095 13.203 2.25 13.203H8.49975C9.74025 13.203 10.7498 14.2125 10.7498 15.453V21.7035C10.7498 22.944 9.741 23.9535 8.49975 23.9535ZM21.75 23.9535H15.4995C14.259 23.9535 13.2495 22.944 13.2495 21.7035V15.453C13.2495 14.2125 14.259 13.203 15.4995 13.203H21.75C22.9905 13.203 24 14.2125 24 15.453V21.7035C24 22.944 22.9905 23.9535 21.75 23.9535Z"/></svg>
+            </div>
+            <span>Каталог</span>
+        </div>
+        <div class="header-item" id="nav-orders">
+            <div class="header-icon">
+                 <!-- SVG Заказы -->
+                <svg viewBox="0 0 16 22"><path d="M14 2.18011V3.18011C13.9713 3.95023 13.6403 4.67804 13.0788 5.20587C12.5173 5.7337 11.7704 6.01905 11 6.00011H5C4.2279 6.019 3.47957 5.73228 2.91777 5.20231C2.35596 4.67235 2.02613 3.94199 2 3.17011V2.17011C1.41484 2.37699 0.908257 2.76027 0.550056 3.26713C0.191856 3.77398 -0.00032496 4.37946 4.12473e-07 5.00011V19.0001C4.12473e-07 19.7958 0.316071 20.5588 0.87868 21.1214C1.44129 21.684 2.20435 22.0001 3 22.0001H13C13.7956 22.0001 14.5587 21.684 15.1213 21.1214C15.6839 20.5588 16 19.7958 16 19.0001V5.00011C15.9983 4.38116 15.8051 3.77791 15.4471 3.27304C15.089 2.76818 14.5835 2.38642 14 2.18011ZM11 19.0001H5C4.73478 19.0001 4.48043 18.8948 4.29289 18.7072C4.10536 18.5197 4 18.2653 4 18.0001C4 17.7349 4.10536 17.4805 4.29289 17.293C4.48043 17.1055 4.73478 17.0001 5 17.0001H11C11.2652 17.0001 11.5196 17.1055 11.7071 17.293C11.8946 17.4805 12 17.7349 12 18.0001C12 18.2653 11.8946 18.5197 11.7071 18.7072C11.5196 18.8948 11.2652 19.0001 11 19.0001ZM11 15.0001H5C4.73478 15.0001 4.48043 14.8947 4.29289 14.7072C4.10536 14.5197 4 14.2653 4 14.0001C4 13.7349 4.10536 13.4805 4.29289 13.293C4.48043 13.1055 4.73478 13.0001 5 13.0001H11C11.2652 13.0001 11.5196 13.1055 11.7071 13.293C11.8946 13.4805 12 13.7349 12 14.0001C12 14.2653 11.8946 14.5197 11.7071 14.7072C11.5196 14.8947 11.2652 15.0001 11 15.0001ZM11 11.0001H5C4.73478 11.0001 4.48043 10.8947 4.29289 10.7072C4.10536 10.5197 4 10.2653 4 10.0001C4 9.73489 4.10536 9.48054 4.29289 9.293C4.48043 9.10546 4.73478 9.00011 5 9.00011H11C11.2652 9.00011 11.5196 9.10546 11.7071 9.293C11.8946 9.48054 12 9.73489 12 10.0001C12 10.2653 11.8946 10.5197 11.7071 10.7072C11.5196 10.8947 11.2652 11.0001 11 11.0001ZM12 0.830107V3.17011C11.9747 3.41163 11.8559 3.63366 11.669 3.78876C11.4822 3.94386 11.2421 4.01971 11 4.00011H5C4.75795 4.01971 4.51783 3.94386 4.33097 3.78876C4.14411 3.63366 4.02532 3.41163 4 3.17011V0.830107C4.02532 0.588587 4.14411 0.366551 4.33097 0.211455C4.51783 0.0563582 4.75795 -0.019495 5 0.000107119H11C11.2421 -0.019495 11.4822 0.0563582 11.669 0.211455C11.8559 0.366551 11.9747 0.588587 12 0.830107Z"/></svg>
+            </div>
+            <span>Заказы</span>
+        </div>
+        <div class="header-item" id="nav-contact">
+            <div class="header-icon">
+                 <!-- SVG Связь -->
+                <svg viewBox="0 0 22 22"><path d="M17 0H5C3.67441 0.00158786 2.40356 0.528882 1.46622 1.46622C0.528882 2.40356 0.00158786 3.67441 0 5V13C0.00145452 14.1522 0.40009 15.2687 1.12872 16.1613C1.85735 17.0538 2.87141 17.6679 4 17.9V21C3.99997 21.181 4.0491 21.3587 4.14213 21.514C4.23516 21.6693 4.36861 21.7965 4.52823 21.8819C4.68786 21.9673 4.86769 22.0078 5.04852 21.999C5.22935 21.9902 5.4044 21.9325 5.555 21.832L11.3 18H17C18.3256 17.9984 19.5964 17.4711 20.5338 16.5338C21.4711 15.5964 21.9984 14.3256 22 13V5C21.9984 3.67441 21.4711 2.40356 20.5338 1.46622C19.5964 0.528882 18.3256 0.00158786 17 0ZM15 12H7C6.73478 12 6.48043 11.8946 6.29289 11.7071C6.10536 11.5196 6 11.2652 6 11C6 10.7348 6.10536 10.4804 6.29289 10.2929C6.48043 10.1054 6.73478 10 7 10H15C15.2652 10 15.5196 10.1054 15.7071 10.2929C15.8946 10.4804 16 10.7348 16 11C16 11.2652 15.8946 11.5196 15.7071 11.7072C15.5196 11.8946 15.2652 12 15 12ZM17 8H5C4.73478 8 4.48043 7.89464 4.29289 7.70711C4.10536 7.51957 4 7.26522 4 7C4 6.73478 4.10536 6.48043 4.29289 6.29289C4.48043 6.10536 4.73478 6 5 6H17C17.2652 6 17.5196 6.10536 17.7071 6.29289C17.8946 6.48043 18 6.73478 18 7C18 7.26522 17.8946 7.51957 17.7071 7.70711C17.5196 7.89464 17.2652 8 17 8Z"/></svg>
+            </div>
+            <span>Связь</span>
+        </div>
+        <div class="header-item" id="nav-info">
+            <div class="header-icon">
+                 <!-- SVG Инфо (иконка 'i') -->
+                 <svg viewBox="0 0 22 22"><path d="M11 0C4.92487 0 0 4.92487 0 11C0 17.0751 4.92487 22 11 22C17.0751 22 22 17.0751 22 11C22 4.92487 17.0751 0 11 0ZM11 18C10.4477 18 10 17.5523 10 17V10C10 9.44772 10.4477 9 11 9C11.5523 9 12 9.44772 12 10V17C12 17.5523 11.5523 18 11 18ZM11 6C10.1716 6 9.5 5.32843 9.5 4.5C9.5 3.67157 10.1716 3 11 3C11.8284 3 12.5 3.67157 12.5 4.5C12.5 5.32843 11.8284 6 11 6Z"/></svg>
+            </div>
+            <span>Инфо</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Основные категории (ПК/Девайсы) -->
+        <div class="main-categories">
+            <div class="main-category-tab active" data-category-type="pc">
+                <span>ИГРОВЫЕ ПК</span>
+                <!-- SVG стрелка -->
+                <svg viewBox="0 0 10 7"><path d="M1 1L5 5L9 1"/></svg>
+            </div>
+            <div class="main-category-tab" data-category-type="devices">
+                <span>ДЕВАЙСЫ</span>
+                <!-- SVG стрелка -->
+                <svg viewBox="0 0 10 7"><path d="M1 1L5 5L9 1"/></svg>
+            </div>
+        </div>
+
+        <!-- Контейнер для подкатегорий (будет показан для Девайсов) -->
+        <div class="sub-categories hidden" id="subCategoriesContainer">
+            <!-- Сюда будут добавляться кнопки подкатегорий JS-ом -->
+            <!-- Пример: <div class="sub-category-item active" data-category-id="1">Игровые мыши</div> -->
+        </div>
+
+        <!-- Заголовок для лучших предложений (появляется для ПК) -->
+        <h2 class="section-title hidden" id="sectionTitle">НАШИ ЛУЧШИЕ ПРЕДЛОЖЕНИЯ</h2>
+
+        <!-- Сетка для товаров -->
+        <div class="products-grid" id="productsGrid">
+            <!-- Заглушка/Loader -->
+            <div class="loader-container">
+                 <div class="loader"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контейнер для Корзины (фиксированный) -->
+    <div class="cart-summary" id="cartSummary">
+        <div class="cart-info">
+            <span id="cartCount">Товаров: 0</span>
+            <span id="cartTotal" class="cart-total">0 ₽</span>
+        </div>
+        <!-- Кнопка в корзине, дублирует MainButton ТГ -->
+        <button class="checkout-button" id="checkoutButton" disabled>Оформить заказ</button>
+    </div>
+
+    <!-- Модальное окно для деталей продукта -->
+    <div id="productModal" class="modal"> <!-- Добавлен класс modal -->
+        <div class="modal-content">
+            <span class="modal-close-button" id="closeModalButton">&times;</span>
+            <img id="modalProductImage" src="" alt="Product Image">
+            <h2 id="modalProductName">Название товара</h2>
+            <p id="modalProductSpecs">Характеристики...</p>
+            <div class="modal-advantages hidden" id="modalAdvantagesContainer">
+                 <h3>ПРЕИМУЩЕСТВА:</h3>
+                 <div class="advantages-grid" id="advantagesGrid">
+                     <!-- Сюда JS добавит иконки преимуществ -->
+                     <!-- Пример:
+                     <div class="advantage-item">
+                         <div class="advantage-icon"> SVG </div>
+                         <span class="advantage-text">Бесплатная сборка</span>
+                     </div>
+                     -->
+                 </div>
+             </div>
+            <p id="modalProductDescription">Описание...</p>
+            <div>
+                 <span id="modalProductPrice">0 ₽</span>
+                 <span id="modalProductOriginalPrice" class="hidden">0 ₽</span>
+            </div>
+            <button id="modalAddToCartButton">В корзину</button>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Инициализация Telegram WebApp ---
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        tg.enableClosingConfirmation(); // Запрос подтверждения при закрытии, если нужно
+
+        // --- Настройка цветов интерфейса Telegram под нашу тему ---
+        function applyThemeColors() {
+            try {
+                const rootStyles = getComputedStyle(document.documentElement);
+                const headerColor = rootStyles.getPropertyValue('--bg-secondary').trim(); // Шапка ТГ как фон элементов
+                const bgColor = rootStyles.getPropertyValue('--bg-primary').trim(); // Фон ТГ как основной фон
+                tg.setHeaderColor(headerColor || '#2c2c2c');
+                tg.setBackgroundColor(bgColor || '#1a1a1a');
+                console.log("TG Theme colors applied:", { headerColor, bgColor });
+            } catch(e) {
+                 console.error("Error applying TG theme colors:", e);
+            }
+        }
+        applyThemeColors();
+        tg.onEvent('themeChanged', applyThemeColors); // Слушаем изменения темы
+
+        // --- Глобальные переменные ---
+        let allCategories = []; // [{ id, name, type ('pc'/'device') }]
+        let allProducts = [];   // [{ id, categoryId, name, price, specs, description, image, originalPrice?, tag?, advantages? }]
+        let cart = {};          // { productId: { productId, name, price, quantity } }
+        let currentMainCategoryType = 'pc'; // 'pc' или 'devices'
+        let currentSubCategoryId = null;    // ID активной подкатегории (для 'devices')
+        const PC_CATEGORY_NAME = "ИГРОВЫЕ ПК"; // Имя основной категории ПК (для фильтрации)
+
+        // --- Элементы DOM ---
+        const productsGrid = document.getElementById('productsGrid');
+        const cartSummary = document.getElementById('cartSummary');
+        const cartCount = document.getElementById('cartCount');
+        const cartTotal = document.getElementById('cartTotal');
+        const checkoutButton = document.getElementById('checkoutButton'); // Кнопка внизу
+        const mainCategoryTabs = document.querySelectorAll('.main-category-tab');
+        const subCategoriesContainer = document.getElementById('subCategoriesContainer');
+        const sectionTitle = document.getElementById('sectionTitle');
+        const modal = document.getElementById('productModal');
+        const closeModalButton = document.getElementById('closeModalButton');
+        // Элементы модального окна
+        const modalImage = document.getElementById('modalProductImage');
+        const modalName = document.getElementById('modalProductName');
+        const modalSpecs = document.getElementById('modalProductSpecs');
+        const modalDescription = document.getElementById('modalProductDescription');
+        const modalPrice = document.getElementById('modalProductPrice');
+        const modalOriginalPrice = document.getElementById('modalProductOriginalPrice');
+        const modalAddToCartButton = document.getElementById('modalAddToCartButton');
+        const modalAdvantagesContainer = document.getElementById('modalAdvantagesContainer');
+        const advantagesGrid = document.getElementById('advantagesGrid');
+
+        // --- Функции ---
+
+        // Форматирование цены
+        function formatPrice(price) {
+            // Проверка, что price - число
+            const numPrice = Number(price);
+            if (isNaN(numPrice)) {
+                console.warn("Invalid price for formatting:", price);
+                return '0 ₽';
+            }
+            return numPrice.toLocaleString('ru-RU') + ' ₽';
+        }
+
+        // Показ/скрытие лоадера в сетке
+        function showLoader(show = true) {
+            if (show) {
+                productsGrid.innerHTML = `
+                    <div class="loader-container">
+                        <div class="loader"></div>
+                    </div>`;
+            } else {
+                const loaderContainer = productsGrid.querySelector('.loader-container');
+                if (loaderContainer) {
+                    loaderContainer.remove();
+                }
+            }
+        }
+
+        // Показ сообщения об ошибке в сетке
+        function showErrorMessage(message) {
+            productsGrid.innerHTML = `<p class="error-message">${message}</p>`;
+        }
+        // Показ сообщения об отсутствии товаров
+        function showEmptyMessage(message = "Товары отсутствуют") {
+             productsGrid.innerHTML = `<p class="empty-message">${message}</p>`;
+        }
+
+        // Отображение товаров
+        function displayProducts(products) {
+            showLoader(false);
+            productsGrid.innerHTML = ''; // Очищаем сетку перед рендерингом
+
+            if (!products || products.length === 0) {
+                showEmptyMessage(currentMainCategoryType === 'pc' ? "Игровые ПК не найдены" : "Девайсы в этой категории отсутствуют");
+                return;
+            }
+
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.dataset.productId = product.id;
+
+                const imageSrc = product.image || 'images/placeholder.png';
+                const tagHtml = product.tag ? `<div class="product-tag">${product.tag}</div>` : '';
+                const originalPriceHtml = product.originalPrice && product.originalPrice > product.price
+                    ? `<span class="product-original-price">${formatPrice(product.originalPrice)}</span>`
+                    : '';
+
+                card.innerHTML = `
+                    <div class="product-image-wrapper">
+                        ${tagHtml}
+                        <img src="${imageSrc}" alt="${product.name}" class="product-image" onerror="this.onerror=null; this.src='images/placeholder.png';">
+                    </div>
+                    <div class="product-content">
+                        <div>
+                             <div class="product-name">${product.name || 'Без названия'}</div>
+                            <div class="product-specs">${product.specs || ''}</div>
+                        </div>
+                        <div>
+                             <div class="product-price-container">
+                                 <span class="product-current-price">${formatPrice(product.price)}</span>
+                                 ${originalPriceHtml}
+                             </div>
+                             <button class="product-add-button" data-product-id="${product.id}">В корзину</button>
+                         </div>
+                    </div>
+                `;
+                // Обработчик клика на карточку (открытие модалки)
+                card.addEventListener('click', (e) => {
+                    // Открываем модалку только если клик не по кнопке
+                    if (!e.target.classList.contains('product-add-button')) {
+                         openProductModal(product.id);
+                    }
+                });
+                // Обработчик клика на кнопку "В корзину"
+                card.querySelector('.product-add-button').addEventListener('click', (e) => {
+                    e.stopPropagation(); // Предотвращаем открытие модалки
+                    addToCart(product.id);
+                });
+
+                productsGrid.appendChild(card);
+            });
+        }
+
+        // Отображение подкатегорий
+        function displaySubCategories(categories) {
+            subCategoriesContainer.innerHTML = ''; // Очищаем
+            if (categories && categories.length > 0) {
+                 // Кнопка "Все девайсы"
+                const allButton = document.createElement('div');
+                allButton.className = 'sub-category-item' + (currentSubCategoryId === null ? ' active' : '');
+                allButton.textContent = 'Все девайсы';
+                allButton.dataset.categoryId = 'all';
+                allButton.addEventListener('click', () => handleSubCategoryClick(null, allButton));
+                subCategoriesContainer.appendChild(allButton);
+
+                // Остальные подкатегории
+                categories.forEach(cat => {
+                     const button = document.createElement('div');
+                     button.className = 'sub-category-item' + (currentSubCategoryId === cat.id ? ' active' : '');
+                     button.textContent = cat.name;
+                     button.dataset.categoryId = cat.id;
+                     button.addEventListener('click', () => handleSubCategoryClick(cat.id, button));
+                     subCategoriesContainer.appendChild(button);
+                });
+                subCategoriesContainer.classList.remove('hidden'); // Показываем блок
+            } else {
+                 subCategoriesContainer.classList.add('hidden'); // Скрываем, если нет подкатегорий
+            }
+        }
+
+        // Клик на подкатегорию
+        function handleSubCategoryClick(categoryId, clickedButton) {
+            // Если кликнули на уже активную категорию, ничего не делаем
+            if (currentSubCategoryId === categoryId) return;
+
+            currentSubCategoryId = categoryId;
+
+            // Обновляем активный класс для кнопок
+            document.querySelectorAll('#subCategoriesContainer .sub-category-item').forEach(btn => {
+                 btn.classList.remove('active');
+            });
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            } else { // Если categoryId === null (клик на "Все")
+                 const allButton = document.querySelector('#subCategoriesContainer .sub-category-item[data-category-id="all"]');
+                 if (allButton) allButton.classList.add('active');
+            }
+
+            // Фильтруем и отображаем продукты
+            filterAndDisplayProducts();
+        }
+
+        // Фильтрация и отображение продуктов
+        function filterAndDisplayProducts() {
+            showLoader(true); // Показываем лоадер на время фильтрации
+            let productsToDisplay = [];
+            const deviceCategories = allCategories.filter(cat => cat.type === 'device'); // Определяем категории девайсов
+
+            if (currentMainCategoryType === 'pc') {
+                 // Ищем ПК категорию
+                const pcCategory = allCategories.find(cat => cat.type === 'pc' || cat.name === PC_CATEGORY_NAME);
+                if (pcCategory) {
+                    productsToDisplay = allProducts.filter(p => p.categoryId === pcCategory.id);
+                } else {
+                     console.warn(`Категория для ПК ('${PC_CATEGORY_NAME}' или type 'pc') не найдена!`);
+                     // Можно показать все товары как запасной вариант, или только те, что не девайсы
+                     const deviceCategoryIds = deviceCategories.map(cat => cat.id);
+                     productsToDisplay = allProducts.filter(p => !deviceCategoryIds.includes(p.categoryId));
+                }
+                 // Показываем заголовок "Лучшие предложения" для ПК
+                 sectionTitle.classList.remove('hidden');
+                 subCategoriesContainer.classList.add('hidden'); // Скрываем подкатегории
+            } else if (currentMainCategoryType === 'devices') {
+                displaySubCategories(deviceCategories); // Показываем подкатегории
+
+                if (currentSubCategoryId === null) { // Показываем все девайсы
+                    const deviceCategoryIds = deviceCategories.map(cat => cat.id);
+                    productsToDisplay = allProducts.filter(p => deviceCategoryIds.includes(p.categoryId));
+                } else { // Показываем товары выбранной подкатегории
+                    productsToDisplay = allProducts.filter(p => p.categoryId === currentSubCategoryId);
+                }
+                sectionTitle.classList.add('hidden'); // Скрываем заголовок для девайсов
+            }
+
+            // Небольшая задержка для имитации загрузки и предотвращения мерцания
+            setTimeout(() => {
+                 displayProducts(productsToDisplay);
+            }, 100); // 100ms задержка
+        }
+
+        // Загрузка данных (категории и продукты)
+        async function fetchData() {
+            showLoader(true);
+            try {
+                // ЗАМЕНИТЕ URL НА ВАШИ РЕАЛЬНЫЕ API ENDPOINTS!
+                const categoriesUrl = '/api/categories'; // Ваш URL для категорий
+                const productsUrl = '/api/products';     // Ваш URL для продуктов
+
+                const [categoriesResponse, productsResponse] = await Promise.all([
+                    fetch(categoriesUrl).then(res => res.ok ? res.json() : Promise.reject(new Error(`Categories API Error: ${res.status}`))),
+                    fetch(productsUrl).then(res => res.ok ? res.json() : Promise.reject(new Error(`Products API Error: ${res.status}`)))
+                ]);
+
+                // Добавляем тип категории для удобства (pc/device)
+                allCategories = categoriesResponse.map(cat => ({
+                    ...cat,
+                    type: cat.name === PC_CATEGORY_NAME ? 'pc' : 'device' // Пример определения типа
+                })) || [];
+                allProducts = productsResponse || [];
+
+                console.log("Categories loaded:", allCategories);
+                console.log("Products loaded:", allProducts);
+
+                // Первоначальное отображение (ПК по умолчанию)
+                currentMainCategoryType = 'pc'; // Убедимся, что начинаем с ПК
+                currentSubCategoryId = null;
+                filterAndDisplayProducts();
+
+            } catch (error) {
+                console.error('Ошибка загрузки данных каталога:', error);
+                showErrorMessage('Не удалось загрузить каталог. Попробуйте позже.');
+                tg.showAlert('Не удалось загрузить каталог. Пожалуйста, попробуйте еще раз.');
+            } finally {
+                 // Лоадер скрывается внутри filterAndDisplayProducts
+            }
+        }
+
+        // --- Логика Корзины ---
+        function addToCart(productId) {
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) return;
+
+            if (cart[productId]) {
+                cart[productId].quantity++;
+            } else {
+                cart[productId] = {
+                    productId: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1
+                };
+            }
+            updateCartSummary();
+            saveCartToLocalStorage();
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function removeFromCart(productId) {
+             // Эта функция пока не используется в интерфейсе, но может понадобиться
+            if (cart[productId]) {
+                cart[productId].quantity--;
+                if (cart[productId].quantity <= 0) {
+                    delete cart[productId];
+                }
+                updateCartSummary();
+                saveCartToLocalStorage();
+                 tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+
+        function updateCartSummary() {
+            const items = Object.values(cart);
+            const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+            const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+            if (totalQuantity > 0) {
+                cartCount.textContent = `Товаров: ${totalQuantity}`;
+                cartTotal.textContent = formatPrice(totalPrice);
+                checkoutButton.disabled = false;
+                cartSummary.style.display = 'flex'; // Показываем корзину
+
+                // Активируем главную кнопку Telegram
+                tg.MainButton.setText(`Оформить (${formatPrice(totalPrice)})`);
+                tg.MainButton.setParams({
+                    text_color: tg.themeParams.button_text_color || '#000000', // Черный текст для желтой кнопки
+                    color: tg.themeParams.button_color || '#FFFF00' // Желтый цвет кнопки
+                });
+                if (!tg.MainButton.isVisible) {
+                    tg.MainButton.show();
+                }
+            } else {
+                cartSummary.style.display = 'none'; // Скрываем корзину
+                checkoutButton.disabled = true;
+                if (tg.MainButton.isVisible) {
+                    tg.MainButton.hide();
+                }
+            }
+        }
+
+        // Оформление заказа (вызывается кнопкой и MainButton)
+        function handleCheckout() {
+            const orderItems = Object.values(cart);
+             if (orderItems.length === 0) {
+                 tg.showAlert('Ваша корзина пуста.');
+                 return;
+             }
+
+            const orderData = {
+                cart: orderItems.map(item => ({
+                    productId: item.productId,
+                    price: item.price,
+                    quantity: item.quantity
+                })),
+                total: orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+                // Можно добавить ID пользователя, если нужно бэкенду
+                // userId: tg.initDataUnsafe?.user?.id
+            };
+
+            console.log("Отправка данных заказа боту:", JSON.stringify(orderData));
+            tg.sendData(JSON.stringify(orderData));
+            // Не очищаем корзину и не закрываем окно здесь,
+            // пусть бот пришлет подтверждение и команду закрыть, если нужно.
+        }
+
+         // --- Логика Модального окна ---
+         function openProductModal(productId) {
+             const product = allProducts.find(p => p.id === productId);
+             if (!product) return;
+
+             modalImage.src = product.image || 'images/placeholder.png';
+             modalImage.onerror = () => { modalImage.src = 'images/placeholder.png'; }; // Заглушка при ошибке
+             modalName.textContent = product.name;
+             modalSpecs.textContent = product.specs || '';
+             modalDescription.textContent = product.description || '';
+             modalPrice.textContent = formatPrice(product.price);
+
+             if (product.originalPrice && product.originalPrice > product.price) {
+                 modalOriginalPrice.textContent = formatPrice(product.originalPrice);
+                 modalOriginalPrice.classList.remove('hidden');
+             } else {
+                 modalOriginalPrice.classList.add('hidden');
+             }
+
+             // Отображение преимуществ (если есть)
+            if (product.advantages && Array.isArray(product.advantages) && product.advantages.length > 0) {
+                advantagesGrid.innerHTML = ''; // Очищаем предыдущие
+                product.advantages.forEach(adv => {
+                    const item = document.createElement('div');
+                    item.className = 'advantage-item';
+                    // Ожидаем, что adv = { icon_svg: "...", text: "..." }
+                    item.innerHTML = `
+                        <div class="advantage-icon">${adv.icon_svg || ''}</div>
+                        <span class="advantage-text">${adv.text || ''}</span>
+                    `;
+                    // Важно: Убедитесь, что SVG в adv.icon_svg безопасен и не содержит вредоносного кода!
+                    advantagesGrid.appendChild(item);
+                });
+                modalAdvantagesContainer.classList.remove('hidden');
+            } else {
+                modalAdvantagesContainer.classList.add('hidden');
+            }
+
+
+             // Обновляем обработчик кнопки добавления в корзину
+             const newModalButton = modalAddToCartButton.cloneNode(true);
+             newModalButton.textContent = "В корзину";
+             modalAddToCartButton.parentNode.replaceChild(newModalButton, modalAddToCartButton); // Заменяем старую кнопку
+             newModalButton.onclick = () => {
+                 addToCart(product.id);
+                 closeModal();
+                 tg.HapticFeedback.impactOccurred('medium');
+             };
+
+             modal.classList.add('show'); // Показываем модальное окно
+             tg.HapticFeedback.impactOccurred('light');
+         }
+
+         function closeModal() {
+             modal.classList.remove('show');
+         }
+
+        // --- Инициализация и обработчики событий ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Загрузка данных
+            fetchData();
+            // Восстановление корзины
+            loadCartFromLocalStorage();
+            updateCartSummary(); // Обновить отображение корзины и кнопки
+
+            // Обработчик кнопки оформления в веб-интерфейсе
+            checkoutButton.addEventListener('click', handleCheckout);
+
+            // Обработчики для табов основных категорий (ПК/Девайсы)
+            mainCategoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const type = tab.dataset.categoryType;
+                    // Не переключаться, если уже активно
+                    if (type === currentMainCategoryType) return;
+
+                    currentMainCategoryType = type;
+                    currentSubCategoryId = null; // Сбрасываем подкатегорию
+
+                    mainCategoryTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    filterAndDisplayProducts();
+                });
+            });
+
+            // Обработчики для навигации в шапке
+            document.getElementById('nav-catalog').addEventListener('click', () => {
+                // Уже в каталоге, ничего не делаем или обновляем?
+                console.log("Клик на Каталог");
+                 // Можно добавить скролл вверх: window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            document.getElementById('nav-orders').addEventListener('click', () => {
+                // Функционал заказов/связи/инфо не реализован в этом WebApp
+                // Отправляем сообщение боту или показываем уведомление
+                console.log("Клик на Заказы");
+                tg.showAlert('Для просмотра заказов используйте команду /start в боте.');
+            });
+            document.getElementById('nav-contact').addEventListener('click', () => {
+                console.log("Клик на Связь");
+                 tg.showAlert('Для связи используйте команду /start в боте.');
+            });
+            document.getElementById('nav-info').addEventListener('click', () => {
+                console.log("Клик на Инфо");
+                 tg.showAlert('Для информации используйте команду /start в боте.');
+            });
+
+            // Закрытие модального окна
+            closeModalButton.addEventListener('click', closeModal);
+            modal.addEventListener('click', (event) => {
+                // Закрываем по клику на фон (вне .modal-content)
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+        });
+
+         // --- Сохранение/Загрузка корзины в localStorage ---
+         function saveCartToLocalStorage() {
+             try {
+                 localStorage.setItem('tgWebAppCart', JSON.stringify(cart));
+             } catch (e) {
+                 console.warn("Не удалось сохранить корзину в localStorage:", e);
+             }
+         }
+
+         function loadCartFromLocalStorage() {
+             try {
+                 const savedCart = localStorage.getItem('tgWebAppCart');
+                 if (savedCart) {
+                     cart = JSON.parse(savedCart);
+                     console.log("Корзина восстановлена из localStorage:", cart);
+                 }
+             } catch (e) {
+                 console.warn("Не удалось восстановить корзину из localStorage:", e);
+                 cart = {}; // Сброс в случае ошибки
+             }
+         }
+
+    </script>
+</body>
+</html>

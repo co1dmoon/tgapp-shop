@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAXPC - Магазин компьютеров</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #222222;
+            --bg-header: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --accent-primary: #FFFF00;
+            --accent-red: #ff3a30;
+            --accent-green: #30d158;
+            --border-color: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 0;
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.5;
+            background-image: linear-gradient(to bottom, rgba(50, 50, 50, 0.2) 1px, transparent 1px);
+            background-size: 100% 30px;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        /* Шапка с иконками */
+        .app-header {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 15px 0;
+            background-color: var(--bg-header);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+        
+        .header-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 12px;
+            text-align: center;
+            width: 25%;
+        }
+        
+        .header-item.active {
+            color: var(--accent-primary);
+        }
+        
+        .header-icon {
+            width: 28px;
+            height: 28px;
+            margin-bottom: 5px;
+        }
+
+        /* Основной контент */
+        .main-content {
+            margin-top: 80px;
+            padding: 0 15px;
+        }
+
+        /* Категории (начальный просмотр) */
+        .category-cards {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .category-card {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            cursor: pointer;
+            background-color: var(--bg-tertiary);
+            width: calc(50% - 8px);
+            aspect-ratio: 1/1;
+        }
+        
+        .category-title-row {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+        
+        .category-title {
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .category-arrow {
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            fill: var(--accent-primary);
+        }
+        
+        .category-image {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        /* Категории (табы) */
+        .category-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            display: none;
+        }
+        
+        .category-tab {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: 25px;
+            white-space: nowrap;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+        }
+        
+        .category-tab.active {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-weight: bold;
+        }
+
+        /* Лучшие предложения */
+        .best-offers {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        /* Сетка товаров */
+        .products-container {
+            margin-bottom: 80px;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .product-card {
+            background-color: var(--bg-tertiary);
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-image-container {
+            position: relative;
+        }
+        
+        .product-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: var(--text-primary);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 12px;
+            z-index: 2;
+        }
+        
+        .product-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+        }
+        
+        .red-bg {
+            background: radial-gradient(circle at bottom right, rgba(255, 58, 48, 0.6) 0%, transparent 70%);
+        }
+        
+        .green-bg {
+            background: radial-gradient(circle at bottom right, rgba(48, 209, 88, 0.6) 0%, transparent 70%);
+        }
+        
+        .product-image {
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .product-info {
+            padding: 10px;
+        }
+        
+        .product-specs {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--text-primary);
+            margin: 10px 0;
+        }
+        
+        .product-price-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .product-price {
+            color: var(--accent-primary);
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .old-price {
+            color: var(--text-secondary);
+            text-decoration: line-through;
+            font-size: 14px;
+            margin-left: 10px;
+            font-weight: normal;
+        }
+        
+        .product-button {
+            background-color: var(--accent-primary);
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 0;
+            font-weight: bold;
+            font-size: 14px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Корзина */
+        .cart-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--bg-secondary);
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+            z-index: 90;
+        }
+        
+        .cart-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .cart-total {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .cart-count {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .cart-button {
+            background-color: var(--accent-primary);
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 0;
+            font-weight: bold;
+            font-size: 16px;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        /* Модальное окно заказов */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 200;
+            overflow-y: auto;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background-color: var(--bg-secondary);
+            margin: 80px 15px 20px;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .order-list {
+            margin-bottom: 20px;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .order-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .status-pending {
+            background-color: #f7b731;
+            color: #000;
+        }
+        
+        .status-completed {
+            background-color: #30d158;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка с иконками -->
+        <header class="app-header">
+            <div class="header-item active" id="catalog-tab">
+                <img src="catalog.svg" alt="Каталог" class="header-icon">
+                <span>Каталог</span>
+            </div>
+            <div class="header-item" id="orders-tab">
+                <img src="orders.svg" alt="Заказы" class="header-icon">
+                <span>Заказы</span>
+            </div>
+            <div class="header-item" id="message-tab">
+                <img src="message.svg" alt="Связь" class="header-icon">
+                <span>Связь</span>
+            </div>
+            <div class="header-item" id="info-tab">
+                <img src="info.svg" alt="Инфо" class="header-icon">
+                <span>Инфо</span>
+            </div>
+        </header>
+        
+        <!-- Основной контент -->
+        <div class="main-content">
+            <!-- Категории (большие карточки) -->
+            <div class="category-cards" id="category-cards">
+                <div class="category-card" id="pc-card" data-category="pc">
+                    <div class="category-title-row">
+                        <div class="category-title">ИГРОВЫЕ ПК</div>
+                        <svg class="category-arrow" viewBox="0 0 24 24">
+                            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                        </svg>
+                    </div>
+                    <img src="images/default.png" alt="Игровые ПК" class="category-image">
+                </div>
+                
+                <div class="category-card" id="devices-card" data-category="devices">
+                    <div class="category-title-row">
+                        <div class="category-title">ДЕВАЙСЫ</div>
+                        <svg class="category-arrow" viewBox="0 0 24 24">
+                            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                        </svg>
+                    </div>
+                    <img src="images/devices.svg" alt="Девайсы" class="category-image">
+                </div>
+            </div>
+            
+            <!-- Категории (табы, после клика по карточке) -->
+            <div class="category-tabs" id="category-tabs">
+                <button class="category-tab" data-category="pc">ИГРОВЫЕ ПК</button>
+                <button class="category-tab" data-category="devices">ДЕВАЙСЫ</button>
+            </div>
+            
+            <!-- Лучшие предложения (видны сразу при загрузке) -->
+            <div class="best-offers" id="best-offers">
+                <h2 class="section-title">НАШИ ЛУЧШИЕ ПРЕДЛОЖЕНИЯ</h2>
+                <div class="products-grid">
+                    <!-- Карточка товара 1 -->
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <div class="product-bg red-bg"></div>
+                            <div class="product-label">FULL HD</div>
+                            <img src="images/default.png" alt="Игровой ПК" class="product-image">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-specs">
+                                <span>RTX 5070 Ti</span>
+                                <span>i5 13400F</span>
+                            </div>
+                            <div class="product-price-row">
+                                <span class="product-price">99 990 р.</span>
+                                <span class="old-price">109 990 р.</span>
+                            </div>
+                            <button class="product-button" data-id="pc1" data-name="Игровой ПК FULL HD" data-price="99990">В корзину</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Карточка товара 2 -->
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <div class="product-bg green-bg"></div>
+                            <div class="product-label">2K</div>
+                            <img src="images/default.png" alt="Игровой ПК" class="product-image">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-specs">
+                                <span>RTX 5070 Ti</span>
+                                <span>i5 13400F</span>
+                            </div>
+                            <div class="product-price-row">
+                                <span class="product-price">99 990 р.</span>
+                                <span class="old-price">109 990 р.</span>
+                            </div>
+                            <button class="product-button" data-id="pc2" data-name="Игровой ПК 2K" data-price="99990">В корзину</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Контейнер для товаров ПК (отображается после клика по категории) -->
+            <div class="products-container" id="pc-products">
+                <div class="products-grid">
+                    <!-- Карточка товара 1 -->
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <div class="product-bg red-bg"></div>
+                            <div class="product-label">2K</div>
+                            <img src="images/default.png" alt="Игровой ПК" class="product-image">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-specs">
+                                <span>RTX 5070 Ti</span>
+                                <span>i5 13400F</span>
+                            </div>
+                            <div class="product-price-row">
+                                <span class="product-price">99 990 р.</span>
+                                <span class="old-price">109 990 р.</span>
+                            </div>
+                            <button class="product-button" data-id="pc3" data-name="Игровой ПК 2K" data-price="99990">В корзину</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Карточка товара 2 -->
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <div class="product-bg green-bg"></div>
+                            <div class="product-label">2K</div>
+                            <img src="images/default.png" alt="Игровой ПК" class="product-image">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-specs">
+                                <span>RTX 5070 Ti</span>
+                                <span>i5 13400F</span>
+                            </div>
+                            <div class="product-price-row">
+                                <span class="product-price">99 990 р.</span>
+                                <span class="old-price">109 990 р.</span>
+                            </div>
+                            <button class="product-button" data-id="pc4" data-name="Игровой ПК 2K" data-price="99990">В корзину</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Карточка товара 3 -->
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <div class="product-bg green-bg"></div>
+                            <div class="product-label">FULL HD</div>
+                            <img src="images/default.png" alt="Игровой ПК" class="product-image">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-specs">
+                                <span>RTX 5070 Ti</span>
+                                <span>i5 13400F</span>
+                            </div>
+                            <div class="product-price-row">
+                                <span class="product-price">99 990 р.</span>
+                                <span class="old-price">109 990 р.</span>
+                            </div>
+                            <button class="product-button" data-id="pc5" data-name="Игровой ПК FULL HD" data-price="99990">В корзину</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Карточка товара 4 -->
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <div class="product-bg green-bg"></div>
+                            <div class="product-label">2K</div>
+                            <img src="images/default.png" alt="Игровой ПК" class="product-image">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-specs">
+                                <span>RTX 5070 Ti</span>
+                                <span>i5 13400F</span>
+                            </div>
+                            <div class="product-price-row">
+                                <span class="product-price">99 990 р.</span>
+                                <span class="old-price">109 990 р.</span>
+                            </div>
+                            <button class="product-button" data-id="pc6" data-name="Игровой ПК 2K" data-price="99990">В корзину</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Контейнер для девайсов -->
+            <div class="products-container" id="devices-products">
+                <div class="products-grid">
+                    <!-- Карточка устройства 1 -->
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <div class="product-bg red-bg"></div>
+                            <div class="product-label">КЛАВИАТУРА</div>
+                            <img src="images/Клава 3.png" alt="Клавиатура" class="product-image">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-specs">
+                                <span>Механическая</span>
+                                <span>RGB</span>
+                            </div>
+                            <div class="product-price-row">
+                                <span class="product-price">9 990 р.</span>
+                                <span class="old-price">12 990 р.</span>
+                            </div>
+                            <button class="product-button" data-id="kb1" data-name="Механическая клавиатура" data-price="9990">В корзину</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Карточка устройства 2 -->
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <div class="product-bg green-bg"></div>
+                            <div class="product-label">НАУШНИКИ</div>
+                            <img src="images/науш 4.png" alt="Наушники" class="product-image">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-specs">
+                                <span>Беспроводные</span>
+                                <span>7.1</span>
+                            </div>
+                            <div class="product-price-row">
+                                <span class="product-price">7 990 р.</span>
+                                <span class="old-price">8 990 р.</span>
+                            </div>
+                            <button class="product-button" data-id="hp1" data-name="Наушники 7.1" data-price="7990">В корзину</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Карточка устройства 3 -->
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <div class="product-bg red-bg"></div>
+                            <div class="product-label">МЫШЬ</div>
+                            <img src="images/Мышь 4.png" alt="Мышь" class="product-image">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-specs">
+                                <span>Беспроводная</span>
+                                <span>20000 DPI</span>
+                            </div>
+                            <div class="product-price-row">
+                                <span class="product-price">5 990 р.</span>
+                                <span class="old-price">7 990 р.</span>
+                            </div>
+                            <button class="product-button" data-id="ms1" data-name="Игровая мышь" data-price="5990">В корзину</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Корзина -->
+        <div class="cart-container" id="cart-container">
+            <div class="cart-summary">
+                <div class="cart-total">Итого: 0 р.</div>
+                <div class="cart-count">0 товаров</div>
+            </div>
+            <button class="cart-button" id="checkout-button">Оформить заказ</button>
+        </div>
+        
+        <!-- Модальное окно заказов -->
+        <div class="modal" id="orders-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">Мои заказы</div>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="order-list" id="order-list">
+                    <!-- Здесь будут заказы -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Состояние приложения
+        const state = {
+            activeCategory: null,
+            cart: [],
+            orders: []
+        };
+        
+        // Элементы DOM
+        const categoryCards = document.getElementById('category-cards');
+        const categoryTabs = document.getElementById('category-tabs');
+        const bestOffers = document.getElementById('best-offers');
+        const pcCard = document.getElementById('pc-card');
+        const devicesCard = document.getElementById('devices-card');
+        const pcProducts = document.getElementById('pc-products');
+        const devicesProducts = document.getElementById('devices-products');
+        const catalogTab = document.getElementById('catalog-tab');
+        const ordersTab = document.getElementById('orders-tab');
+        const messageTab = document.getElementById('message-tab');
+        const infoTab = document.getElementById('info-tab');
+        const cartContainer = document.getElementById('cart-container');
+        const cartTotal = document.querySelector('.cart-total');
+        const cartCount = document.querySelector('.cart-count');
+        const checkoutButton = document.getElementById('checkout-button');
+        const ordersModal = document.getElementById('orders-modal');
+        const orderList = document.getElementById('order-list');
+        const closeModalButton = document.querySelector('.close-modal');
+        
+        // Добавление обработчиков для категорий
+        pcCard.addEventListener('click', () => selectCategory('pc'));
+        devicesCard.addEventListener('click', () => selectCategory('devices'));
+        
+        // Добавление обработчиков для табов категорий
+        const tabElements = categoryTabs.querySelectorAll('.category-tab');
+        tabElements.forEach(tab => {
+            tab.addEventListener('click', () => selectCategory(tab.dataset.category));
+        });
+        
+        // Выбор активной категории
+        function selectCategory(category) {
+            state.activeCategory = category;
+            
+            // Скрыть карточки категорий и лучшие предложения, показать табы
+            categoryCards.style.display = 'none';
+            bestOffers.style.display = 'none';
+            categoryTabs.style.display = 'flex';
+            
+            // Активировать нужный таб
+            tabElements.forEach(tab => {
+                if (tab.dataset.category === category) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Показать нужные товары
+            if (category === 'pc') {
+                pcProducts.style.display = 'block';
+                devicesProducts.style.display = 'none';
+            } else {
+                pcProducts.style.display = 'none';
+                devicesProducts.style.display = 'block';
+            }
+        }
+        
+        // Работа с корзиной
+        function updateCart() {
+            if (state.cart.length > 0) {
+                let total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                let count = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+                
+                cartTotal.textContent = `Итого: ${formatPrice(total)} р.`;
+                cartCount.textContent = `${count} ${pluralize(count, ['товар', 'товара', 'товаров'])}`;
+                cartContainer.style.display = 'block';
+            } else {
+                cartContainer.style.display = 'none';
+            }
+        }
+        
+        // Добавление товара в корзину
+        function addToCart(event) {
+            const button = event.target;
+            const productId = button.dataset.id;
+            const productName = button.dataset.name;
+            const productPrice = parseInt(button.dataset.price);
+            
+            // Проверить, есть ли товар уже в корзине
+            const existingItem = state.cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                state.cart.push({
+                    id: productId,
+                    name: productName,
+                    price: productPrice,
+                    quantity: 1
+                });
+            }
+            
+            // Изменение текста кнопки на время
+            const originalText = button.textContent;
+            button.textContent = 'Добавлено';
+            button.style.backgroundColor = '#30d158';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.backgroundColor = '';
+            }, 1000);
+            
+            // Обновить корзину
+            updateCart();
+        }
+        
+        // Оформление заказа
+        function checkout() {
+            if (state.cart.length === 0) return;
+            
+            const orderItems = state.cart.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
+            }));
+            
+            const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            const newOrder = {
+                id: Date.now().toString(),
+                date: new Date().toLocaleDateString('ru-RU'),
+                items: orderItems,
+                total: total,
+                status: 'pending'
+            };
+            
+            // Добавление заказа в список
+            state.orders.push(newOrder);
+            
+            // Очистка корзины
+            state.cart = [];
+            updateCart();
+            
+            // Отправка данных в бэкенд (имитация)
+            console.log('Заказ оформлен:', newOrder);
+            
+            // Отправка данных в Telegram
+            tg.sendData(JSON.stringify({
+                action: 'create_order',
+                order: newOrder
+            }));
+            
+            // Показать модальное окно с заказами
+            showOrders();
+        }
+        
+        // Показать список заказов
+        function showOrders() {
+            // Очистка списка
+            orderList.innerHTML = '';
+            
+            if (state.orders.length === 0) {
+                orderList.innerHTML = '<div style="text-align: center; padding: 20px;">У вас пока нет заказов</div>';
+            } else {
+                // Добавление заказов в список
+                state.orders.forEach(order => {
+                    const orderElement = document.createElement('div');
+                    orderElement.className = 'order-item';
+                    
+                    const statusClass = order.status === 'pending' ? 'status-pending' : 'status-completed';
+                    const statusText = order.status === 'pending' ? 'В обработке' : 'Выполнен';
+                    
+                    orderElement.innerHTML = `
+                        <div>
+                            <div>Заказ #${order.id.slice(-4)}</div>
+                            <div style="color: var(--text-secondary);">${order.date}</div>
+                            <span class="order-status ${statusClass}">${statusText}</span>
+                        </div>
+                        <div>
+                            <div style="font-weight: bold; text-align: right;">${formatPrice(order.total)} р.</div>
+                            <div style="color: var(--text-secondary); text-align: right;">${order.items.length} ${pluralize(order.items.length, ['позиция', 'позиции', 'позиций'])}</div>
+                        </div>
+                    `;
+                    
+                    orderList.appendChild(orderElement);
+                });
+            }
+            
+            // Открытие модального окна
+            ordersModal.style.display = 'block';
+        }
+        
+        // Возврат на главную страницу
+        function goHome() {
+            state.activeCategory = null;
+            categoryCards.style.display = 'flex';
+            bestOffers.style.display = 'block';
+            categoryTabs.style.display = 'none';
+            pcProducts.style.display = 'none';
+            devicesProducts.style.display = 'none';
+            setActiveTab(catalogTab);
+        }
+        
+        // Обработчики для кнопок и табов
+        document.querySelectorAll('.product-button').forEach(button => {
+            button.addEventListener('click', addToCart);
+        });
+        
+        catalogTab.addEventListener('click', () => {
+            // Если у нас открыты карточки товаров, возвращаемся к категориям
+            if (state.activeCategory) {
+                goHome();
+            }
+        });
+        
+        ordersTab.addEventListener('click', () => {
+            showOrders();
+            setActiveTab(ordersTab);
+        });
+        
+        messageTab.addEventListener('click', () => {
+            // Имитация открытия чата
+            tg.openTelegramLink('https://t.me/maxxpc_support');
+            setActiveTab(messageTab);
+        });
+        
+        infoTab.addEventListener('click', () => {
+            // Имитация открытия информации
+            console.log('Открытие информации');
+            setActiveTab(infoTab);
+        });
+        
+        checkoutButton.addEventListener('click', checkout);
+        
+        closeModalButton.addEventListener('click', () => {
+            ordersModal.style.display = 'none';
+        });
+        
+        // Установка активного таба
+        function setActiveTab(tab) {
+            [catalogTab, ordersTab, messageTab, infoTab].forEach(t => {
+                t.classList.remove('active');
+            });
+            tab.classList.add('active');
+        }
+        
+        // Вспомогательные функции
+        function formatPrice(price) {
+            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+        
+        function pluralize(count, words) {
+            const cases = [2, 0, 1, 1, 1, 2];
+            return words[(count % 100 > 4 && count % 100 < 20) ? 2 : cases[(count % 10 < 5) ? count % 10 : 5]];
+        }
+        
+        // Инициализация после загрузки страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            // Настройка WebApp
+            tg.enableClosingConfirmation();
+            
+            // Инициализация интерфейса - показать карточки категорий и лучшие предложения
+            categoryCards.style.display = 'flex';
+            bestOffers.style.display = 'block';
+            categoryTabs.style.display = 'none';
+            pcProducts.style.display = 'none';
+            devicesProducts.style.display = 'none';
+            updateCart();
+            
+            // Имитация загрузки заказов
+            state.orders = [
+                {
+                    id: '2023111201',
+                    date: '12.11.2023',
+                    items: [{ name: 'Игровой ПК 2K', price: 99990, quantity: 1 }],
+                    total: 99990,
+                    status: 'completed'
+                },
+                {
+                    id: '2023111502',
+                    date: '15.11.2023',
+                    items: [
+                        { name: 'Игровой ПК FULL HD', price: 99990, quantity: 1 },
+                        { name: 'Клавиатура', price: 9990, quantity: 1 }
+                    ],
+                    total: 109980,
+                    status: 'pending'
+                }
+            ];
+        });
+    </script>
+</body>
+</html> 
