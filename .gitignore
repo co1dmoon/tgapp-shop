@@ -7,3 +7,6 @@ dev.db
 
 public/*
 !public/images/
+
+
+.DS_Store

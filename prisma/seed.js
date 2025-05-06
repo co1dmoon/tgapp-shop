@@ -4,6 +4,12 @@ const prisma = new PrismaClient();
 async function main() {
   try {
     // Создаем категории
+    const category3 = await prisma.category.create({
+      data: {
+        name: 'Девайсы',
+        description: 'Девайсы для игр и работы',
+      },
+    });
     const category1 = await prisma.category.create({
       data: {
         name: 'Игровые ПК',
@@ -18,7 +24,8 @@ async function main() {
       },
     });
 
-    console.log('Категории созданы:', category1, category2);
+
+    console.log('Категории созданы:', category1, category2, category3);
 
     // Создаем товары
     const product1 = await prisma.product.create({
