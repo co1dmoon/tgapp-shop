@@ -1,9 +1,13 @@
+import { useAppContext } from "../store/AppContext";
+import DeviceNavigation from "./components/DeviceNavigation";
 import Navigation from "./components/navigation";
 
 export default function Catalog() {
+  const { selectedCategory } = useAppContext();
   return (
-    <div>
+    <div id="catalog">
       <Navigation />
+      {selectedCategory === 'девайсы' && <DeviceNavigation />}
     </div>
   );
 }

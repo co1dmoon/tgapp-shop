@@ -13,8 +13,10 @@ type AppContextType = {
   sections: typeof NAVIGATION.SECTIONS;
 
   // Управление категориями и продуктами
-  selectedCategoryId: number | null;
-  setSelectedCategoryId: (id: number | null) => void;
+  selectedCategory: 'игровые пк' | 'девайсы' | null;
+  setSelectedCategory: (category: 'игровые пк' | 'девайсы' | null) => void;
+  selectedDeviceCategory: number | null;
+  setSelectedDeviceCategory: (id: number | null) => void;
   selectedProductId: number | null;
   setSelectedProductId: (id: number | null) => void;
 };
@@ -27,23 +29,31 @@ export function AppProvider({ children }: { children: ReactNode; }) {
 
   // Устанавливаем состояния продуктов и категорий на основе текущего раздела
   const currentState = navigation.getCurrentSectionState();
-  const [selectedCategoryId, setSelectedCategoryIdInternal] = useState<number | null>(
-    currentState.selectedCategoryId !== undefined ? currentState.selectedCategoryId : null
+  const [selectedCategory, setSelectedCategoryInternal] = useState<'игровые пк' | 'девайсы' | null>(
+    currentState.selectedCategory !== undefined ? currentState.selectedCategory : null
+  );
+  const [selectedDeviceCategory, setSelectedDeviceCategoryInternal] = useState<number | null>(
+    currentState.selectedDeviceCategory !== undefined ? currentState.selectedDeviceCategory : null
   );
   const [selectedProductId, setSelectedProductIdInternal] = useState<number | null>(
     currentState.selectedProductId !== undefined ? currentState.selectedProductId : null
   );
 
   // Обновляем состояние в навигации при изменении выбранной категории
-  const setSelectedCategoryId = useCallback((id: number | null) => {
-    setSelectedCategoryIdInternal(id);
-    navigation.updateSectionState({ selectedCategoryId: id });
+  const setSelectedCategory = useCallback((category: 'игровые пк' | 'девайсы' | null) => {
+    setSelectedCategoryInternal(category);
+    navigation.updateSectionState({ selectedCategory: category });
   }, [navigation]);
 
   // Обновляем состояние в навигации при изменении выбранного продукта
   const setSelectedProductId = useCallback((id: number | null) => {
     setSelectedProductIdInternal(id);
     navigation.updateSectionState({ selectedProductId: id });
+  }, [navigation]);
+
+  const setSelectedDeviceCategory = useCallback((id: number | null) => {
+    setSelectedDeviceCategoryInternal(id);
+    navigation.updateSectionState({ selectedDeviceCategory: id });
   }, [navigation]);
 
   const value = {
@@ -55,8 +65,10 @@ export function AppProvider({ children }: { children: ReactNode; }) {
     sections: navigation.sections,
 
     // Управление категориями и продуктами
-    selectedCategoryId,
-    setSelectedCategoryId,
+    selectedCategory,
+    setSelectedCategory,
+    selectedDeviceCategory,
+    setSelectedDeviceCategory,
     selectedProductId,
     setSelectedProductId,
   };

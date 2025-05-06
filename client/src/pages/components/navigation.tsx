@@ -1,21 +1,41 @@
+import clsx from "clsx";
 import { MdArrowOutward } from "react-icons/md";
-import { useCategories } from "../../hooks";
 import { useAppContext } from "../../store/AppContext";
 
 export default function Navigation() {
-  const { selectedCategoryId, setSelectedCategoryId } = useAppContext();
-  const { data: categories } = useCategories();
+  const { selectedCategory, setSelectedCategory } = useAppContext();
+
+  const categories = [
+    { id: 'игровые пк', name: 'Игровые ПК', img: '/images/categories/игровые-пк.png' },
+    { id: 'девайсы', name: 'Девайсы', img: '/images/categories/девайсы.png' },
+  ];
 
   return (
     <div className="grid grid-cols-2 gap-4 p-4">
 
       {categories?.map((category) => (
-        <button onClick={() => setSelectedCategoryId(category.id)} key={category.id} className={`${selectedCategoryId === category.id ? 'bg-[#222222]' : 'bg-[#161616]'} rounded-lg text-[12px] py-2 text-white uppercase font-display text-nowrap`}>
-          <div className="flex items-center justify-between pl-2 pr-1 mb-2">
+        <button
+          onClick={() => setSelectedCategory(category.id as 'игровые пк' | 'девайсы')}
+          key={category.id}
+          className={clsx(
+            "rounded-xl text-[12px] py-2 text-white uppercase font-display text-nowrap",
+            { ['bg-[#222222]']: selectedCategory === category.id },
+            { ['bg-[#161616]']: selectedCategory !== category.id }
+          )}
+        >
+          <div className={clsx(
+            "flex items-center pl-2 pr-1",
+            { ['justify-center']: selectedCategory },
+            { ['justify-between']: !selectedCategory }
+          )}>
             <h2 className="text-ellipsis overflow-hidden">{category.name}</h2>
-            <MdArrowOutward className="text-[#ffff00] scale-150 translate-y-[-5px]" size={16} />
+            {!selectedCategory && <MdArrowOutward className="text-[#ffff00] scale-150 translate-y-[-5px]" size={16} />}
           </div>
-          <img src={`/images/categories/${category.name.toLowerCase().replace(/ /g, '-')}.png`} alt={category.name} className="h-[90px] w-auto object-contain mx-auto" />
+          {!selectedCategory && <img
+            src={`/images/categories/${category.name.toLowerCase().replace(/ /g, '-')}.png`}
+            alt={category.name}
+            className="h-[90px] w-auto object-contain mx-auto my-2"
+          />}
         </button>
       ))}
     </div>

@@ -9,6 +9,7 @@ const orderController = require('../controllers/orderController');
 router.get('/categories', async (req, res) => {
   try {
     const categories = await categoryController.getAllCategories();
+    console.log(categories);
     res.json(categories);
   } catch (error) {
     res.status(500).json({ error: 'Ошибка при получении категорий' });

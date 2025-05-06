@@ -8,7 +8,8 @@ export type AppSection = 'catalog' | 'orders' | 'contact' | 'info';
  */
 export type SectionState = {
   // Для каталога
-  selectedCategoryId?: number | null;
+  selectedCategory?: 'игровые пк' | 'девайсы' | null;
+  selectedDeviceCategory?: number | null;
   selectedProductId?: number | null;
 
   // Для заказов
