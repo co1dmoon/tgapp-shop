@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { API_URL } from '../utils/constants';
 
 // Создаем инстанс axios с базовыми настройками
 const API = axios.create({
-  baseURL: 'https://68fc-185-233-203-224.ngrok-free.app',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -31,4 +32,4 @@ API.interceptors.response.use(
   }
 );
 
-export default API; 
+export default API;

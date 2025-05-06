@@ -55,4 +55,7 @@ export interface Order {
   contactEmail?: string | null;
   deliveryAddress?: string | null;
   comments?: string | null;
-} 
+}
+
+// Экспорт типов навигации
+export type { AppSection, NavigationConfig, SectionState } from './navigation';
