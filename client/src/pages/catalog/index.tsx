@@ -1,4 +1,4 @@
-import { useAppContext } from "../store/AppContext";
+import { useAppContext } from "../../store/AppContext";
 import DeviceNavigation from "./components/DeviceNavigation";
 import Navigation from "./components/navigation";
 import ProductCards from "./components/ProductCards";
@@ -8,7 +8,7 @@ export default function Catalog() {
   return (
     <div id="catalog">
       <Navigation />
-      {selectedCategory === 'девайсы' && <DeviceNavigation />}
+      {selectedCategory === "девайсы" && <DeviceNavigation />}
       <ProductCards />
     </div>
   );

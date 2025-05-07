@@ -31,7 +31,6 @@ router.get('/categories/:id', async (req, res) => {
 router.get('/products', async (req, res) => {
   try {
     const { categoryId, categories, bestOffers } = req.query;
-    console.log(categoryId, categories, bestOffers);
     let products;
     if (categoryId) {
       products = await productController.getProductsByCategory(categoryId);

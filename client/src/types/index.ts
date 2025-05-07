@@ -59,3 +59,4 @@ export interface Order {
 
 // Экспорт типов навигации
 export type { AppSection, NavigationConfig, SectionState } from './navigation';
+
