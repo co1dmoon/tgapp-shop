@@ -15,16 +15,42 @@ export function useProducts() {
 /**
  * Хук для получения товаров по категории
  */
-export function useProductsByCategory(categoryId: number | null) {
+export function useProductsByCategory({ category, bestOffers }: { category: 'pc' | number | null, bestOffers: boolean; }) {
   return useQuery<Product[]>({
-    queryKey: ['products', 'category', categoryId],
-    queryFn: () =>
-      categoryId
-        ? productService.getProductsByCategory(categoryId)
-        : productService.getAllProducts(),
-    enabled: categoryId !== undefined, // Запрос выполнится если categoryId определён
+    queryKey: ['products', 'category', category, bestOffers],
+    queryFn: () => {
+      console.log(category, bestOffers);
+      if (bestOffers) {
+        const categories = category === 'pc' ? ['Full HD', '4K', '2K'] : ['игровые мыши', 'клавиатуры', 'наушники', 'мониторы'];
+        return productService.getBestOffersProducts(categories);
+      }
+      if (category === 'pc') {
+        return productService.getProductsByCategories(['Full HD', '4K', '2K']);
+      }
+      if (category === null) {
+        return productService.getAllProducts();
+      }
+
+      return productService.getProductsByCategory(category);
+    },
+    // categoryId !== 'pc'
+    //   ? categoryId ? productService.getProductsByCategory(categoryId) : productService.getAllProducts()
+    //   : productService.getProductsByCategories(['Full HD', '4K', '2K']),
+    enabled: category !== undefined, // Запрос выполнится если categoryId определён
   });
 }
+
+/**
+ * Хук для получения товаров по нескольким категориям
+ */
+export function useProductsByCategories(categories: string[]) {
+  return useQuery<Product[]>({
+    queryKey: ['products', 'categories', categories],
+    queryFn: () => productService.getProductsByCategories(categories),
+    enabled: categories.length > 0, // Запрос выполнится если categories не пустой массив
+  });
+}
+
 
 /**
  * Хук для получения товара по ID

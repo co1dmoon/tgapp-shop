@@ -28,6 +28,35 @@ const getProductsByCategory = async (categoryId) => {
   }
 };
 
+const getProductsByCategories = async (categories) => {
+  try {
+    return await prisma.product.findMany({
+      where: { category: { name: { in: categories } } },
+      include: { category: true },
+    });
+  } catch (error) {
+    console.error(
+      `Ошибка при получении товаров категорий ${categories.join(', ')}:`,
+      error
+    );
+    throw error;
+  }
+  };
+
+const getBestOffersProducts = async (categories) => {
+  try {
+    return await prisma.product.findMany({
+      where: { favoriteRank: { gt: 0 }, category: { name: { in: categories } } },
+      include: { category: true },
+      orderBy: { favoriteRank: 'asc' },
+      take: 10,
+    });
+  } catch (error) {
+    console.error('Ошибка при получении лучших предложений:', error);
+    throw error;
+  }
+};
+
 const createProduct = async (data) => {
   if (typeof data.price === 'string') {
     data.price = parseFloat(data.price);
@@ -91,8 +120,10 @@ const deleteProduct = async (id) => {
 module.exports = {
   getAllProducts,
   getProductsByCategory,
+  getProductsByCategories,
   createProduct,
   getProductById,
   updateProduct,
   deleteProduct,
+  getBestOffersProducts,
 };

@@ -26,6 +26,21 @@ export const productService = {
    */
   getProductById: async (id: number): Promise<Product> => {
     return API.get(`/products/${id}`);
+  },
+
+  /**
+   * Получение товаров по нескольким категориям
+   * @param categories Массив категорий
+   */
+  getProductsByCategories: async (categories: string[]): Promise<Product[]> => {
+    return API.get('/products', { params: { categories } });
+  },
+
+  /**
+   * Получение лучших предложений
+   */
+  getBestOffersProducts: async (categories: string[]): Promise<Product[]> => {
+    return API.get('/products', { params: { bestOffers: true, categories } });
   }
 };
 

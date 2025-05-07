@@ -1,5 +1,5 @@
 // API URL
-export const API_URL = 'https://1091-185-233-203-224.ngrok-free.app/api';
+export const API_URL = 'http://localhost:3001/api';
 
 // Настройки для localStorage
 export const LOCAL_STORAGE_KEYS = {

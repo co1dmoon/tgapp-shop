@@ -9,7 +9,6 @@ const orderController = require('../controllers/orderController');
 router.get('/categories', async (req, res) => {
   try {
     const categories = await categoryController.getAllCategories();
-    console.log(categories);
     res.json(categories);
   } catch (error) {
     res.status(500).json({ error: 'Ошибка при получении категорий' });
@@ -31,11 +30,15 @@ router.get('/categories/:id', async (req, res) => {
 // API для товаров
 router.get('/products', async (req, res) => {
   try {
-    const { categoryId } = req.query;
+    const { categoryId, categories, bestOffers } = req.query;
+    console.log(categoryId, categories, bestOffers);
     let products;
-
     if (categoryId) {
       products = await productController.getProductsByCategory(categoryId);
+    } else if (bestOffers) {
+      products = await productController.getBestOffersProducts(categories);
+    } else if (categories) {
+      products = await productController.getProductsByCategories(categories);
     } else {
       products = await productController.getAllProducts();
     }

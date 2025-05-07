@@ -1,0 +1,35 @@
+import { useAppContext } from "../../store/AppContext";
+import type { Product } from "../../types";
+import { formatPrice } from "../../utils/formatters";
+
+
+
+export default function DeviceProductCard({ product }: { product: Product; }) {
+  const { setSelectedProductId } = useAppContext();
+
+  return (
+    <div
+      onClick={() => setSelectedProductId(product.id)}
+      key={product.id}
+      className="rounded-xl text-[12px] bg-[#161616] text-white font-display text-nowrap"
+    >
+      <img
+        src={product.image ?? `/images/device-categories/мониторы.png`}
+        alt={product.name}
+        className="w-full h-auto object-contain mx-auto rounded-xl bg-[#2F2F2F]"
+      />
+      <div className="flex flex-col items-start px-1 overflow-hidden text-ellipsis">
+        <h2 className="font-primary mt-2 text-[16px] text-left font-thin whitespace-nowrap overflow-hidden text-ellipsis w-full">{product.name}</h2>
+        <p className="flex items-center gap-1">
+          <span className="font-display text-[14px] uppercase text-[#ffff00]">
+            {formatPrice(product.price)}
+          </span>
+          <span className="font-display text-[10px] uppercase text-[#888888] line-through">
+            {formatPrice(product.price)}
+          </span>
+        </p>
+        <button className="font-display text-[10px] uppercase text-black bg-[#ffff00] rounded-full py-2 flex items-center justify-center w-[95%] my-2">В корзину</button>
+      </div>
+    </div>
+  );
+}

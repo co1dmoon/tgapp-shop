@@ -26,18 +26,19 @@ model Category {
 }
 
 model Product {
-  id          Int         @id @default(autoincrement())
-  name        String
-  price       Float
-  description String?
-  specs       String?
-  image       String? // Путь к изображению
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  inStock     Boolean     @default(true)
-  categoryId  Int
-  category    Category    @relation(fields: [categoryId], references: [id])
-  orderItems  OrderItem[]
+  id           Int         @id @default(autoincrement())
+  name         String
+  price        Float
+  description  String?
+  specs        String?
+  image        String? // Путь к изображению
+  favoriteRank Int?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  inStock      Boolean     @default(true)
+  categoryId   Int
+  category     Category    @relation(fields: [categoryId], references: [id])
+  orderItems   OrderItem[]
 
   @@map("products")
 }

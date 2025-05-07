@@ -11,7 +11,7 @@ export function useNavigation() {
 
   // Состояние для каждого раздела
   const [sectionStates, setSectionStates] = useState<Record<AppSection, SectionState>>({
-    catalog: { selectedCategoryId: null, selectedProductId: null },
+    catalog: { selectedCategory: null, selectedDeviceCategory: null, selectedProductId: null },
     orders: { selectedOrderId: null },
     contact: { scrollPosition: 0 },
     info: { scrollPosition: 0 }
