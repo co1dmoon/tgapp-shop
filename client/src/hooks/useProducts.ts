@@ -19,7 +19,6 @@ export function useProductsByCategory({ category, bestOffers }: { category: 'pc'
   return useQuery<Product[]>({
     queryKey: ['products', 'category', category, bestOffers],
     queryFn: () => {
-      console.log(category, bestOffers);
       if (bestOffers) {
         const categories = category === 'pc' ? ['Full HD', '4K', '2K'] : ['игровые мыши', 'клавиатуры', 'наушники', 'мониторы'];
         return productService.getBestOffersProducts(categories);

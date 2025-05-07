@@ -3,7 +3,8 @@ import { MdArrowOutward } from "react-icons/md";
 import { useAppContext } from "../../../store/AppContext";
 
 export default function Navigation() {
-  const { selectedCategory, setSelectedCategory } = useAppContext();
+  const { selectedCategory, setSelectedCategory, selectedProductId } =
+    useAppContext();
 
   const categories = [
     {
@@ -13,6 +14,11 @@ export default function Navigation() {
     },
     { id: "девайсы", name: "Девайсы", img: "/images/categories/девайсы.png" },
   ];
+
+  console.log(selectedProductId);
+  if (selectedProductId) {
+    return null;
+  }
 
   return (
     <div className="grid grid-cols-2 gap-4 p-4">

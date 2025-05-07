@@ -1,6 +1,6 @@
 import { useAppContext } from "../../../store/AppContext";
 import type { Product } from "../../../types";
-import { formatPrice } from "../../../utils/formatters";
+import { formatPrice, formatPriceWithTax } from "../../../utils/formatters";
 
 export default function ProductCard({ product }: { product: Product }) {
   const { setSelectedProductId, selectedCategory } = useAppContext();
@@ -9,7 +9,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const allSpecs: Record<string, string> = JSON.parse(product.specs ?? "{}");
 
-  const specs = [allSpecs["видеокарта"], allSpecs["процессор"]];
+  const specs = [allSpecs["Видеокарта"], allSpecs["Процессор"]];
 
   const specsList = specs?.map((spec, index) => {
     return (
@@ -47,7 +47,7 @@ export default function ProductCard({ product }: { product: Product }) {
             {formatPrice(product.price)}
           </span>
           <span className="font-display text-[10px] uppercase text-[#888888] line-through">
-            {formatPrice(product.price)}
+            {formatPriceWithTax(product.price)}
           </span>
         </p>
         <button className="font-display text-[10px] uppercase text-black bg-[#ffff00] rounded-full py-2 flex items-center justify-center w-[95%] my-2 mx-auto">

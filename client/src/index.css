@@ -7,3 +7,10 @@
   --font-display: 'Unbounded', sans-serif;
   --font-primary: "Montserrat", sans-serif;
 }
+
+
+.bg {
+  background-image: url('/images/bg.png');
+  background-size: contain;
+  background-repeat: repeat;
+}

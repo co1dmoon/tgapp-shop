@@ -6,11 +6,12 @@ import ProductCardSkeleton from "./skeletons/ProductCardSkeleton";
 export default function ProductCards() {
   const { selectedDeviceCategory, selectedCategory } = useAppContext();
 
-  const category = !selectedCategory
-    ? "pc"
-    : !selectedDeviceCategory
-    ? null
-    : selectedDeviceCategory;
+  const category =
+    !selectedCategory || selectedCategory === "игровые пк"
+      ? "pc"
+      : !selectedDeviceCategory
+      ? null
+      : selectedDeviceCategory;
 
   const bestOffers =
     !selectedCategory ||
@@ -20,8 +21,6 @@ export default function ProductCards() {
     category,
     bestOffers,
   });
-
-  console.log(products);
 
   if (isLoading) {
     return (

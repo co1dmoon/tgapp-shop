@@ -9,6 +9,17 @@ export function formatPrice(price: number, currencySymbol = '₽'): string {
 }
 
 /**
+ * Форматирует цену с добавлением налога 10% и форматирует в нужный формат
+ * @param price Цена в числовом формате без налога
+ * @param currencySymbol Символ валюты (по умолчанию ₽)
+ * @returns Отформатированная строка с ценой, включающей налог
+ */
+export function formatPriceWithTax(price: number, currencySymbol = '₽'): string {
+  const priceWithTax = price * 1.1;
+  return formatPrice(priceWithTax, currencySymbol);
+}
+
+/**
  * Форматирует дату в локальный формат
  * @param dateString Строка с датой или объект Date
  * @returns Отформатированная строка с датой
@@ -34,3 +45,4 @@ export function truncateText(text: string, maxLength = 100): string {
   }
   return text.substring(0, maxLength) + '...';
 } 
+

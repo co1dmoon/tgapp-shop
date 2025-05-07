@@ -6,21 +6,21 @@ import type { AppSection } from './types';
 
 // Компоненты для других страниц
 const Orders = () => (
-  <div className="p-4 bg-black text-white">
+  <div className="p-4 bg-[#111111] text-white">
     <h1 className="text-2xl font-bold mb-4">Ваши заказы</h1>
     <p>История заказов</p>
   </div>
 );
 
 const Contact = () => (
-  <div className="p-4 bg-black text-white">
+  <div className="p-4 bg-[#111111] text-white">
     <h1 className="text-2xl font-bold mb-4">Связаться с нами</h1>
     <p>Контактная информация</p>
   </div>
 );
 
 const Info = () => (
-  <div className="p-4 bg-black text-white">
+  <div className="p-4 bg-[#111111] text-white">
     <h1 className="text-2xl font-bold mb-4">Информация</h1>
     <p>О компании и услугах</p>
   </div>
@@ -31,7 +31,7 @@ const SectionComponents: Record<AppSection, React.FC> = {
   catalog: Catalog,
   orders: Orders,
   contact: Contact,
-  info: Info
+  info: Info,
 };
 
 function Main() {
@@ -49,7 +49,7 @@ function App() {
 
   return (
     <AppProvider>
-      <div className="min-h-screen bg-black text-stone-100 pb-20">
+      <div className="min-h-screen bg-[#111111] bg text-stone-100 pb-20">
         {isInitialized ? (
           <>
             <Header />
