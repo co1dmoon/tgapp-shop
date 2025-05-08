@@ -7,12 +7,11 @@ const orderController = require('../controllers/orderController');
 const adminController = require('../controllers/adminController');
 
 // Получаем URL веб-приложения из переменных окружения
-const webAppUrl = process.env.WEBAPP_URL;
-if (!webAppUrl) {
-  console.error('Ошибка: Переменная окружения WEBAPP_URL не установлена!');
+// const webAppUrl = process.env.WEBAPP_URL;
+// if (!webAppUrl) {
+//   console.error('Ошибка: Переменная окружения WEBAPP_URL не установлена!');
   // Можно установить URL по умолчанию для локальной разработки, если нужно
   // webAppUrl = 'http://localhost:3001/catalog.html';
-}
 
 // Получаем токен бота
 const botToken = process.env.BOT_TOKEN;
@@ -40,7 +39,7 @@ const checkAdmin = async (ctx, next) => {
 };
 
 // Генерация главного меню (с учетом админских прав)
-const getMainMenuKeyboard = async (userId) => {
+const getMainMenuKeyboard = async (userId, webAppUrl) => {
   const isAdmin = await adminController.isAdmin(userId.toString());
   const buttons = [];
 
@@ -57,19 +56,19 @@ const getMainMenuKeyboard = async (userId) => {
 };
 
 // Инициализация бота
-const initBot = async () => {
+const initBot = async (webAppUrl) => {
   try {
-    console.log('[INIT] Инициализация бота...');
+    console.log("[INIT] Инициализация бота...");
     await adminController.initAdminsFromEnv();
-    console.log('[INIT] Администраторы инициализированы.');
+    console.log("[INIT] Администраторы инициализированы.");
 
     // --- Обработчики команд и действий ---
 
     // /start
     bot.start(async (ctx) => {
-      const keyboard = await getMainMenuKeyboard(ctx.from.id);
+      const keyboard = await getMainMenuKeyboard(ctx.from.id, webAppUrl);
       // Можно взять имя пользователя из контекста
-      const userName = ctx.from.first_name || 'Пользователь';
+      const userName = ctx.from.first_name || "Пользователь";
       return ctx.reply(
         `👋 Привет, ${userName}! Добро пожаловать в b.ZONE pc. Выберите действие:`,
         keyboard
@@ -77,17 +76,17 @@ const initBot = async () => {
     });
 
     // /catalog (альтернативный способ открыть каталог)
-    bot.command('catalog', async (ctx) => {
+    bot.command("catalog", async (ctx) => {
       return ctx.reply(
-        'Нажмите кнопку ниже, чтобы открыть каталог:',
+        "Нажмите кнопку ниже, чтобы открыть каталог:",
         Markup.inlineKeyboard([
-          [Markup.button.webApp('🛒 Открыть каталог', webAppUrl)], // Используем webAppUrl
+          [Markup.button.webApp("🛒 Открыть каталог", webAppUrl)], // Используем webAppUrl
         ])
       );
     });
 
     // Обработчик кнопки 'Мои заказы'
-    bot.action('my_orders', async (ctx) => {
+    bot.action("my_orders", async (ctx) => {
       await ctx.answerCbQuery(); // Отвечаем на callback, чтобы убрать 'loading'
       const userId = ctx.from.id.toString();
       const keyboard = await getMainMenuKeyboard(userId);
@@ -96,73 +95,73 @@ const initBot = async () => {
         const orders = await orderController.getUserOrders(userId);
 
         if (!orders || orders.length === 0) {
-          return ctx.editMessageText('У вас пока нет заказов.', keyboard);
+          return ctx.editMessageText("У вас пока нет заказов.", keyboard);
         }
 
-        let response = '<b>Ваши заказы:</b>\n\n';
+        let response = "<b>Ваши заказы:</b>\n\n";
         orders.forEach((order) => {
-          const date = new Date(order.createdAt).toLocaleDateString('ru-RU');
+          const date = new Date(order.createdAt).toLocaleDateString("ru-RU");
           const statusText = getStatusText(order.status);
           response += `<b>Заказ #${order.id}</b> от ${date}\n`;
           response += `Статус: ${statusText}\n`;
-          response += `Сумма: ${order.total.toLocaleString('ru-RU')} ₽\n\n`;
+          response += `Сумма: ${order.total.toLocaleString("ru-RU")} ₽\n\n`;
         });
 
         return ctx.editMessageText(response, {
           ...keyboard,
-          parse_mode: 'HTML',
+          parse_mode: "HTML",
         });
       } catch (error) {
-        console.error('Ошибка при получении заказов:', error);
+        console.error("Ошибка при получении заказов:", error);
         return ctx.editMessageText(
-          'Произошла ошибка при получении ваших заказов. Попробуйте позже.',
+          "Произошла ошибка при получении ваших заказов. Попробуйте позже.",
           keyboard
         );
       }
     });
 
     // Обработчик кнопки 'Связаться с нами'
-    bot.action('contact_us', async (ctx) => {
+    bot.action("contact_us", async (ctx) => {
       await ctx.answerCbQuery();
       const keyboard = await getMainMenuKeyboard(ctx.from.id);
       // Замените на актуальные контакты
       const contactMessage =
-        '<b>Свяжитесь с нами:</b>\n\n' +
+        "<b>Свяжитесь с нами:</b>\n\n" +
         '📱 Телефон: <a href="tel:+7XXXXXXXXXX">+7 (XXX) XXX-XX-XX</a>\n' +
         '📧 Email: <a href="mailto:support@bzone.pc">support@bzone.pc</a>\n' +
         '💬 Telegram: <a href="https://t.me/your_support_contact">@your_support_contact</a>\n' +
         '🌐 Сайт: <a href="https://bzone.pc">bzone.pc</a>';
       return ctx.editMessageText(contactMessage, {
         ...keyboard,
-        parse_mode: 'HTML',
+        parse_mode: "HTML",
       });
     });
 
     // Кнопка Назад в главное меню (из админ панели)
-    bot.action('back_to_menu', async (ctx) => {
+    bot.action("back_to_menu", async (ctx) => {
       await ctx.answerCbQuery();
       const keyboard = await getMainMenuKeyboard(ctx.from.id);
-      return ctx.editMessageText('Главное меню:', keyboard);
+      return ctx.editMessageText("Главное меню:", keyboard);
     });
 
     // --- Обработка данных из Web App ---
-    bot.on('web_app_data', async (ctx) => {
-      console.log('[DEBUG] Получены данные из WebApp:', ctx.webAppData.data);
+    bot.on("web_app_data", async (ctx) => {
+      console.log("[DEBUG] Получены данные из WebApp:", ctx.webAppData.data);
       try {
         const data = JSON.parse(ctx.webAppData.data);
-        console.log('[DEBUG] Данные после JSON.parse:', data);
+        console.log("[DEBUG] Данные после JSON.parse:", data);
 
         // Проверяем наличие необходимых данных
         if (data.cart && Array.isArray(data.cart) && data.total !== undefined) {
-          console.log('[DEBUG] Данные валидны, создаем заказ...');
+          console.log("[DEBUG] Данные валидны, создаем заказ...");
 
           // Формируем данные для создания заказа в БД
           const orderData = {
             userId: ctx.from.id.toString(),
             userName:
-              `${ctx.from.first_name || ''} ${
-                ctx.from.last_name || ''
-              }`.trim() || 'Пользователь Telegram',
+              `${ctx.from.first_name || ""} ${
+                ctx.from.last_name || ""
+              }`.trim() || "Пользователь Telegram",
             total: data.total,
             // Передаем cart как items, убедившись, что формат соответствует ожиданиям контроллера
             items: data.cart.map((item) => ({
@@ -175,24 +174,24 @@ const initBot = async () => {
           };
 
           console.log(
-            '[DEBUG] Данные для orderController.createOrder:',
+            "[DEBUG] Данные для orderController.createOrder:",
             orderData
           );
 
           const order = await orderController.createOrder(orderData);
-          console.log('[DEBUG] Заказ успешно создан в БД:', order);
+          console.log("[DEBUG] Заказ успешно создан в БД:", order);
 
           // Отправляем подтверждение пользователю
           const confirmationMessage =
             `🎉 <b>Заказ #${order.id} успешно оформлен!</b>\n\n` +
-            `Сумма: ${order.total.toLocaleString('ru-RU')} ₽\n\n` +
+            `Сумма: ${order.total.toLocaleString("ru-RU")} ₽\n\n` +
             `Наш менеджер скоро свяжется с вами для подтверждения.`;
 
           // Получаем актуальную клавиатуру
           const keyboard = await getMainMenuKeyboard(ctx.from.id);
           await ctx.reply(confirmationMessage, {
             ...keyboard,
-            parse_mode: 'HTML',
+            parse_mode: "HTML",
           });
 
           // Опционально: Отправка заказа в AmoCRM (если настроено)
@@ -202,21 +201,21 @@ const initBot = async () => {
           //     console.error("[AMOCRM Error] Не удалось отправить заказ в AmoCRM:", amoError);
           // }
         } else {
-          console.warn('[DEBUG] Получены невалидные данные из WebApp:', data);
+          console.warn("[DEBUG] Получены невалидные данные из WebApp:", data);
           await ctx.reply(
-            'Произошла ошибка при обработке данных корзины. Пожалуйста, попробуйте еще раз.'
+            "Произошла ошибка при обработке данных корзины. Пожалуйста, попробуйте еще раз."
           );
         }
       } catch (error) {
-        console.error('[CRITICAL] Ошибка при обработке web_app_data:', error);
+        console.error("[CRITICAL] Ошибка при обработке web_app_data:", error);
         // Уведомляем пользователя об ошибке
         try {
           await ctx.reply(
-            'Произошла критическая ошибка при оформлении заказа. Мы уже работаем над этим. Попробуйте позже.'
+            "Произошла критическая ошибка при оформлении заказа. Мы уже работаем над этим. Попробуйте позже."
           );
         } catch (replyError) {
           console.error(
-            '[CRITICAL] Не удалось отправить сообщение об ошибке пользователю:',
+            "[CRITICAL] Не удалось отправить сообщение об ошибке пользователю:",
             replyError
           );
         }
@@ -227,61 +226,61 @@ const initBot = async () => {
 
     // Вход в админ панель (/admin или кнопка)
     const showAdminPanel = async (ctx) => {
-      return ctx.reply('<b>Панель администратора:</b>', {
-        parse_mode: 'HTML',
+      return ctx.reply("<b>Панель администратора:</b>", {
+        parse_mode: "HTML",
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback('🗂️ Категории', 'admin_categories')],
-          [Markup.button.callback('🖥️ Товары', 'admin_products')],
-          [Markup.button.callback('📦 Заказы', 'admin_orders')],
+          [Markup.button.callback("🗂️ Категории", "admin_categories")],
+          [Markup.button.callback("🖥️ Товары", "admin_products")],
+          [Markup.button.callback("📦 Заказы", "admin_orders")],
           // [Markup.button.callback('👥 Администраторы', 'admin_users')], // Если нужно управление админами
-          [Markup.button.callback('🔙 Назад в гл. меню', 'back_to_menu')],
+          [Markup.button.callback("🔙 Назад в гл. меню", "back_to_menu")],
         ]).reply_markup,
       });
     };
-    bot.command('admin', checkAdmin, showAdminPanel);
-    bot.action('admin_panel', checkAdmin, async (ctx) => {
+    bot.command("admin", checkAdmin, showAdminPanel);
+    bot.action("admin_panel", checkAdmin, async (ctx) => {
       await ctx.answerCbQuery();
       await ctx.deleteMessage(); // Удаляем предыдущее сообщение меню
       await showAdminPanel(ctx);
     });
 
     // --- Управление Категориями ---
-    bot.action('admin_categories', checkAdmin, async (ctx) => {
+    bot.action("admin_categories", checkAdmin, async (ctx) => {
       await ctx.answerCbQuery();
       const categories = await categoryController.getAllCategories();
-      let message = '<b>Управление категориями:</b>\n\n';
+      let message = "<b>Управление категориями:</b>\n\n";
       if (categories.length === 0) {
-        message += 'Категории отсутствуют.';
+        message += "Категории отсутствуют.";
       } else {
         categories.forEach((cat) => {
           message += `• ${cat.name} (ID: ${cat.id})\n`;
         });
       }
       await ctx.editMessageText(message, {
-        parse_mode: 'HTML',
+        parse_mode: "HTML",
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback('➕ Добавить', 'add_category')],
+          [Markup.button.callback("➕ Добавить", "add_category")],
           // Добавить кнопки Редактировать/Удалить, если нужно
-          [Markup.button.callback('🔙 Назад', 'admin_panel')],
+          [Markup.button.callback("🔙 Назад", "admin_panel")],
         ]).reply_markup,
       });
     });
 
-    bot.action('add_category', checkAdmin, async (ctx) => {
+    bot.action("add_category", checkAdmin, async (ctx) => {
       await ctx.answerCbQuery();
-      setState(ctx.from.id, 'wait_category_name');
-      await ctx.reply('Введите название новой категории:');
+      setState(ctx.from.id, "wait_category_name");
+      await ctx.reply("Введите название новой категории:");
     });
 
     // --- Управление Товарами ---
-    bot.action('admin_products', checkAdmin, async (ctx) => {
+    bot.action("admin_products", checkAdmin, async (ctx) => {
       await ctx.answerCbQuery();
       const categories = await categoryController.getAllCategories();
       if (categories.length === 0) {
-        return ctx.editMessageText('Сначала добавьте категории.', {
+        return ctx.editMessageText("Сначала добавьте категории.", {
           reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback('➕ Добавить категорию', 'add_category')],
-            [Markup.button.callback('🔙 Назад', 'admin_panel')],
+            [Markup.button.callback("➕ Добавить категорию", "add_category")],
+            [Markup.button.callback("🔙 Назад", "admin_panel")],
           ]).reply_markup,
         });
       }
@@ -294,12 +293,12 @@ const initBot = async () => {
         keyboardRows.push(buttons.slice(i, i + 2));
       }
       keyboardRows.push([
-        Markup.button.callback('➕ Добавить товар', 'add_product'),
+        Markup.button.callback("➕ Добавить товар", "add_product"),
       ]);
-      keyboardRows.push([Markup.button.callback('🔙 Назад', 'admin_panel')]);
+      keyboardRows.push([Markup.button.callback("🔙 Назад", "admin_panel")]);
 
       await ctx.editMessageText(
-        'Выберите категорию для просмотра/добавления товаров:',
+        "Выберите категорию для просмотра/добавления товаров:",
         {
           reply_markup: { inline_keyboard: keyboardRows },
         }
@@ -315,25 +314,25 @@ const initBot = async () => {
         const category = await categoryController.getCategoryById(catId);
         let message = `<b>Товары в категории "${category.name}":</b>\n\n`;
         if (products.length === 0) {
-          message += 'Товары отсутствуют.';
+          message += "Товары отсутствуют.";
         } else {
           products.forEach((p) => {
             message += `• ${p.name} - ${p.price.toLocaleString(
-              'ru-RU'
+              "ru-RU"
             )} ₽ (ID: ${p.id})\n`;
           });
         }
         await ctx.editMessageText(message, {
-          parse_mode: 'HTML',
+          parse_mode: "HTML",
           reply_markup: Markup.inlineKeyboard([
             [
               Markup.button.callback(
-                '➕ Добавить сюда',
+                "➕ Добавить сюда",
                 `add_product_to_${catId}`
               ),
             ],
             // Добавить кнопки Редактировать/Удалить товар
-            [Markup.button.callback('🔙 К категориям', 'admin_products')],
+            [Markup.button.callback("🔙 К категориям", "admin_products")],
           ]).reply_markup,
         });
       } catch (error) {
@@ -341,19 +340,19 @@ const initBot = async () => {
           `Ошибка при получении товаров категории ${catId}:`,
           error
         );
-        await ctx.editMessageText('Произошла ошибка при получении товаров.');
+        await ctx.editMessageText("Произошла ошибка при получении товаров.");
       }
     });
 
     // Начало добавления нового товара (выбор категории)
-    bot.action('add_product', checkAdmin, async (ctx) => {
+    bot.action("add_product", checkAdmin, async (ctx) => {
       await ctx.answerCbQuery();
       const categories = await categoryController.getAllCategories();
       if (categories.length === 0) {
-        return ctx.editMessageText('Сначала добавьте категории.', {
+        return ctx.editMessageText("Сначала добавьте категории.", {
           reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback('➕ Добавить категорию', 'add_category')],
-            [Markup.button.callback('🔙 Назад', 'admin_products')],
+            [Markup.button.callback("➕ Добавить категорию", "add_category")],
+            [Markup.button.callback("🔙 Назад", "admin_products")],
           ]).reply_markup,
         });
       }
@@ -364,8 +363,8 @@ const initBot = async () => {
       for (let i = 0; i < buttons.length; i += 2) {
         keyboardRows.push(buttons.slice(i, i + 2));
       }
-      keyboardRows.push([Markup.button.callback('🔙 Назад', 'admin_products')]);
-      await ctx.editMessageText('Выберите категорию для нового товара:', {
+      keyboardRows.push([Markup.button.callback("🔙 Назад", "admin_products")]);
+      await ctx.editMessageText("Выберите категорию для нового товара:", {
         reply_markup: { inline_keyboard: keyboardRows },
       });
     });
@@ -381,17 +380,17 @@ const initBot = async () => {
     });
 
     // --- Управление Заказами ---
-    bot.action('admin_orders', checkAdmin, async (ctx) => {
+    bot.action("admin_orders", checkAdmin, async (ctx) => {
       await ctx.answerCbQuery();
       try {
         const orders = await orderController.getAllOrders(); // Получаем все заказы
-        let message = '<b>Управление заказами:</b>\n\n';
+        let message = "<b>Управление заказами:</b>\n\n";
         if (orders.length === 0) {
-          message += 'Заказы отсутствуют.';
+          message += "Заказы отсутствуют.";
           await ctx.editMessageText(message, {
-            parse_mode: 'HTML',
+            parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback('🔙 Назад', 'admin_panel')],
+              [Markup.button.callback("🔙 Назад", "admin_panel")],
             ]).reply_markup,
           });
           return;
@@ -399,12 +398,12 @@ const initBot = async () => {
 
         // Показываем последние 10 (или меньше)
         const recentOrders = orders.slice(-10).reverse(); // Последние и переворачиваем (новые сверху)
-        message += 'Последние заказы:\n';
+        message += "Последние заказы:\n";
         const buttons = recentOrders.map((order) => {
-          const date = new Date(order.createdAt).toLocaleDateString('ru-RU');
+          const date = new Date(order.createdAt).toLocaleDateString("ru-RU");
           const statusText = getStatusText(order.status).replace(
             /<[^>]*>/g,
-            ''
+            ""
           ); // Убираем HTML для кнопки
           return [
             Markup.button.callback(
@@ -414,15 +413,15 @@ const initBot = async () => {
           ];
         });
 
-        buttons.push([Markup.button.callback('🔙 Назад', 'admin_panel')]);
+        buttons.push([Markup.button.callback("🔙 Назад", "admin_panel")]);
 
         await ctx.editMessageText(message, {
-          parse_mode: 'HTML',
+          parse_mode: "HTML",
           reply_markup: { inline_keyboard: buttons },
         });
       } catch (error) {
-        console.error('Ошибка при получении заказов для админа:', error);
-        await ctx.editMessageText('Произошла ошибка при получении заказов.');
+        console.error("Ошибка при получении заказов для админа:", error);
+        await ctx.editMessageText("Произошла ошибка при получении заказов.");
       }
     });
 
@@ -433,22 +432,22 @@ const initBot = async () => {
       try {
         const order = await orderController.getOrderById(orderId);
         if (!order) {
-          return ctx.editMessageText('Заказ не найден.', {
+          return ctx.editMessageText("Заказ не найден.", {
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback('К списку заказов', 'admin_orders')],
+              [Markup.button.callback("К списку заказов", "admin_orders")],
             ]).reply_markup,
           });
         }
 
         let message = `<b>Детали заказа #${order.id}</b>\n\n`;
         message += `Дата: ${new Date(order.createdAt).toLocaleString(
-          'ru-RU'
+          "ru-RU"
         )}\n`;
-        message += `Пользователь: ${order.userName || 'Не указан'} (ID: ${
+        message += `Пользователь: ${order.userName || "Не указан"} (ID: ${
           order.userId
         })\n`;
         message += `Статус: ${getStatusText(order.status)}\n`;
-        message += `Сумма: ${order.total.toLocaleString('ru-RU')} ₽\n\n`;
+        message += `Сумма: ${order.total.toLocaleString("ru-RU")} ₽\n\n`;
 
         // Контактная информация (если есть)
         if (
@@ -474,25 +473,25 @@ const initBot = async () => {
               item.product?.name || `Товар ID ${item.productId}`
             } x ${item.quantity} = ${(
               item.price * item.quantity
-            ).toLocaleString('ru-RU')} ₽\n`;
+            ).toLocaleString("ru-RU")} ₽\n`;
           });
         } else {
-          message += 'Товары не найдены в заказе.\n';
+          message += "Товары не найдены в заказе.\n";
         }
 
         // Кнопки для смены статуса
         const statusButtons = [
-          Markup.button.callback('🆕 Новый', `order_status_${orderId}_new`),
+          Markup.button.callback("🆕 Новый", `order_status_${orderId}_new`),
           Markup.button.callback(
-            '⏳ Обработка',
+            "⏳ Обработка",
             `order_status_${orderId}_processing`
           ),
           Markup.button.callback(
-            '✅ Выполнен',
+            "✅ Выполнен",
             `order_status_${orderId}_completed`
           ),
           Markup.button.callback(
-            '❌ Отменен',
+            "❌ Отменен",
             `order_status_${orderId}_cancelled`
           ),
           // Добавить другие статусы при необходимости
@@ -503,17 +502,17 @@ const initBot = async () => {
           statusKeyboard.push(statusButtons.slice(i, i + 2));
         }
         statusKeyboard.push([
-          Markup.button.callback('🔙 К списку заказов', 'admin_orders'),
+          Markup.button.callback("🔙 К списку заказов", "admin_orders"),
         ]);
 
         await ctx.editMessageText(message, {
-          parse_mode: 'HTML',
+          parse_mode: "HTML",
           reply_markup: { inline_keyboard: statusKeyboard },
         });
       } catch (error) {
         console.error(`Ошибка при получении деталей заказа ${orderId}:`, error);
         await ctx.editMessageText(
-          'Произошла ошибка при получении деталей заказа.'
+          "Произошла ошибка при получении деталей заказа."
         );
       }
     });
@@ -528,20 +527,20 @@ const initBot = async () => {
         await ctx.answerCbQuery(
           `Статус заказа #${orderId} изменен на ${getStatusText(
             newStatus
-          ).replace(/<[^>]*>/g, '')}`
+          ).replace(/<[^>]*>/g, "")}`
         );
         // Обновляем сообщение с деталями заказа
         await bot.actions[`order_${orderId}`](ctx); // Вызываем обработчик деталей заказа заново
       } catch (error) {
         console.error(`Ошибка при изменении статуса заказа ${orderId}:`, error);
-        await ctx.answerCbQuery('Ошибка при изменении статуса!');
+        await ctx.answerCbQuery("Ошибка при изменении статуса!");
         // Можно вернуть пользователя к деталям заказа
         // await bot.actions[`order_${orderId}`](ctx);
       }
     });
 
     // --- Обработка текстовых сообщений (для FSM админки) ---
-    bot.on('text', async (ctx) => {
+    bot.on("text", async (ctx) => {
       const userId = ctx.from.id;
       const state = getState(userId);
       const text = ctx.message.text.trim();
@@ -555,10 +554,10 @@ const initBot = async () => {
       }
 
       // --- FSM для добавления категории ---
-      if (state === 'wait_category_name') {
+      if (state === "wait_category_name") {
         if (text.length < 2 || text.length > 50) {
           return ctx.reply(
-            'Название категории должно быть от 2 до 50 символов. Попробуйте еще раз:'
+            "Название категории должно быть от 2 до 50 символов. Попробуйте еще раз:"
           );
         }
         try {
@@ -572,9 +571,9 @@ const initBot = async () => {
           // Возвращаемся к списку категорий
           await bot.actions.admin_categories(ctx);
         } catch (error) {
-          console.error('Ошибка при создании категории:', error);
+          console.error("Ошибка при создании категории:", error);
           await ctx.reply(
-            'Произошла ошибка при создании категории. Возможно, имя уже занято.'
+            "Произошла ошибка при создании категории. Возможно, имя уже занято."
           );
           // Оставляем состояние, чтобы пользователь мог попробовать снова
         }
@@ -583,51 +582,51 @@ const initBot = async () => {
 
       // --- FSM для добавления товара ---
       // Шаг 1: Получаем имя товара
-      if (state.startsWith('wait_product_name_')) {
-        const catId = parseInt(state.replace('wait_product_name_', ''));
+      if (state.startsWith("wait_product_name_")) {
+        const catId = parseInt(state.replace("wait_product_name_", ""));
         if (text.length < 2 || text.length > 100) {
           return ctx.reply(
-            'Название товара должно быть от 2 до 100 символов. Попробуйте еще раз:'
+            "Название товара должно быть от 2 до 100 символов. Попробуйте еще раз:"
           );
         }
         // Сохраняем имя и переходим к запросу цены
         setState(userId, `wait_product_price_${catId}_${text}`);
         return ctx.reply(
-          'Введите цену товара (только число, например: 99990):'
+          "Введите цену товара (только число, например: 99990):"
         );
       }
 
       // Шаг 2: Получаем цену товара
-      if (state.startsWith('wait_product_price_')) {
-        const parts = state.replace('wait_product_price_', '').split('_');
+      if (state.startsWith("wait_product_price_")) {
+        const parts = state.replace("wait_product_price_", "").split("_");
         const catId = parseInt(parts[0]);
-        const productName = parts.slice(1).join('_'); // Восстанавливаем имя, если в нем были подчеркивания
+        const productName = parts.slice(1).join("_"); // Восстанавливаем имя, если в нем были подчеркивания
 
-        const priceText = text.replace(/\s/g, '').replace(',', '.');
+        const priceText = text.replace(/\s/g, "").replace(",", ".");
         const price = parseFloat(priceText);
 
         if (isNaN(price) || price <= 0) {
           return ctx.reply(
-            'Некорректная цена. Введите положительное число (например: 99990):'
+            "Некорректная цена. Введите положительное число (например: 99990):"
           );
         }
         // Сохраняем цену и переходим к запросу характеристик
         setState(userId, `wait_product_specs_${catId}_${productName}_${price}`);
         return ctx.reply(
-          'Введите краткие характеристики товара (например: CPU, GPU, RAM, SSD):'
+          "Введите краткие характеристики товара (например: CPU, GPU, RAM, SSD):"
         );
       }
 
       // Шаг 3: Получаем характеристики
-      if (state.startsWith('wait_product_specs_')) {
-        const parts = state.replace('wait_product_specs_', '').split('_');
+      if (state.startsWith("wait_product_specs_")) {
+        const parts = state.replace("wait_product_specs_", "").split("_");
         const catId = parseInt(parts[0]);
         const price = parseFloat(parts[parts.length - 1]);
-        const productName = parts.slice(1, -1).join('_'); // Имя между ID категории и ценой
+        const productName = parts.slice(1, -1).join("_"); // Имя между ID категории и ценой
         const specs = text;
         if (specs.length < 5 || specs.length > 255) {
           return ctx.reply(
-            'Характеристики должны быть от 5 до 255 символов. Попробуйте еще раз:'
+            "Характеристики должны быть от 5 до 255 символов. Попробуйте еще раз:"
           );
         }
         // Сохраняем характеристики и переходим к запросу описания
@@ -639,13 +638,13 @@ const initBot = async () => {
       }
 
       // Шаг 4: Получаем описание
-      if (state.startsWith('wait_product_description_')) {
-        const parts = state.replace('wait_product_description_', '').split('_');
+      if (state.startsWith("wait_product_description_")) {
+        const parts = state.replace("wait_product_description_", "").split("_");
         const catId = parseInt(parts[0]);
         const price = parseFloat(parts[parts.length - 2]);
         const specs = parts[parts.length - 1];
-        const productName = parts.slice(1, -2).join('_');
-        const description = text === '-' ? null : text;
+        const productName = parts.slice(1, -2).join("_");
+        const description = text === "-" ? null : text;
         // Переходим к запросу URL изображения
         setState(
           userId,
@@ -657,18 +656,18 @@ const initBot = async () => {
       }
 
       // Шаг 5: Получаем URL изображения и создаем товар
-      if (state.startsWith('wait_product_image_')) {
-        const parts = state.replace('wait_product_image_', '').split('_');
+      if (state.startsWith("wait_product_image_")) {
+        const parts = state.replace("wait_product_image_", "").split("_");
         const catId = parseInt(parts[0]);
         const description =
-          parts[parts.length - 1] === 'null' ? null : parts[parts.length - 1];
+          parts[parts.length - 1] === "null" ? null : parts[parts.length - 1];
         const specs = parts[parts.length - 2];
         const price = parseFloat(parts[parts.length - 3]);
-        const productName = parts.slice(1, -3).join('_');
-        const imageUrl = text === '-' ? null : text;
+        const productName = parts.slice(1, -3).join("_");
+        const imageUrl = text === "-" ? null : text;
 
         // Проверка URL (очень базовая)
-        if (imageUrl && !imageUrl.startsWith('http')) {
+        if (imageUrl && !imageUrl.startsWith("http")) {
           return ctx.reply(
             'Некорректный URL изображения. Должен начинаться с http/https. Попробуйте снова или введите "-":'
           );
@@ -691,9 +690,9 @@ const initBot = async () => {
           // Возвращаемся к списку товаров этой категории
           await bot.actions[`products_cat_${catId}`](ctx);
         } catch (error) {
-          console.error('Ошибка при создании товара:', error);
+          console.error("Ошибка при создании товара:", error);
           await ctx.reply(
-            'Произошла ошибка при создании товара. Пожалуйста, проверьте данные или попробуйте позже.'
+            "Произошла ошибка при создании товара. Пожалуйста, проверьте данные или попробуйте позже."
           );
           setState(userId, null); // Сбрасываем состояние при ошибке
         }
@@ -711,13 +710,13 @@ const initBot = async () => {
     console.log(`[INIT] WebApp URL используется: ${webAppUrl}`);
 
     // --- Корректное завершение работы ---
-    process.once('SIGINT', () => bot.stop('SIGINT'));
-    process.once('SIGTERM', () => bot.stop('SIGTERM'));
+    process.once("SIGINT", () => bot.stop("SIGINT"));
+    process.once("SIGTERM", () => bot.stop("SIGTERM"));
 
     return bot;
   } catch (error) {
     console.error(
-      '[CRITICAL] Ошибка при инициализации или запуске бота:',
+      "[CRITICAL] Ошибка при инициализации или запуске бота:",
       error
     );
     // Можно добавить отправку уведомления администратору об ошибке запуска

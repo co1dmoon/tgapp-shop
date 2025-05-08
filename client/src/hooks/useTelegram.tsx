@@ -48,13 +48,13 @@ export function useTelegram() {
         console.error('Error initializing Telegram WebApp:', error);
 
         // Фейковый пользователь для локальной разработки
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Running in development mode with mock user');
+        if (import.meta.env.VITE_NODE_ENV === "development") {
+          console.log("Running in development mode with mock user");
           setUser({
-            id: '123456789',
-            username: 'test_user',
-            firstName: 'Test',
-            lastName: 'User',
+            id: "123456789",
+            username: "test_user",
+            firstName: "Test",
+            lastName: "User",
           });
           setIsInitialized(true);
           setWebAppReady(true);

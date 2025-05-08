@@ -6,7 +6,8 @@ generated
 dev.db
 
 public/*
-!public/images/
+
+!/client/public/*
 
 
 .DS_Store

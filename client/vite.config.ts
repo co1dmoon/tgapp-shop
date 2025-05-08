@@ -9,6 +9,9 @@ export default defineConfig({
   ],
   build: {
     outDir: '../public',
-    emptyOutDir: false
-  }
+    emptyOutDir: false,
+  },
+  server: {
+    allowedHosts: true,
+  },
 })
