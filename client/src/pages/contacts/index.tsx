@@ -1,3 +1,5 @@
+import { MdArrowOutward } from "react-icons/md";
+
 export default function Contacts() {
   const contacts = [
     {
@@ -57,8 +59,12 @@ export default function Contacts() {
                 ? (e) => handlePhoneClick(e, contact.link)
                 : undefined
             }
-            className="flex items-center justify-center gap-2 rounded-xl bg-[#161616] py-4"
+            className="relative flex items-center justify-center gap-2 rounded-xl bg-[#161616] py-4"
           >
+            <MdArrowOutward
+              color="#ffff00"
+              className=" w-[20px] h-[20px] absolute right-[5px] top-[5px]"
+            />
             <img
               src={contact.src}
               alt={contact.name}
