@@ -1,36 +1,22 @@
 import Header from './components/Header';
 import { useTelegram } from './hooks';
 import Catalog from './pages/catalog';
-import { AppProvider, useAppContext } from './store/AppContext';
-import type { AppSection } from './types';
-
-// Компоненты для других страниц
-const Orders = () => (
-  <div className="p-4 bg-[#111111] text-white">
-    <h1 className="text-2xl font-bold mb-4">Ваши заказы</h1>
-    <p>История заказов</p>
-  </div>
-);
-
-const Contact = () => (
-  <div className="p-4 bg-[#111111] text-white">
-    <h1 className="text-2xl font-bold mb-4">Связаться с нами</h1>
-    <p>Контактная информация</p>
-  </div>
-);
+import Contacts from "./pages/contacts";
+import Orders from "./pages/orders";
+import { AppProvider, useAppContext } from "./store/AppContext";
+import type { AppSection } from "./types";
 
 const Info = () => (
-  <div className="p-4 bg-[#111111] text-white">
+  <div className="p-4 text-white">
     <h1 className="text-2xl font-bold mb-4">Информация</h1>
     <p>О компании и услугах</p>
   </div>
 );
 
-// Компоненты для разных разделов
 const SectionComponents: Record<AppSection, React.FC> = {
   catalog: Catalog,
   orders: Orders,
-  contact: Contact,
+  contact: Contacts,
   info: Info,
 };
 
@@ -49,7 +35,7 @@ function App() {
 
   return (
     <AppProvider>
-      <div className="min-h-screen bg-[#111111] bg text-stone-100 pb-20">
+      <div className="min-h-screen bg-[#111111] text-stone-100 pb-20 bg">
         {isInitialized ? (
           <>
             <Header />

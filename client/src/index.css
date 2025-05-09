@@ -11,6 +11,7 @@
 
 .bg {
   background-image: url('/images/bg.png');
-  background-size: contain;
+  background-size: 100vw 100vh;
+  background-position: top;
   background-repeat: repeat;
 }

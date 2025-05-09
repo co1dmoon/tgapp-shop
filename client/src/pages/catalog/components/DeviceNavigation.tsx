@@ -38,21 +38,23 @@ export default function Navigation() {
           <div
             className={clsx(
               "flex items-center",
-              { ["justify-center pl-0 pr-0"]: selectedDeviceCategory },
-              { ["justify-between pl-2 pr-1"]: !selectedDeviceCategory }
+              selectedDeviceCategory
+                ? "text-center w-full"
+                : "justify-between pl-2 pr-1"
             )}
           >
             <h2
-              className={clsx("overflow-hidden", {
-                "text-[6px]": selectedDeviceCategory,
-              })}
+              className={clsx(
+                "overflow-hidden",
+                selectedDeviceCategory ? "text-[6px] mx-auto" : ""
+              )}
             >
               {category.name}
             </h2>
             {!selectedDeviceCategory && (
               <MdArrowOutward
                 className="text-[#ffff00] scale-150 translate-y-[-5px]"
-                size={16}
+                size={15}
               />
             )}
           </div>

@@ -21,13 +21,13 @@ export function useTelegram() {
       try {
         // Убеждаемся, что WebApp API существует
         if (!WebApp) {
-          throw new Error('Telegram WebApp is not available');
+          throw new Error("Telegram WebApp is not available");
         }
 
-        // Отключаем swipe back жест и настраиваем заголовок
-        WebApp.enableClosingConfirmation();
-        WebApp.setHeaderColor('#1E1E1E'); // Темный цвет заголовка
-        WebApp.setBackgroundColor('#1E1E1E'); // Темный цвет фона
+        // Отключаем swipe back жест и настраиваем заголовок;
+        WebApp.disableClosingConfirmation();
+        WebApp.setHeaderColor("#161616"); // Темный цвет заголовка
+        WebApp.setBackgroundColor("#161616"); // Темный цвет фона
         WebApp.expand(); // Расширяем приложение на весь экран
         WebApp.ready(); // Говорим Telegram что приложение готово
         setWebAppReady(true);

@@ -1,10 +1,9 @@
-import WebApp from '@twa-dev/sdk';
 import { useCallback, useEffect, useState } from 'react';
 import type { AppSection, SectionState } from '../types/navigation';
 import { NAVIGATION } from '../utils/constants';
 
 // Ключ для хранения в localStorage
-const STORAGE_KEY = 'tgapp-shop-navigation';
+const STORAGE_KEY = 'tgapp-shop-current-section';
 
 /**
  * Проверка доступности localStorage
@@ -21,116 +20,58 @@ const isLocalStorageAvailable = (): boolean => {
 };
 
 /**
- * Хук для управления навигацией по разделам приложения с сохранением состояния
+ * Хук для управления навигацией по разделам приложения с сохранением только текущей секции
  */
 export function useNavigation() {
-  // Проверяем доступность localStorage и WebApp
+  // Проверяем доступность localStorage
   const storageAvailable = isLocalStorageAvailable();
-  const webAppAvailable = typeof WebApp !== 'undefined' && WebApp.initData && WebApp.initData.length > 0;
 
-  // Загружаем сохраненное состояние при инициализации
-  const loadInitialState = (): {
-    currentSection: AppSection;
-    sectionStates: Record<AppSection, SectionState>;
-  } => {
-    // Пытаемся загрузить сохраненное состояние
+  // Загружаем сохраненную текущую секцию при инициализации
+  const loadInitialSection = (): AppSection => {
+    // Пытаемся загрузить сохраненную секцию
     if (storageAvailable) {
       try {
-        const savedNavigation = localStorage.getItem(STORAGE_KEY);
-        if (savedNavigation) {
-          return JSON.parse(savedNavigation);
+        const savedSection = localStorage.getItem(STORAGE_KEY);
+        if (savedSection) {
+          return savedSection as AppSection;
         }
       } catch (error) {
-        console.error('Ошибка при загрузке состояния навигации:', error);
+        console.error('Ошибка при загрузке текущей секции:', error);
       }
     }
     
-    // Состояние по умолчанию, если нет сохраненного
+    // Секция по умолчанию, если нет сохраненной
+    return NAVIGATION.DEFAULT_SECTION;
+  };
+
+  // Инициализируем состояние секций по умолчанию (без загрузки из хранилища)
+  const getDefaultSectionStates = (): Record<AppSection, SectionState> => {
     return {
-      currentSection: NAVIGATION.DEFAULT_SECTION,
-      sectionStates: {
-        catalog: { selectedCategory: null, selectedDeviceCategory: null, selectedProductId: null },
-        orders: { selectedOrderId: null },
-        contact: { scrollPosition: 0 },
-        info: { scrollPosition: 0 }
-      }
+      catalog: { selectedCategory: null, selectedDeviceCategory: null, selectedProductId: null },
+      orders: { selectedOrderId: null },
+      contact: { scrollPosition: 0 },
+      info: { scrollPosition: 0 }
     };
   };
 
-  const initialState = loadInitialState();
-  
   // Храним текущий раздел в состоянии
-  const [currentSection, setCurrentSection] = useState<AppSection>(initialState.currentSection);
+  const [currentSection, setCurrentSection] = useState<AppSection>(loadInitialSection());
 
-  // Состояние для каждого раздела
+  // Состояние для каждого раздела (всегда создается заново при загрузке страницы)
   const [sectionStates, setSectionStates] = useState<Record<AppSection, SectionState>>(
-    initialState.sectionStates
+    getDefaultSectionStates()
   );
 
-  // Загружаем данные из Telegram CloudStorage при инициализации
-  useEffect(() => {
-    if (webAppAvailable && WebApp.CloudStorage) {
-      // Синхронизируем важные состояния из облака Telegram (например, корзину или заказы)
-      const keysToSync = ['orders'];
-      
-      // Для каждого ключа проверяем наличие в облачном хранилище
-      keysToSync.forEach(key => {
-        WebApp.CloudStorage.getItem(`${STORAGE_KEY}-${key}`, (error, value) => {
-          if (!error && value) {
-            try {
-              const cloudData = JSON.parse(value);
-              
-              // Обновляем только этот конкретный ключ в общем состоянии
-              setSectionStates(prevState => ({
-                ...prevState,
-                [key]: cloudData
-              }));
-              
-              console.log(`Загружены данные из CloudStorage для ${key}`);
-            } catch (parseError) {
-              console.error(`Ошибка при разборе данных из CloudStorage для ${key}:`, parseError);
-            }
-          }
-        });
-      });
-    }
-  }, [webAppAvailable]);
-
-  // Сохраняем состояние в localStorage при изменении
+  // Сохраняем только текущую секцию в localStorage при изменении
   useEffect(() => {
     if (storageAvailable) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
-          currentSection, 
-          sectionStates 
-        }));
+        localStorage.setItem(STORAGE_KEY, currentSection);
       } catch (error) {
-        console.error('Ошибка при сохранении состояния навигации:', error);
+        console.error('Ошибка при сохранении текущей секции:', error);
       }
     }
-  }, [currentSection, sectionStates, storageAvailable]);
-
-  // Если доступен WebApp SDK и включено CloudStorage, используем его для синхронизации через облако
-  useEffect(() => {
-    if (webAppAvailable && WebApp.CloudStorage) {
-      try {
-        // Синхронизируем важные состояния в облаке Telegram (например, корзину или заказы)
-        const keysToSync = ['orders'];
-        
-        // Синхронизируем только нужные ключи из sectionStates
-        keysToSync.forEach(key => {
-          if (sectionStates[key as AppSection]) {
-            WebApp.CloudStorage.setItem(
-              `${STORAGE_KEY}-${key}`, 
-              JSON.stringify(sectionStates[key as AppSection])
-            );
-          }
-        });
-      } catch (error) {
-        console.error('Ошибка при синхронизации с CloudStorage:', error);
-      }
-    }
-  }, [sectionStates, webAppAvailable]);
+  }, [currentSection, storageAvailable]);
 
   // Метод для навигации к разделу
   const navigateToSection = useCallback((section: AppSection) => {
