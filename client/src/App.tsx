@@ -1,9 +1,11 @@
 import Header from './components/Header';
 import { useTelegram } from './hooks';
+import Cart from "./pages/cart";
 import Catalog from './pages/catalog';
 import Contacts from "./pages/contacts";
 import Orders from "./pages/orders";
 import { AppProvider, useAppContext } from "./store/AppContext";
+import { CartProvider } from "./store/CartContext";
 import type { AppSection } from "./types";
 
 const Info = () => (
@@ -15,6 +17,7 @@ const Info = () => (
 
 const SectionComponents: Record<AppSection, React.FC> = {
   catalog: Catalog,
+  cart: Cart,
   orders: Orders,
   contact: Contacts,
   info: Info,
@@ -35,18 +38,20 @@ function App() {
 
   return (
     <AppProvider>
-      <div className="min-h-screen bg-[#111111] text-stone-100 pb-20 bg">
-        {isInitialized ? (
-          <>
-            <Header />
-            <Main />
-          </>
-        ) : (
-          <div className="flex justify-center items-center h-screen">
-            <p className="text-lg text-white">Загрузка...</p>
-          </div>
-        )}
-      </div>
+      <CartProvider>
+        <div className="min-h-screen bg-[#111111] text-stone-100 pb-20 bg">
+          {isInitialized ? (
+            <>
+              <Header />
+              <Main />
+            </>
+          ) : (
+            <div className="flex justify-center items-center h-screen">
+              <p className="text-lg text-white">Загрузка...</p>
+            </div>
+          )}
+        </div>
+      </CartProvider>
     </AppProvider>
   );
 }

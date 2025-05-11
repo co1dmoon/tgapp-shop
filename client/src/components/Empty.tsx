@@ -1,15 +1,13 @@
-import { useAppContext } from "../../../store/AppContext";
+import { useAppContext } from "../store/AppContext";
 
-export default function Empty() {
+export default function Empty({ children }: { children?: React.ReactNode }) {
   const { navigateToSection } = useAppContext();
   return (
     <div className="mx-auto w-[250px] flex flex-col items-center mt-8">
-      <img src="/images/orders/empty.png" className="w-[220px]" alt="empty" />
+      <img src="/images/orders/empty.png" className="w-[250px]" alt="empty" />
       <div className="flex flex-col items-center gap-2 mt-4">
         <p className="text-[16px] font-primary">Тут пока ничего нет</p>
-        <p className="text-[12px] text-[#888888] font-primary">
-          Кажется, вы еще не сделали заказов
-        </p>
+        <p className="text-[12px] text-[#888888] font-primary">{children}</p>
       </div>
       <button
         onClick={() => navigateToSection("catalog")}

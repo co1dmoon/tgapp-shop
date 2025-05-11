@@ -1,3 +1,4 @@
+import { CartButton } from "../../../components";
 import { useAppContext } from "../../../store/AppContext";
 import type { Product } from "../../../types";
 import { formatPrice, formatPriceWithTax } from "../../../utils/formatters";
@@ -50,9 +51,13 @@ export default function ProductCard({ product }: { product: Product }) {
             {formatPriceWithTax(product.price)}
           </span>
         </p>
-        <button className="font-display text-[10px] uppercase text-black bg-[#ffff00] rounded-full py-2 flex items-center justify-center w-[95%] my-2 mx-auto">
+        <CartButton
+          product={product}
+          onClick={(e) => e.stopPropagation()}
+          type="small"
+        >
           В корзину
-        </button>
+        </CartButton>
       </div>
     </div>
   );

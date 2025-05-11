@@ -1,4 +1,5 @@
 import { IoChevronBack } from "react-icons/io5";
+import { CartButton } from "../../../components";
 import {
   DeliveryIcon,
   SupportIcon,
@@ -104,9 +105,9 @@ export default function ProductDetails() {
           ))}
         </div>
       </div>
-      <button className="bg-[#ffff00] text-black font-display text-[16px] rounded-xl py-2 px-4">
+      <CartButton product={product} type="large">
         В корзину
-      </button>
+      </CartButton>
     </div>
   );
 }

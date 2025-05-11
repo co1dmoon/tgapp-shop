@@ -10,6 +10,11 @@ export const NAVIGATION = {
       icon: 'store',
     },
     {
+      id: 'cart',
+      title: 'Корзина',
+      icon: 'shopping_cart',
+    },
+    {
       id: 'orders',
       title: 'Заказы',
       icon: 'shopping_bag',

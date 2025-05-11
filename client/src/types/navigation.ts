@@ -1,7 +1,7 @@
 /**
  * Основные разделы приложения
  */
-export type AppSection = 'catalog' | 'orders' | 'contact' | 'info';
+export type AppSection = 'catalog' | 'orders' | 'contact' | 'info' | 'cart';
 
 /**
  * Дополнительные состояния раздела
@@ -15,7 +15,7 @@ export type SectionState = {
   // Для заказов
   selectedOrderId?: number | null;
 
-  // Для контактов и инфо
+  // Для корзины, контактов и инфо
   scrollPosition?: number;
 };
 

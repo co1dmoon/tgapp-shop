@@ -48,6 +48,7 @@ export function useNavigation() {
   const getDefaultSectionStates = (): Record<AppSection, SectionState> => {
     return {
       catalog: { selectedCategory: null, selectedDeviceCategory: null, selectedProductId: null },
+      cart: { scrollPosition: 0 },
       orders: { selectedOrderId: null },
       contact: { scrollPosition: 0 },
       info: { scrollPosition: 0 }

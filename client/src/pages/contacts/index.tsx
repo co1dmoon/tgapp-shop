@@ -46,7 +46,7 @@ export default function Contacts() {
   return (
     <div className="p-4">
       <h1 className="text-[16px] font-display mb-4 font-thin">
-        свяжитесь с нами
+        Свяжитесь с нами
       </h1>
       <div className="grid grid-cols-2 gap-4">
         {contacts.map((contact) => (
