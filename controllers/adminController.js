@@ -6,7 +6,7 @@ const isAdmin = async (telegramId) => {
       where: { telegramId },
     });
 
-    return admin !== null && admin.isActive;
+    return admin !== null;
   } catch (error) {
     console.error(
       `Ошибка при проверке прав администратора для ID ${telegramId}:`,
@@ -16,12 +16,12 @@ const isAdmin = async (telegramId) => {
   }
 };
 
-const addAdmin = async (telegramId, username = null) => {
+const addAdmin = async (telegramId, name = 'Admin') => {
   try {
     return await prisma.admin.create({
       data: {
         telegramId,
-        username,
+        name,
       },
     });
   } catch (error) {

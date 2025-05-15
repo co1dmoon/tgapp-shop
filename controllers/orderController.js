@@ -3,33 +3,47 @@ const telegram = require('../services/telegramBot');
 
 const createOrder = async (orderData) => {
   try {
-    const { userId, userName, items, total, contactInfo = {} } = orderData;
+    const {
+      userId,
+      userName,
+      items,
+      total,
+      contactInfo = {},
+      user,
+    } = orderData;
+
+    const orderCreateData = {
+      userId,
+      userName,
+      total,
+      contactName: contactInfo.name,
+      contactPhone: contactInfo.phone,
+      contactEmail: contactInfo.email,
+      deliveryAddress: contactInfo.address,
+      comments: contactInfo.comments,
+      // Создаем элементы заказа
+      items: {
+        create: items.map((item) => ({
+          quantity: item.quantity || 1,
+          price: item.price,
+          productId: item.productId,
+        })),
+      },
+    };
+
+    if (user) {
+      orderCreateData.user = user;
+    }
 
     const order = await prisma.order.create({
-      data: {
-        userId,
-        userName,
-        total,
-        contactName: contactInfo.name,
-        contactPhone: contactInfo.phone,
-        contactEmail: contactInfo.email,
-        deliveryAddress: contactInfo.address,
-        comments: contactInfo.comments,
-        // Создаем элементы заказа
-        items: {
-          create: items.map((item) => ({
-            quantity: item.quantity || 1,
-            price: item.price,
-            productId: item.productId,
-          })),
-        },
-      },
+      data: orderCreateData,
       include: {
         items: {
           include: {
             product: true,
           },
         },
+        user: true, // Включаем пользователя в результат
       },
     });
 

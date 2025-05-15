@@ -7,7 +7,8 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "seed": "node prisma/seed.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "seed-orders": "node prisma/seed-orders.js"
   },
   "keywords": [
     "telegram",
@@ -18,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.6.0",
+    "@prisma/client": "^6.7.0",
     "axios": "^1.6.7",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
@@ -29,7 +30,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1",
-    "prisma": "^6.6.0"
+    "prisma": "^6.7.0"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
