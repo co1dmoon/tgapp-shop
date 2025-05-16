@@ -7,7 +7,7 @@ export default function Empty({ children }: { children?: React.ReactNode }) {
       <img src="/images/orders/empty.png" className="w-[250px]" alt="empty" />
       <div className="flex flex-col items-center gap-2 mt-4">
         <p className="text-[16px] font-primary">Тут пока ничего нет</p>
-        <p className="text-[12px] text-[#888888] font-primary">{children}</p>
+        <p className="text-[12px] text-[#888888] text-center font-primary">{children}</p>
       </div>
       <button
         onClick={() => navigateToSection("catalog")}

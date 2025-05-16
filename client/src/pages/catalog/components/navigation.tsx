@@ -36,7 +36,7 @@ export default function Navigation() {
         >
           <div
             className={clsx(
-              "flex items-center pl-2 pr-1",
+              "flex items-center pl-2 pr-1 relative w-full",
               { ["justify-center"]: selectedCategory },
               { ["justify-between"]: !selectedCategory }
             )}
@@ -44,7 +44,7 @@ export default function Navigation() {
             <h2 className="text-ellipsis overflow-hidden">{category.name}</h2>
             {!selectedCategory && (
               <MdArrowOutward
-                className="text-[#ffff00] scale-150 translate-y-[-5px]"
+                className="text-[#ffff00] scale-150 translate-y-[-5px] ml-1 absolute right-2"
                 size={16}
               />
             )}

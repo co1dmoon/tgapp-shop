@@ -40,6 +40,9 @@ const getUserByTelegramId = async (telegramId) => {
   try {
     return await prisma.user.findUnique({
       where: { telegramId },
+      include: {
+        orders: true,
+      },
     });
   } catch (error) {
     console.error('Ошибка при получении пользователя:', error);

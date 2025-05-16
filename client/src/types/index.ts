@@ -16,6 +16,15 @@ export interface Product {
   category?: Category;
 }
 
+export interface User {
+  id: number;
+  telegramId: string;
+  phoneNumber: string;
+  username?: string | null;
+  fio?: string | null;
+  orders?: Order[];
+}
+
 export interface CartItem {
   productId: number;
   product: Product;

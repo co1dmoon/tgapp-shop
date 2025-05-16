@@ -4,7 +4,7 @@ const router = express.Router();
 const categoryController = require('../controllers/categoryController');
 const productController = require('../controllers/productController');
 const orderController = require('../controllers/orderController');
-
+const userController = require('../controllers/userController');
 // API для категорий
 router.get('/categories', async (req, res) => {
   try {
@@ -112,4 +112,12 @@ router.get('/user/:userId/orders', async (req, res) => {
   }
 });
 
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const user = await userController.getUserByTelegramId(req.params.userId);
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Ошибка при получении пользователя' });
+  }
+});
 module.exports = router;

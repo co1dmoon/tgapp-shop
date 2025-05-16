@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { Empty } from "../../components";
 import { useCartContext } from "../../store/CartContext";
 import { formatPrice } from "../../utils/formatters";
+import OrderForm from "./components/OrderForm";
 import ProductCard from "./components/ProductCard";
 
 export default function Cart() {
   const { cart } = useCartContext();
+
+  const [order, setOrder] = useState(false);
 
   if (cart.items.length === 0) {
     return (
@@ -13,6 +17,10 @@ export default function Cart() {
         <Empty>Кажется, вы еще не добавили товары в корзину</Empty>
       </div>
     );
+  }
+
+  if (order) {
+    return <OrderForm setOrder={setOrder} />;
   }
 
   return (
@@ -29,7 +37,7 @@ export default function Cart() {
         Итого: {formatPrice(cart.total)}
       </p>
 
-      <button className="bg-[#ffff00] text-black font-display rounded-xl flex items-center justify-center p-2 w-full">
+      <button className="bg-[#ffff00] text-black font-display rounded-xl flex items-center justify-center p-2 w-full" onClick={() => setOrder(true)}>
         Перейти к оформлению
       </button>
     </div>

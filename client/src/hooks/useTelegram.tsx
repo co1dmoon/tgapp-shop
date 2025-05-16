@@ -1,16 +1,10 @@
 import WebApp from '@twa-dev/sdk';
 import { useEffect, useState } from 'react';
-
 /**
  * Хук для работы с Telegram WebApp API
  */
 export function useTelegram() {
-  const [user, setUser] = useState<{
-    id: string;
-    username?: string;
-    firstName?: string;
-    lastName?: string;
-  } | null>(null);
+  const [user, setUser] = useState<typeof WebApp.initDataUnsafe.user | null>(null);
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [webAppReady, setWebAppReady] = useState(false);
@@ -24,7 +18,6 @@ export function useTelegram() {
           throw new Error("Telegram WebApp is not available");
         }
 
-        // Отключаем swipe back жест и настраиваем заголовок;
         WebApp.disableClosingConfirmation();
         WebApp.setHeaderColor("#161616"); // Темный цвет заголовка
         WebApp.setBackgroundColor("#161616"); // Темный цвет фона
@@ -35,12 +28,7 @@ export function useTelegram() {
         // Получаем информацию о пользователе
         if (WebApp.initDataUnsafe?.user) {
           const telegramUser = WebApp.initDataUnsafe.user;
-          setUser({
-            id: telegramUser.id.toString(),
-            username: telegramUser.username,
-            firstName: telegramUser.first_name,
-            lastName: telegramUser.last_name,
-          });
+          setUser(telegramUser);
         }
 
         setIsInitialized(true);
@@ -48,17 +36,7 @@ export function useTelegram() {
         console.error('Error initializing Telegram WebApp:', error);
 
         // Фейковый пользователь для локальной разработки
-        if (import.meta.env.VITE_NODE_ENV === "development") {
-          console.log("Running in development mode with mock user");
-          setUser({
-            id: "123456789",
-            username: "test_user",
-            firstName: "Test",
-            lastName: "User",
-          });
-          setIsInitialized(true);
-          setWebAppReady(true);
-        }
+
       }
     };
 

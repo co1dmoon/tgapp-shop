@@ -29,8 +29,7 @@ model User {
   telegramId  String   @unique
   phoneNumber String
   username    String?
-  firstName   String?
-  lastName    String?
+  fio         String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   orders      Order[]
@@ -68,20 +67,23 @@ model Product {
 }
 
 model Order {
-  id              Int         @id @default(autoincrement())
+  id              Int          @id @default(autoincrement())
   userId          String // Telegram User ID
   userName        String // Имя пользователя из Telegram
-  user            User?       @relation(fields: [userModelId], references: [id])
+  user            User?        @relation(fields: [userModelId], references: [id])
   userModelId     Int?
   total           Float
-  status          String      @default("new") // new, processing, completed, cancelled
+  status          String       @default("new") // new, processing, completed, cancelled
   contactName     String?
   contactPhone    String?
   contactEmail    String?
   deliveryAddress String?
   comments        String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  promocode       String?
+  deliveryType    DeliveryType @default(PICKUP)
+  payingType      PayingType   @default(CARD)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
   items           OrderItem[]
 
   @@map("orders")
@@ -99,4 +101,16 @@ model OrderItem {
   updatedAt DateTime @updatedAt
 
   @@map("order_items")
+}
+
+enum DeliveryType {
+  DELIVERY
+  PICKUP
+}
+
+enum PayingType {
+  CARD
+  CREDIT
+  CASH
+  OTHER
 }
