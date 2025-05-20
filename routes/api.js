@@ -63,25 +63,8 @@ router.get('/products/:id', async (req, res) => {
 // API для работы с заказами
 router.post('/orders', async (req, res) => {
   try {
-    // Извлекаем нужные данные из req.body
-    const { userId, userName, cart, total, contactInfo } = req.body;
 
-    // Формируем orderData в ожидаемом формате
-    const orderData = {
-      userId,
-      userName,
-      items: cart, // Используем cart из req.body как items
-      total,
-      contactInfo,
-    };
-
-    // Проверяем, что items - это массив
-    if (!Array.isArray(orderData.items)) {
-      console.error('Ошибка: items не является массивом в запросе:', req.body);
-      return res.status(400).json({ error: 'Некорректные данные корзины' });
-    }
-
-    const order = await orderController.createOrder(orderData);
+    const order = await orderController.createOrder(req.body);
     res.status(201).json(order);
   } catch (error) {
     console.error('Ошибка при создании заказа:', error);

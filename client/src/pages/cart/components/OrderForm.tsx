@@ -1,24 +1,16 @@
 import { useFormik } from "formik";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { FaSpinner } from 'react-icons/fa';
 import { IoChevronBack } from "react-icons/io5";
 import * as yup from "yup";
 import Input from "../../../components/Input";
 import { useTelegram } from "../../../hooks";
 import { useUserByTelegramId } from "../../../hooks/useUsers";
+import { orderService } from "../../../services";
 import { useCartContext } from "../../../store/CartContext";
+import { DeliveryType, PayingType } from "../../../types";
 import { formatPrice } from "../../../utils/formatters";
 
-enum DeliveryType {
-  DELIVERY = "delivery",
-  PICKUP = "pickup",
-}
-
-enum PayingType {
-  CASH = "cash",
-  CARD = "card",
-  CREDIT = "credit",
-  OTHER = "other",
-}
 
 const validationSchema = yup.object().shape({
   contactName: yup.string().required("ФИО обязательно"),
@@ -32,9 +24,12 @@ const validationSchema = yup.object().shape({
   comments: yup.string().optional(),
 });
 
-export default function OrderForm({ setOrder }: { setOrder: (order: boolean) => void; }) {
+export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React.SetStateAction<"no" | "start" | "finish">>; }) {
+  const { user } = useTelegram();
+  const { data: userData } = useUserByTelegramId({ telegramId: user?.id.toString() ?? "805354266" });
+  const { cart, clearCart } = useCartContext();
 
-  const { cart } = useCartContext();
+  const [isLoading, setIsLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -49,14 +44,31 @@ export default function OrderForm({ setOrder }: { setOrder: (order: boolean) => 
       comments: "",
     },
     validationSchema,
-    onSubmit: (values) => {
-      console.log(values);
+    onSubmit: async (values) => {
+      setIsLoading(true);
+      try {
+        const data = {
+          userId: user?.id ?? "805354266",
+          userModelId: userData?.id,
+
+          ...values,
+          total: cart.total,
+          cart: cart.items,
+        };
+        console.log(data);
+        const response = await orderService.createOrder(data);
+        setOrder('finish');
+        clearCart();
+        console.log(response);
+
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+
     },
   });
-
-  const { user } = useTelegram();
-
-  const { data: userData } = useUserByTelegramId({ telegramId: "805354266" });
 
   useEffect(() => {
     if (formik.values.deliveryType === DeliveryType.PICKUP) {
@@ -82,12 +94,29 @@ export default function OrderForm({ setOrder }: { setOrder: (order: boolean) => 
     }
   }, [userData]);
 
-  console.log(userData);
+  if (isLoading) {
+
+    return (
+      <div className="p-4 h-400px">
+        <button
+          onClick={() => setOrder('no')}
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-2"
+        >
+          <IoChevronBack size={20} />
+          <span className="font-primary text-[14px]">Назад</span>
+        </button>
+        <h1 className="font-display font-thin mb-4">Оформление заказа</h1>
+        <div className="flex items-center justify-center h-64">
+          <FaSpinner color="#ffff00" className="animate-spin text-[#0000ff] text-4xl" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">
       <button
-        onClick={() => setOrder(false)}
+        onClick={() => setOrder('no')}
         className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-2"
       >
         <IoChevronBack size={20} />
@@ -165,7 +194,7 @@ export default function OrderForm({ setOrder }: { setOrder: (order: boolean) => 
             <p className="font-primary text-[12px]">{cart.items.length}</p>
           </div>
           {cart.items.map((item) => (
-            <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-700">
+            <div key={item.productId} className="flex items-center justify-between py-2 border-b border-gray-700">
               <img src={item.image as string ?? '/images/categories/игровые-пк.png'} alt={item.name} className="w-[40px] h-[40px] rounded-xl" />
 
               <div className="flex items-center gap-2">

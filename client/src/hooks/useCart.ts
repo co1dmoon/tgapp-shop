@@ -57,11 +57,11 @@ export function useCart() {
 
   const addToCart = useCallback((product: Product) => {
     setCartState(prevState => {
-      const existingItem = prevState.items.find(i => i.id === product.id);
+      const existingItem = prevState.items.find(i => i.productId === product.id);
       
       if (existingItem) {
         const updatedItems = prevState.items.map(i =>
-          i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
+          i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i
         );
         return {
           items: updatedItems,
@@ -70,7 +70,7 @@ export function useCart() {
       }
 
       const newItem: CartItem = {
-        id: product.id,
+        productId: product.id,
         name: product.name,
         price: product.price,
         image: product.image ?? undefined,
@@ -90,7 +90,7 @@ export function useCart() {
 
   const removeFromCart = useCallback((itemId: number) => {
     setCartState(prevState => {
-      const updatedItems = prevState.items.filter(i => i.id !== itemId);
+      const updatedItems = prevState.items.filter(i => i.productId !== itemId);
       return {
         items: updatedItems,
         total: updatedItems.reduce((sum, i) => sum + i.price * i.quantity, 0)
@@ -103,7 +103,7 @@ export function useCart() {
 
     setCartState(prevState => {
       const updatedItems = prevState.items.map(i =>
-        i.id === itemId ? { ...i, quantity } : i
+        i.productId === itemId ? { ...i, quantity } : i
       );
       return {
         items: updatedItems,

@@ -5,35 +5,37 @@ const createOrder = async (orderData) => {
   try {
     const {
       userId,
+      userModelId,
       userName,
-      items,
+      cart,
       total,
-      contactInfo = {},
-      user,
+      contactName,
+      contactPhone,
+      contactEmail,
+      deliveryAddress,
+      comments,
+      promocode,
     } = orderData;
 
     const orderCreateData = {
       userId,
       userName,
+      userModelId,
       total,
-      contactName: contactInfo.name,
-      contactPhone: contactInfo.phone,
-      contactEmail: contactInfo.email,
-      deliveryAddress: contactInfo.address,
-      comments: contactInfo.comments,
-      // Создаем элементы заказа
+      contactName,
+      contactPhone,
+      deliveryAddress,
+      ...( contactEmail && { contactEmail }),
+      ...(comments && { comments }),
+      ...(promocode && { promocode }),
       items: {
-        create: items.map((item) => ({
+        create: cart.map((item) => ({
           quantity: item.quantity || 1,
           price: item.price,
           productId: item.productId,
         })),
       },
     };
-
-    if (user) {
-      orderCreateData.user = user;
-    }
 
     const order = await prisma.order.create({
       data: orderCreateData,
@@ -46,35 +48,6 @@ const createOrder = async (orderData) => {
         user: true, // Включаем пользователя в результат
       },
     });
-
-    if (userId && userId !== 'unknown_user') {
-      try {
-        const productsText = items
-          .map(
-            (item) =>
-              `• ${item.productId} - ${item.quantity} шт. × ${item.price} ₽`
-          )
-          .join('\n');
-
-        const message =
-          `🎉 Ваш заказ #${order.id} успешно оформлен!\n\n` +
-          `📋 Список товаров:\n${productsText}\n\n` +
-          `💰 Итого: ${total} ₽\n\n` +
-          `✅ Наш менеджер свяжется с вами в ближайшее время.`;
-
-        await telegram.sendOrderConfirmation(userId, message, order.id);
-        console.log(
-          `[INFO] Отправлено подтверждение заказа пользователю ${userId}`
-        );
-      } catch (botError) {
-        console.error(
-          '[ERROR] Не удалось отправить сообщение через бота:',
-          botError
-        );
-        // Продолжаем выполнение, так как это не критичная ошибка
-      }
-    }
-
     return order;
   } catch (error) {
     console.error('Ошибка при создании заказа:', error);

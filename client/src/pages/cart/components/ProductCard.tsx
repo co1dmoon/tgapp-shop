@@ -30,7 +30,7 @@ export default function ProductCard({ cartItem }: { cartItem: CartItem }) {
     <div
       className="h-[90px] w-full flex items-center gap-[10px] p-2 bg-[#161616] rounded-xl"
       onClick={() => {
-        setSelectedProductId(cartItem.id);
+        setSelectedProductId(cartItem.productId);
         navigateToSection("catalog");
       }}
     >
@@ -52,7 +52,7 @@ export default function ProductCard({ cartItem }: { cartItem: CartItem }) {
             className="text-[12px] font-primary font-thin ml-auto"
             onClick={(e) => {
               e.stopPropagation();
-              removeFromCart(cartItem.id);
+              removeFromCart(cartItem.productId);
             }}
           >
             <RiDeleteBin6Line color="#E92919" size={17} />
@@ -68,9 +68,9 @@ export default function ProductCard({ cartItem }: { cartItem: CartItem }) {
               onClick={(e) => {
                 e.stopPropagation();
                 if (cartItem.quantity - 1 === 0) {
-                  removeFromCart(cartItem.id);
+                  removeFromCart(cartItem.productId);
                 } else {
-                  updateQuantity(cartItem.id, cartItem.quantity - 1);
+                  updateQuantity(cartItem.productId, cartItem.quantity - 1);
                 }
               }}
             >
@@ -83,7 +83,7 @@ export default function ProductCard({ cartItem }: { cartItem: CartItem }) {
               className="text-[12px] font-primary font-thin w-1/3"
               onClick={(e) => {
                 e.stopPropagation();
-                updateQuantity(cartItem.id, cartItem.quantity + 1);
+                updateQuantity(cartItem.productId, cartItem.quantity + 1);
               }}
             >
               <RiAddLine size={12} />

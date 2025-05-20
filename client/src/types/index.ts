@@ -1,3 +1,5 @@
+import type { CartItem } from './cart';
+
 export interface Category {
   id: number;
   name: string;
@@ -25,30 +27,31 @@ export interface User {
   orders?: Order[];
 }
 
-export interface CartItem {
-  productId: number;
-  product: Product;
-  quantity: number;
-  price: number;
+
+export enum DeliveryType {
+  DELIVERY = "delivery",
+  PICKUP = "pickup",
+}
+
+export enum PayingType {
+  CASH = "cash",
+  CARD = "card",
+  CREDIT = "credit",
+  OTHER = "other",
 }
 
 // Структура для отправки заказа на сервер
 export interface OrderData {
-  userId: string;
+  userId: string | number;
   userName?: string;
-  cart: {
-    productId: number;
-    quantity: number;
-    price: number;
-  }[];
+  cart: CartItem[]
   total: number;
-  contactInfo?: {
-    contactName?: string;
-    contactPhone?: string;
-    contactEmail?: string;
-    deliveryAddress?: string;
-    comments?: string;
-  };
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  deliveryAddress?: string;
+  comments?: string;
+  promocode?: string;
 }
 
 // Структура заказа после получения с сервера
@@ -62,6 +65,9 @@ export interface Order {
   contactName?: string | null;
   contactPhone?: string | null;
   contactEmail?: string | null;
+  deliveryType: DeliveryType;
+  payingType: PayingType;
+  promocode: string;
   deliveryAddress?: string | null;
   comments?: string | null;
 }

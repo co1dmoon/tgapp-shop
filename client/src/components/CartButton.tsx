@@ -16,7 +16,7 @@ export default function CartButton({
   type = "small",
 }: CartButtonProps) {
   const { addToCart, cart, updateQuantity, removeFromCart } = useCartContext();
-  const cartItem = cart.items.find((item) => item.id === product.id);
+  const cartItem = cart.items.find((item) => item.productId === product.id);
 
   const clickHandler = (
     e: React.MouseEvent<HTMLButtonElement>,

@@ -1,7 +1,7 @@
 import type { Category } from './index';
 
 export type CartItem = {
-  id: number;
+  productId: number;
   quantity: number;
   price: number;
   name: string;

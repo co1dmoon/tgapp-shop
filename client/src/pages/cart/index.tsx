@@ -8,7 +8,7 @@ import ProductCard from "./components/ProductCard";
 export default function Cart() {
   const { cart } = useCartContext();
 
-  const [order, setOrder] = useState(false);
+  const [orderStatus, setOrderStatus] = useState<"no" | 'start' | 'finish'>('no');
 
   if (cart.items.length === 0) {
     return (
@@ -19,8 +19,8 @@ export default function Cart() {
     );
   }
 
-  if (order) {
-    return <OrderForm setOrder={setOrder} />;
+  if (orderStatus === 'start') {
+    return <OrderForm setOrder={setOrderStatus} />;
   }
 
   return (
@@ -29,7 +29,7 @@ export default function Cart() {
 
       <div className="flex flex-col gap-4">
         {cart.items.map((item) => (
-          <ProductCard key={item.id} cartItem={item} />
+          <ProductCard key={item.productId} cartItem={item} />
         ))}
       </div>
 
@@ -37,7 +37,7 @@ export default function Cart() {
         Итого: {formatPrice(cart.total)}
       </p>
 
-      <button className="bg-[#ffff00] text-black font-display rounded-xl flex items-center justify-center p-2 w-full" onClick={() => setOrder(true)}>
+      <button className="bg-[#ffff00] text-black font-display rounded-xl flex items-center justify-center p-2 w-full" onClick={() => setOrderStatus('start')}>
         Перейти к оформлению
       </button>
     </div>
