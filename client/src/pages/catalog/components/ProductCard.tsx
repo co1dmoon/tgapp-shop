@@ -3,6 +3,12 @@ import { useAppContext } from "../../../store/AppContext";
 import type { Product } from "../../../types";
 import { formatPrice, formatPriceWithTax } from "../../../utils/formatters";
 
+const pcCategories = ["full hd", "2k", "4k"];
+
+const isPC = (category: string) => pcCategories.includes(
+  category.toLowerCase()
+);
+
 export default function ProductCard({ product }: { product: Product }) {
   const { setSelectedProductId, selectedCategory } = useAppContext();
 
@@ -27,8 +33,13 @@ export default function ProductCard({ product }: { product: Product }) {
     <div
       onClick={() => setSelectedProductId(product.id)}
       key={product.id}
-      className="rounded-xl text-[12px] bg-[#161616] text-white font-display text-nowrap"
+      className="rounded-xl text-[12px] bg-[#161616] text-white font-display text-nowrap relative"
     >
+      {isPC(product.category?.name ?? '') && <div className="absolute top-2 left-2">
+        <div className="rounded-xl bg-[#222222] px-2 py-1 font-primary text-[10px] text-white overflow-hidden text-ellipsis">
+          {product.category?.name}
+        </div>
+      </div>}
       <img
         src={product.image ?? `/images/device-categories/мониторы.png`}
         alt={product.name}
