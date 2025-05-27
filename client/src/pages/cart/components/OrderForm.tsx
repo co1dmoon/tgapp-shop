@@ -4,6 +4,7 @@ import { FaSpinner } from 'react-icons/fa';
 import { IoChevronBack } from "react-icons/io5";
 import * as yup from "yup";
 import Input from "../../../components/Input";
+import YandexMap from "../../../components/YandexMap";
 import { useTelegram } from "../../../hooks";
 import { useUserByTelegramId } from "../../../hooks/useUsers";
 import { orderService } from "../../../services";
@@ -57,6 +58,7 @@ export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React
   const { cart, clearCart } = useCartContext();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPickupPoint, setSelectedPickupPoint] = useState<{ id: number; name: string; address: string; } | null>(null);
 
   const formik = useFormik({
     initialValues: {
@@ -79,8 +81,10 @@ export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React
     onSubmit: async (values) => {
       setIsLoading(true);
       try {
-        const deliveryAddress = values.deliveryType === DeliveryType.PICKUP
-          ? 'Самовывоз'
+        const deliveryAddress = values.deliveryType === DeliveryType.PICKUP 
+          ? selectedPickupPoint
+            ? `${selectedPickupPoint.name}, ${selectedPickupPoint.address}`
+            : 'Самовывоз'
           : `${values.city}, ${values.street}, д. ${values.house}, кв. ${values.apartment}`;
 
         const data = {
@@ -129,6 +133,8 @@ export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React
       formik.setFieldValue("city", "Москва");
     } else if (formik.values.deliveryType === DeliveryType.CDEK) {
       formik.setFieldValue("city", "");
+    } else if (formik.values.deliveryType === DeliveryType.PICKUP) {
+      setSelectedPickupPoint(null);
     }
   }, [formik.values.deliveryType]);
 
@@ -206,6 +212,22 @@ export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React
               <Input name="apartment" label="Квартира*" value={formik.values.apartment} onChange={formik.handleChange} />
               <p className="text-red-500 font-primary font-thin text-[10px]">{formik.errors.apartment}</p>
             </>
+          )}
+
+          {formik.values.deliveryType === DeliveryType.PICKUP && (
+            <div className="flex flex-col gap-2">
+              <YandexMap
+                onSelectPoint={(point) => setSelectedPickupPoint(point)}
+                selectedPointId={selectedPickupPoint?.id}
+              />
+              {selectedPickupPoint && (
+                <div className="bg-[#161616] p-4 rounded-2xl">
+                  <h3 className="font-primary text-[14px] mb-2">Выбранный пункт самовывоза:</h3>
+                  <p className="font-primary text-[12px] text-gray-400">{selectedPickupPoint.name}</p>
+                  <p className="font-primary text-[12px] text-gray-400">{selectedPickupPoint.address}</p>
+                </div>
+              )}
+            </div>
           )}
 
           <Input name="contactName" label="ФИО получателя*" value={formik.values.contactName} onChange={formik.handleChange} />
