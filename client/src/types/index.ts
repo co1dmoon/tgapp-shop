@@ -29,15 +29,16 @@ export interface User {
 
 
 export enum DeliveryType {
-  DELIVERY = "delivery",
-  PICKUP = "pickup",
+  MOSCOW = "MOSCOW",
+  PICKUP = "PICKUP",
+  CDEK = "CDEK",
 }
 
 export enum PayingType {
-  CASH = "cash",
-  CARD = "card",
-  CREDIT = "credit",
-  OTHER = "other",
+  CASH = "CASH",
+  CARD = "CARD",
+  CREDIT = "CREDIT",
+  OTHER = "OTHER",
 }
 
 // Структура для отправки заказа на сервер

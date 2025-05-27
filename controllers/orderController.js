@@ -13,6 +13,8 @@ const createOrder = async (orderData) => {
       contactPhone,
       contactEmail,
       deliveryAddress,
+      deliveryType,
+      payingType,
       comments,
       promocode,
     } = orderData;
@@ -25,6 +27,8 @@ const createOrder = async (orderData) => {
       contactName,
       contactPhone,
       deliveryAddress,
+      deliveryType,
+      payingType,
       ...( contactEmail && { contactEmail }),
       ...(comments && { comments }),
       ...(promocode && { promocode }),
