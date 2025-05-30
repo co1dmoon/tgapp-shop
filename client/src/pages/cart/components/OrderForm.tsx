@@ -16,17 +16,21 @@ const validationSchema = yup.object().shape({
   contactName: yup.string().required("ФИО обязательно"),
   contactPhone: yup.string().required("Телефон обязателен"),
   contactEmail: yup.string().email("Некорректный email").optional(),
-  city: yup.string().when('deliveryType', {
+  address: yup.string().when('deliveryType', {
     is: (type: DeliveryType) => type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
-    then: (schema) => schema.required("Город обязателен"),
+    then: (schema) => schema.required("Адрес обязателен"),
   }),
-  street: yup.string().when('deliveryType', {
+  floor: yup.string().when('deliveryType', {
     is: (type: DeliveryType) => type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
-    then: (schema) => schema.required("Улица обязательна"),
+    then: (schema) => schema.required("Этаж обязателен"),
   }),
-  house: yup.string().when('deliveryType', {
+  entrance: yup.string().when('deliveryType', {
     is: (type: DeliveryType) => type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
-    then: (schema) => schema.required("Дом обязателен"),
+    then: (schema) => schema.required("Подъезд обязателен"),
+  }),
+  intercom: yup.string().when('deliveryType', {
+    is: (type: DeliveryType) => type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
+    then: (schema) => schema.optional(),
   }),
   apartment: yup.string().when('deliveryType', {
     is: (type: DeliveryType) => type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
@@ -65,9 +69,10 @@ export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React
       contactName: "",
       contactPhone: "",
       contactEmail: "",
-      city: "",
-      street: "",
-      house: "",
+      address: "",
+      floor: "",
+      entrance: "",
+      intercom: "",
       apartment: "",
       deliveryType: DeliveryType.CDEK,
       payingType: PayingType.CARD,
@@ -85,7 +90,7 @@ export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React
           ? selectedPickupPoint
             ? `${selectedPickupPoint.name}, ${selectedPickupPoint.address}`
             : 'Самовывоз'
-          : `${values.city}, ${values.street}, д. ${values.house}, кв. ${values.apartment}`;
+          : `${values.address}, под. ${values.entrance}, эт. ${values.floor}${values.intercom ? `, домофон: ${values.intercom}` : ''}, кв. ${values.apartment}`;
 
         const data = {
           userId: user?.id ?? "805354266",
@@ -116,9 +121,10 @@ export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React
         contactPhone: userData.phoneNumber ?? '',
         userName: userData.username ?? '',
         contactEmail: '',
-        city: '',
-        street: '',
-        house: '',
+        address: '',
+        floor: '',
+        entrance: '',
+        intercom: '',
         apartment: '',
         deliveryType: DeliveryType.MOSCOW,
         payingType: PayingType.CARD,
@@ -130,9 +136,9 @@ export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React
 
   useEffect(() => {
     if (formik.values.deliveryType === DeliveryType.MOSCOW) {
-      formik.setFieldValue("city", "Москва");
+      formik.setFieldValue("address", "Москва");
     } else if (formik.values.deliveryType === DeliveryType.CDEK) {
-      formik.setFieldValue("city", "");
+      formik.setFieldValue("address", "");
     } else if (formik.values.deliveryType === DeliveryType.PICKUP) {
       setSelectedPickupPoint(null);
     }
@@ -174,11 +180,11 @@ export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React
               onChange={formik.handleChange}
               value={formik.values.deliveryType}
               name='deliveryType'
-              className="appearance-none w-full p-4 w-full px-4 font-primary py-2 bg-[#161616] rounded-2xl text-[12px] text-white focus:bg-[#222222] focus:outline-none"
+              className="appearance-none w-full p-4 w-full px-4 pr-10 font-primary py-2 bg-[#161616] rounded-2xl text-[12px] text-white focus:bg-[#222222] focus:outline-none overflow-hidden whitespace-nowrap text-ellipsis"
             >
-              <option value={DeliveryType.CDEK}>Доставка СДЭК</option>
-              <option value={DeliveryType.MOSCOW}>Доставка по Москве</option>
-              <option value={DeliveryType.PICKUP}>Самовывоз</option>
+              <option className="text-[10px]" value={DeliveryType.CDEK}><span className="text-[#ffff00]">Бесплатная</span> доставка СДЭК по РФ, РБ и Казахстану</option>
+              <option className="text-[10px]" value={DeliveryType.MOSCOW}><span className="text-[#ffff00]">Платная</span> доставка курьером по Москве и Московской области</option>
+              <option className="text-[10px]" value={DeliveryType.PICKUP}>Самовывоз</option>
             </select>
             <span className="pointer-events-none absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-xs">
               ▼
@@ -190,27 +196,35 @@ export default function OrderForm({ setOrder }: { setOrder: React.Dispatch<React
           {(formik.values.deliveryType === DeliveryType.MOSCOW || formik.values.deliveryType === DeliveryType.CDEK) && (
             <>
               <Input
-                name="city"
-                label="Город*"
-                value={formik.values.city}
+                name="address"
+                label="Адрес*"
+                value={formik.values.address}
                 onChange={formik.handleChange}
-                disabled={formik.values.deliveryType === DeliveryType.MOSCOW}
+                placeholder={formik.values.deliveryType === DeliveryType.MOSCOW ? "Москва, ул. ..., д. ..." : "Город, улица ..., д. ..."}
               />
-              <p className="text-red-500 font-primary font-thin text-[10px]">{formik.errors.city}</p>
+              <p className="text-red-500 font-primary font-thin text-[10px]">{formik.errors.address}</p>
 
               <div className="flex items-center gap-2 justify-between">
                 <div className="flex flex-col gap-2 w-1/2">
-                  <Input name="street" label="Улица*" value={formik.values.street} onChange={formik.handleChange} />
-                  <p className="text-red-500 font-primary font-thin text-[10px]">{formik.errors.street}</p>
+                  <Input name="entrance" label="Подъезд*" value={formik.values.entrance} onChange={formik.handleChange} />
+                  <p className="text-red-500 font-primary font-thin text-[10px]">{formik.errors.entrance}</p>
                 </div>
                 <div className="flex flex-col gap-2 w-1/2">
-                  <Input name="house" label="Дом*" value={formik.values.house} onChange={formik.handleChange} />
-                  <p className="text-red-500 font-primary font-thin text-[10px]">{formik.errors.house}</p>
+                  <Input name="floor" label="Этаж*" value={formik.values.floor} onChange={formik.handleChange} />
+                  <p className="text-red-500 font-primary font-thin text-[10px]">{formik.errors.floor}</p>
                 </div>
               </div>
 
-              <Input name="apartment" label="Квартира*" value={formik.values.apartment} onChange={formik.handleChange} />
-              <p className="text-red-500 font-primary font-thin text-[10px]">{formik.errors.apartment}</p>
+              <div className="flex items-center gap-2 justify-between">
+                <div className="flex flex-col gap-2 w-1/2">
+                  <Input name="apartment" label="Квартира*" value={formik.values.apartment} onChange={formik.handleChange} />
+                  <p className="text-red-500 font-primary font-thin text-[10px]">{formik.errors.apartment}</p>
+                </div>
+                <div className="flex flex-col gap-2 w-1/2">
+                  <Input name="intercom" label="Домофон" value={formik.values.intercom} onChange={formik.handleChange} />
+                  <p className="text-red-500 font-primary font-thin text-[10px]">{formik.errors.intercom}</p>
+                </div>
+              </div>
             </>
           )}
 
