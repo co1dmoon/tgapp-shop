@@ -47,7 +47,7 @@ export function useNavigation() {
   // Инициализируем состояние секций по умолчанию (без загрузки из хранилища)
   const getDefaultSectionStates = (): Record<AppSection, SectionState> => {
     return {
-      catalog: { selectedCategory: null, selectedDeviceCategory: null, selectedProductId: null },
+      catalog: { selectedCategory: null, selectedDeviceCategory: null, selectedProductId: null, selectedPcCategory: null },
       cart: { scrollPosition: 0 },
       orders: { selectedOrderId: null },
       contact: { scrollPosition: 0 },

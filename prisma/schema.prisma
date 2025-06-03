@@ -41,6 +41,8 @@ model Category {
   id          Int       @id @default(autoincrement())
   name        String    @unique
   description String?
+  image       String?
+  price       Float?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   products    Product[] // Связь с продуктами
@@ -55,6 +57,7 @@ model Product {
   description  String?
   specs        String?
   image        String? // Путь к изображению
+  fpsImage     String?
   inStock      Int         @default(0)
   favoriteRank Int?        @default(0) // Поле для ранжирования "лучших предложений"
   categoryId   Int

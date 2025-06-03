@@ -10,6 +10,7 @@ export type SectionState = {
   // Для каталога
   selectedCategory?: 'игровые пк' | 'девайсы' | null;
   selectedDeviceCategory?: number | null;
+  selectedPcCategory?: number | null;
   selectedProductId?: number | null;
 
   // Для заказов

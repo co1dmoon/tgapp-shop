@@ -17,7 +17,7 @@ export default function ProductDetails() {
   const specs = JSON.parse(product?.specs ?? "{}");
   const allList = Object.entries(specs);
 
-  const pcCategories = ["full-hd", "2k", "4k"];
+  const pcCategories = ["full hd", "2k", "4k"];
 
   const isPc = pcCategories.includes(
     product?.category?.name.toLowerCase() ?? ""
@@ -105,6 +105,12 @@ export default function ProductDetails() {
           ))}
         </div>
       </div>
+      {pcCategories.includes(product.category?.name.toLowerCase() ?? '') && < div className="flex flex-col gap-4">
+        <h2 className="text-[16px] text-left font-display uppercase">
+          {`Тесты FPS ${product.category?.name}`}
+        </h2>
+        <img src={product.fpsImage ?? "/images/fps.png"} alt={'fps'} className="w-full" />
+      </div>}
       <CartButton product={product} type="large">
         В корзину
       </CartButton>

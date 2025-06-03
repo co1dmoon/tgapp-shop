@@ -17,6 +17,8 @@ type AppContextType = {
   setSelectedCategory: (category: 'игровые пк' | 'девайсы' | null) => void;
   selectedDeviceCategory: number | null;
   setSelectedDeviceCategory: (id: number | null) => void;
+  selectedPcCategory: number | null;
+  setSelectedPcCategory: (id: number | null) => void;
   selectedProductId: number | null;
   setSelectedProductId: (id: number | null) => void;
 };
@@ -35,6 +37,9 @@ export function AppProvider({ children }: { children: ReactNode; }) {
   const [selectedDeviceCategory, setSelectedDeviceCategoryInternal] = useState<number | null>(
     currentState.selectedDeviceCategory !== undefined ? currentState.selectedDeviceCategory : null
   );
+  const [selectedPcCategory, setSelectedPcCategoryIternal] = useState<number | null>(
+    currentState.selectedPcCategory !== undefined ? currentState.selectedPcCategory : null
+  )
   const [selectedProductId, setSelectedProductIdInternal] = useState<number | null>(
     currentState.selectedProductId !== undefined ? currentState.selectedProductId : null
   );
@@ -56,6 +61,11 @@ export function AppProvider({ children }: { children: ReactNode; }) {
     navigation.updateSectionState({ selectedDeviceCategory: id });
   }, [navigation]);
 
+  const setSelectedPcCategory = useCallback((id: number | null) => {
+    setSelectedPcCategoryIternal(id);
+    navigation.updateSectionState({ selectedPcCategory: id });
+  }, [navigation])
+
   const value = {
     // Навигация
     currentSection: navigation.currentSection,
@@ -69,6 +79,8 @@ export function AppProvider({ children }: { children: ReactNode; }) {
     setSelectedCategory,
     selectedDeviceCategory,
     setSelectedDeviceCategory,
+    selectedPcCategory,
+    setSelectedPcCategory,
     selectedProductId,
     setSelectedProductId,
   };

@@ -1,6 +1,7 @@
 import { useAppContext } from "../../store/AppContext";
 import DeviceNavigation from "./components/DeviceNavigation";
 import Navigation from "./components/navigation";
+import PcNavigation from "./components/PcNavigation";
 import ProductCards from "./components/ProductCards";
 import ProductDetails from "./components/productDetails";
 
@@ -15,6 +16,7 @@ export default function Catalog() {
     <div id="catalog">
       <Navigation />
       {selectedCategory === "девайсы" && <DeviceNavigation />}
+      {selectedCategory === 'игровые пк' && <PcNavigation />}
       <ProductCards />
     </div>
   );

@@ -4,7 +4,7 @@ import { useCategories } from "../../../hooks";
 import { useAppContext } from "../../../store/AppContext";
 import DeviceNavigationSkeleton from "./skeletons/DeviceNavigationSkeleton";
 
-export default function Navigation() {
+export default function DeviceNavigation() {
   const { selectedDeviceCategory, setSelectedDeviceCategory } = useAppContext();
 
   const { data: categories, isLoading } = useCategories();
@@ -37,10 +37,10 @@ export default function Navigation() {
         >
           <div
             className={clsx(
-              "flex items-center",
+              "flex items-center pl-2 pr-1 relative w-full",
               selectedDeviceCategory
-                ? "text-center w-full"
-                : "justify-between pl-2 pr-1"
+                ? "justify-center"
+                : "justify-between"
             )}
           >
             <h2
@@ -60,7 +60,7 @@ export default function Navigation() {
           </div>
           {!selectedDeviceCategory && (
             <img
-              src={`/images/device-categories/${category.name
+              src={category.image ?? `/images/device-categories/${category.name
                 .toLowerCase()
                 .replace(/ /g, "-")}.png`}
               alt={category.name}

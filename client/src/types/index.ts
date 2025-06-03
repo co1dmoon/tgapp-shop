@@ -4,6 +4,8 @@ export interface Category {
   id: number;
   name: string;
   description?: string | null;
+  image?: string | null;
+  price?: number | null;
 }
 
 export interface Product {
@@ -13,6 +15,7 @@ export interface Product {
   description?: string | null;
   specs?: string | null;
   image?: string | null;
+  fpsImage?: string | null;
   inStock: boolean;
   categoryId: number;
   category?: Category;

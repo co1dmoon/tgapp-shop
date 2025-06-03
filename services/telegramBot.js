@@ -1,4 +1,4 @@
-const { Telegraf, Markup } = require('telegraf');
+const { Telegraf, Markup, message } = require('telegraf');
 require('dotenv').config(); // Убедимся, что dotenv загружен
 
 const categoryController = require('../controllers/categoryController');
@@ -121,8 +121,7 @@ const initBot = async (webAppUrl) => {
           telegramId: ctx.from.id.toString(),
           phoneNumber: contact.phone_number,
           username: ctx.from.username || null,
-          firstName: ctx.from.first_name || null,
-          lastName: ctx.from.last_name || null,
+          fio: `${ctx.from.first_name || ''} ${ctx.from.last_name || ''}`,
         });
 
         // Показываем главное меню после сохранения номера
