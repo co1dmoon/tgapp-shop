@@ -31,7 +31,7 @@ export default function PcNavigation() {
           key={category.id}
           className={
             clsx(
-              "rounded-xl text-[12px] py-2 text-white uppercase font-display text-nowrap flex flex-col justify-center",
+              "rounded-xl text-[12px] py-2 text-white uppercase font-display text-nowrap flex flex-col justify-center ",
               {
                 "bg-[#222222]": selectedPcCategory === category.id, "bg-[#161616]": selectedPcCategory !== category.id
 
@@ -39,7 +39,7 @@ export default function PcNavigation() {
             )
           }
         >
-          <div className="">{category.name}</div>
+          <div className="mx-auto">{category.name}</div>
         </button>
       ))}
     </div>;
