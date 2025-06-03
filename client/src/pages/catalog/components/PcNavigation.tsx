@@ -14,7 +14,10 @@ export default function PcNavigation() {
 
   const pcCategories = categories?.filter((category) =>
     categoriesName.includes(category.name.toLowerCase())
-  );
+  ).sort((a, b) => {
+    const order = ['full hd', '2k', '4k'];
+    return order.indexOf(a.name.toLowerCase()) - order.indexOf(b.name.toLowerCase());
+  });
 
   if (isLoading) {
     return <DeviceNavigationSkeleton />;
@@ -28,7 +31,7 @@ export default function PcNavigation() {
           key={category.id}
           className={
             clsx(
-              "rounded-xl text-[12px] py-2 text-white uppercase font-display text-nowrap flex flex-col justify-start",
+              "rounded-xl text-[12px] py-2 text-white uppercase font-display text-nowrap flex flex-col justify-center",
               {
                 "bg-[#222222]": selectedPcCategory === category.id, "bg-[#161616]": selectedPcCategory !== category.id
 

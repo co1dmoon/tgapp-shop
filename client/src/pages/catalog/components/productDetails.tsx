@@ -1,3 +1,4 @@
+import { FaArrowRightLong } from "react-icons/fa6";
 import { IoChevronBack } from "react-icons/io5";
 import { CartButton } from "../../../components";
 import {
@@ -16,6 +17,8 @@ export default function ProductDetails() {
 
   const specs = JSON.parse(product?.specs ?? "{}");
   const allList = Object.entries(specs);
+
+  const cpuAndGpu = [specs['Видеокарта'], specs['Процессор']]
 
   const pcCategories = ["full hd", "2k", "4k"];
 
@@ -45,7 +48,7 @@ export default function ProductDetails() {
   if (!product || !selectedProductId) return null;
 
   return (
-    <div className="flex flex-col gap-8 p-4">
+    <div className="flex flex-col gap-4 p-4">
       <button
         onClick={handleGoBack}
         className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
@@ -59,7 +62,14 @@ export default function ProductDetails() {
         alt={product.name}
         className="w-full aspect-square object-contain mx-auto rounded-xl bg-[#2F2F2F]"
       />
-      <h1 className="text-[20px] text-left font-display">{product.name}</h1>
+      <div className="flex flex-col gap-4">
+        {cpuAndGpu.map((spec, index) => (
+          <div key={index} className="flex items-center gap-4 w-full rounded-xl bg-[#161616] py-2 px-4 text-[16px] font-primary">
+            <img src={`/images/${index === 0 ? 'gpu.png' : 'cpu.png'}`} alt="" className="w-[26px] opacity-60" />
+            <span>{spec}</span>
+          </div>
+        ))}
+      </div>
       <div className="flex items-baseline gap-2 rounded-xl bg-[#161616] py-2 px-4">
         <span className="text-[20px] text-[#ffff00] font-display">
           {formatPrice(product.price)}
@@ -94,11 +104,11 @@ export default function ProductDetails() {
         </h2>
         <div className="w-full bg-[#111111] rounded-xl overflow-hidden text-[10px] font-primary">
           {allList.map(([key, value], index) => (
-            <div key={index} className="flex w-full border-1 border-[#2f2f2f]">
-              <div className="py-3 px-4 text-gray-400 flex-1 bg-[#161616]">
-                {key}
+            <div key={index} className="flex w-full">
+              <div className={`py-1 px-4 text-gray-400 flex-1 bg-[#161616] opacity-43 ${index < allList.length - 1 && 'border-b-1'} border-[#2f2f2f]`}>
+                {`${key}:`}
               </div>
-              <div className="py-3 px-4 text-white text-right flex-1 bg-[#222222]">
+              <div className={`py-1 px-4 text-white text-right flex-1 bg-[#222222] ${index < allList.length - 1 && 'border-b-1'} border-[#2f2f2f]`}>
                 {String(value)}
               </div>
             </div>
@@ -107,10 +117,31 @@ export default function ProductDetails() {
       </div>
       {pcCategories.includes(product.category?.name.toLowerCase() ?? '') && < div className="flex flex-col gap-4">
         <h2 className="text-[16px] text-left font-display uppercase">
-          {`Тесты FPS ${product.category?.name}`}
+          {`Тесты FPS:`}
         </h2>
         <img src={product.fpsImage ?? "/images/fps.png"} alt={'fps'} className="w-full" />
+        <a href="www.google.com" target="_blank" className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto">
+          <span className="text-[12px]">Смотреть видеообзор тестов</span>
+          <FaArrowRightLong />
+        </a>
       </div>}
+      <div className="flex flex-col gap-4">
+        <h2 className="text-[16px] text-left font-display uppercase">
+          Фото:
+        </h2>
+        <div className="w-full flex flex-col gap-4">
+          {['', '', '',].map(() => (
+            <div className="w-full aspect-square bg-[#2f2f2f] flex items-center justify-center rounded-xl">
+
+            </div>
+          ))}
+        </div>
+        <a href="www.google.com" target="_blank" className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto">
+          <span className="text-[12px]">Смотреть видеообзор ПК</span>
+          <FaArrowRightLong />
+        </a>
+      </div>
+
       <CartButton product={product} type="large">
         В корзину
       </CartButton>

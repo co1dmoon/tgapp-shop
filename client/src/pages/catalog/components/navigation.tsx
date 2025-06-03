@@ -15,7 +15,6 @@ export default function Navigation() {
     { id: "девайсы", name: "Девайсы", img: "/images/categories/девайсы.png" },
   ];
 
-  console.log(selectedProductId);
   if (selectedProductId) {
     return null;
   }
