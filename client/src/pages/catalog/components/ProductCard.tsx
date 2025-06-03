@@ -22,7 +22,7 @@ export default function ProductCard({ product }: { product: Product }) {
     return (
       <div
         key={index}
-        className="flex items-center justify-center rounded-xl bg-[#222222] px-2 py-1 font-primary text-[10px] text-white overflow-hidden text-ellipsis"
+        className="flex items-center justify-center rounded-xl bg-[#222222] px-2 py-1 font-primary text-[9px] text-white overflow-hidden text-ellipsis"
       >
         {spec}
       </div>
@@ -52,7 +52,7 @@ export default function ProductCard({ product }: { product: Product }) {
           </h2>
         )}
         {isSpecs && (
-          <div className="grid grid-cols-2 gap-2 px-1">{specsList}</div>
+          <div className="flex items-center gap-1 justify-around">{specsList}</div>
         )}
         <p className="flex items-baseline gap-1 ml-1">
           <span className="font-display text-[14px] uppercase text-[#ffff00]">
