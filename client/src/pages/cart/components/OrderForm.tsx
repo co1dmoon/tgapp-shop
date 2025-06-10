@@ -22,26 +22,38 @@ const validationSchema = yup.object().shape({
       type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
     then: (schema) => schema.required("Адрес обязателен"),
   }),
-  floor: yup.string().when("deliveryType", {
-    is: (type: DeliveryType) =>
-      type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
-    then: (schema) => schema.required("Этаж обязателен"),
-  }),
-  entrance: yup.string().when("deliveryType", {
-    is: (type: DeliveryType) =>
-      type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
-    then: (schema) => schema.required("Подъезд обязателен"),
-  }),
-  intercom: yup.string().when("deliveryType", {
-    is: (type: DeliveryType) =>
-      type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
-    then: (schema) => schema.optional(),
-  }),
-  apartment: yup.string().when("deliveryType", {
-    is: (type: DeliveryType) =>
-      type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
-    then: (schema) => schema.required("Квартира обязательна"),
-  }),
+  floor: yup
+    .number()
+    .typeError("Должно быть числом")
+    .when("deliveryType", {
+      is: (type: DeliveryType) =>
+        type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
+      then: (schema) => schema.required("Этаж обязателен"),
+    }),
+  entrance: yup
+    .number()
+    .typeError("Должно быть числом")
+    .when("deliveryType", {
+      is: (type: DeliveryType) =>
+        type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
+      then: (schema) => schema.required("Подъезд обязателен"),
+    }),
+  intercom: yup
+    .number()
+    .typeError("Должно быть числом")
+    .when("deliveryType", {
+      is: (type: DeliveryType) =>
+        type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
+      then: (schema) => schema.optional(),
+    }),
+  apartment: yup
+    .number()
+    .typeError("Должно быть числом")
+    .when("deliveryType", {
+      is: (type: DeliveryType) =>
+        type === DeliveryType.MOSCOW || type === DeliveryType.CDEK,
+      then: (schema) => schema.required("Квартира обязательна"),
+    }),
   deliveryType: yup
     .string()
     .oneOf(Object.values(DeliveryType), "Выберите корректный тип доставки")
