@@ -26,6 +26,8 @@ export default function ProductDetails() {
     product?.category?.name.toLowerCase() ?? ""
   );
 
+  const images: string[] = JSON.parse(product?.allImages ?? "[]");
+
   const advantages = [
     {
       title: "Бесплатная доставка",
@@ -64,8 +66,15 @@ export default function ProductDetails() {
       />
       <div className="flex flex-col gap-4">
         {cpuAndGpu.map((spec, index) => (
-          <div key={index} className="flex items-center gap-4 w-full rounded-xl bg-[#161616] py-2 px-4 text-[16px] font-primary">
-            <img src={`/images/${index === 0 ? 'gpu.png' : 'cpu.png'}`} alt="" className="w-[26px] opacity-60" />
+          <div
+            key={index}
+            className="flex items-center gap-4 w-full rounded-xl bg-[#161616] py-2 px-4 text-[16px] font-primary"
+          >
+            <img
+              src={`/images/${index === 0 ? "gpu.png" : "cpu.png"}`}
+              alt=""
+              className="w-[26px] opacity-60"
+            />
             <span>{spec}</span>
           </div>
         ))}
@@ -105,38 +114,60 @@ export default function ProductDetails() {
         <div className="w-full bg-[#111111] rounded-xl overflow-hidden text-[10px] font-primary">
           {allList.map(([key, value], index) => (
             <div key={index} className="flex w-full">
-              <div className={`py-1 px-4 text-gray-400 flex-1 bg-[#161616] opacity-43 ${index < allList.length - 1 && 'border-b-1'} border-[#2f2f2f]`}>
+              <div
+                className={`py-1 px-4 text-gray-400 flex-1 bg-[#161616] opacity-43 ${
+                  index < allList.length - 1 && "border-b-1"
+                } border-[#2f2f2f]`}
+              >
                 {`${key}:`}
               </div>
-              <div className={`py-1 px-4 text-white text-right flex-1 bg-[#222222] ${index < allList.length - 1 && 'border-b-1'} border-[#2f2f2f]`}>
+              <div
+                className={`py-1 px-4 text-white text-right flex-1 bg-[#222222] ${
+                  index < allList.length - 1 && "border-b-1"
+                } border-[#2f2f2f]`}
+              >
                 {String(value)}
               </div>
             </div>
           ))}
         </div>
       </div>
-      {pcCategories.includes(product.category?.name.toLowerCase() ?? '') && < div className="flex flex-col gap-4">
-        <h2 className="text-[16px] text-left font-display uppercase">
-          {`Тесты FPS:`}
-        </h2>
-        <img src={product.fpsImage ?? "/images/fps.png"} alt={'fps'} className="w-full" />
-        <a href="www.google.com" target="_blank" className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto">
-          <span className="text-[12px]">Смотреть видеообзор тестов</span>
-          <FaArrowRightLong />
-        </a>
-      </div>}
-      <div className="flex flex-col gap-4">
-        <h2 className="text-[16px] text-left font-display uppercase">
-          Фото:
-        </h2>
-        <div className="w-full flex flex-col gap-4">
-          {['', '', '',].map(() => (
-            <div className="w-full aspect-square bg-[#2f2f2f] flex items-center justify-center rounded-xl">
-
-            </div>
-          ))}
+      {pcCategories.includes(product.category?.name.toLowerCase() ?? "") && (
+        <div className="flex flex-col gap-4">
+          <h2 className="text-[16px] text-left font-display uppercase">
+            {`Тесты FPS:`}
+          </h2>
+          <img
+            src={product.fpsImage ?? "/images/fps.png"}
+            alt={"fps"}
+            className="w-full"
+          />
+          <a
+            href="www.google.com"
+            target="_blank"
+            className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto"
+          >
+            <span className="text-[12px]">Смотреть видеообзор тестов</span>
+            <FaArrowRightLong />
+          </a>
         </div>
-        <a href="www.google.com" target="_blank" className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto">
+      )}
+      <div className="flex flex-col gap-4">
+        <h2 className="text-[16px] text-left font-display uppercase">Фото:</h2>
+        <div className="w-full flex flex-col gap-4">
+          {images.map((url) => (
+            <img src={url} key={url} className="w-full aspect-square" />
+          ))}
+          {images.length === 0 &&
+            ["", "", ""].map(() => (
+              <div className="w-full aspect-square bg-[#2f2f2f] flex items-center justify-center rounded-xl"></div>
+            ))}
+        </div>
+        <a
+          href="www.google.com"
+          target="_blank"
+          className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto"
+        >
           <span className="text-[12px]">Смотреть видеообзор ПК</span>
           <FaArrowRightLong />
         </a>
