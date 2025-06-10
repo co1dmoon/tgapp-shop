@@ -28,7 +28,6 @@ const MoscowAddressInput: React.FC<MoscowAddressInputProps> = ({
         onChange={handleChange}
         placeholder="ул. ..., д. ..."
         className="pl-[72px]"
-        autoComplete=""
       />
       {error && (
         <p className="text-red-500 font-primary font-thin text-[10px]">

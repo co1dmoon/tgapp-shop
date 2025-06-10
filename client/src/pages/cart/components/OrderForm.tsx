@@ -213,7 +213,8 @@ export default function OrderForm({
               onChange={formik.handleChange}
               value={formik.values.deliveryType}
               name="deliveryType"
-              className="appearance-none w-full p-4 w-full px-4 pr-10 font-primary py-2 bg-[#161616] rounded-2xl text-[12px] text-white focus:bg-[#222222] focus:outline-none overflow-hidden whitespace-nowrap text-ellipsis"
+              id="deliveryType"
+              className="appearance-none p-4 w-full px-4 pr-10 font-primary py-2 bg-[#161616] rounded-2xl text-[12px] text-white focus:bg-[#222222] focus:outline-none overflow-hidden whitespace-nowrap text-ellipsis"
             >
               <option className="text-[10px]" value={DeliveryType.CDEK}>
                 Бесплатная доставка СДЭК по РФ, РБ и Казахстану
@@ -385,7 +386,8 @@ export default function OrderForm({
                   onChange={formik.handleChange}
                   value={formik.values.payingType}
                   name="payingType"
-                  className="appearance-none w-full p-4 w-full px-4 font-primary py-2 bg-[#161616] rounded-2xl text-[12px] text-white focus:bg-[#222222] focus:outline-none"
+                  id="payingType"
+                  className="appearance-none w-full p-4 px-4 font-primary py-2 bg-[#161616] rounded-2xl text-[12px] text-white focus:bg-[#222222] focus:outline-none"
                 >
                   <option value={PayingType.CASH}>Наличные</option>
                   <option value={PayingType.CARD}>Карта</option>
