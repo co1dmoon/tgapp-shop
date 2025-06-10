@@ -58,6 +58,7 @@ model Product {
   specs        String?
   image        String? // Путь к изображению
   fpsImage     String?
+  allImages    String?
   inStock      Int         @default(0)
   favoriteRank Int?        @default(0) // Поле для ранжирования "лучших предложений"
   categoryId   Int

@@ -23,6 +23,10 @@ export default function ProductCards() {
     bestOffers,
   });
 
+  const sortedProducts = products?.sort(
+    (a, b) => (a.favoriteRank ?? 0) - (b.favoriteRank ?? 0)
+  );
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 p-4 gap-4">
@@ -35,20 +39,15 @@ export default function ProductCards() {
 
   return (
     <div className="flex flex-col p-4">
-      {
-        (
-          !selectedCategory ||
-          (selectedCategory === "девайсы" && !selectedDeviceCategory) ||
-          (selectedCategory === 'игровые пк' && !selectedPcCategory)
-        )
-        && (
-          <p className="text-white text-[16px] font-display">
-            наши лучшие предложения
-          </p>
-        )
-      }
+      {(!selectedCategory ||
+        (selectedCategory === "девайсы" && !selectedDeviceCategory) ||
+        (selectedCategory === "игровые пк" && !selectedPcCategory)) && (
+        <p className="text-white text-[16px] font-display">
+          наши лучшие предложения
+        </p>
+      )}
       <div className="grid grid-cols-2 py-4 gap-4">
-        {products?.map((product) => (
+        {sortedProducts?.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

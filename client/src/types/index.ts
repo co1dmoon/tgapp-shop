@@ -16,7 +16,9 @@ export interface Product {
   specs?: string | null;
   image?: string | null;
   fpsImage?: string | null;
+  allImages: string;
   inStock: boolean;
+  favoriteRank?: number;
   categoryId: number;
   category?: Category;
 }
