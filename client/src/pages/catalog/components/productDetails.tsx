@@ -65,19 +65,21 @@ export default function ProductDetails() {
         className="w-full aspect-square object-contain mx-auto rounded-xl bg-[#2F2F2F]"
       />
       <div className="flex flex-col gap-4">
-        {cpuAndGpu.map((spec, index) => (
-          <div
-            key={index}
-            className="flex items-center gap-4 w-full rounded-xl bg-[#161616] py-2 px-4 text-[16px] font-primary"
-          >
-            <img
-              src={`/images/${index === 0 ? "gpu.png" : "cpu.png"}`}
-              alt=""
-              className="w-[26px] opacity-60"
-            />
-            <span>{spec}</span>
-          </div>
-        ))}
+        {!isPc && <h1>{product.name}</h1>}
+        {isPc &&
+          cpuAndGpu.map((spec, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-4 w-full rounded-xl bg-[#161616] py-2 px-4 text-[16px] font-primary"
+            >
+              <img
+                src={`/images/${index === 0 ? "gpu.png" : "cpu.png"}`}
+                alt=""
+                className="w-[26px] opacity-60"
+              />
+              <span>{spec}</span>
+            </div>
+          ))}
       </div>
       <div className="flex items-baseline gap-2 rounded-xl bg-[#161616] py-2 px-4">
         <span className="text-[20px] text-[#ffff00] font-display">

@@ -18,24 +18,31 @@ export function useProducts() {
 export function useProductsByCategory({ category, bestOffers }: { category: 'pc' | number | null, bestOffers: boolean; }) {
   return useQuery<Product[]>({
     queryKey: ['products', 'category', category, bestOffers],
-    queryFn: () => {
-      if (bestOffers) {
-        const categories = category === 'pc' ? ['Full HD', '4K', '2K'] : ['игровые мыши', 'клавиатуры', 'наушники', 'мониторы'];
-        return productService.getBestOffersProducts(categories);
-      }
-      if (category === 'pc') {
-        return productService.getProductsByCategories(['Full HD', '4K', '2K']);
-      }
-      if (category === null) {
-        return productService.getAllProducts();
-      }
+    queryFn: async () => {
+      // Добавляем искусственную задержку минимум 500мс
+      const [data] = await Promise.all([
+        (async () => {
+          if (bestOffers) {
+            const categories = category === 'pc' ? ['Full HD', '4K', '2K'] : ['игровые мыши', 'клавиатуры', 'наушники', 'мониторы'];
+            return productService.getBestOffersProducts(categories);
+          }
+          if (category === 'pc') {
+            return productService.getProductsByCategories(['Full HD', '4K', '2K']);
+          }
+          if (category === null) {
+            return productService.getAllProducts();
+          }
 
-      return productService.getProductsByCategory(category);
+          return productService.getProductsByCategory(category);
+        })(),
+        new Promise(resolve => setTimeout(resolve, 500))
+      ]);
+      
+      return data;
     },
-    // categoryId !== 'pc'
-    //   ? categoryId ? productService.getProductsByCategory(categoryId) : productService.getAllProducts()
-    //   : productService.getProductsByCategories(['Full HD', '4K', '2K']),
-    enabled: category !== undefined, // Запрос выполнится если categoryId определён
+    enabled: category !== undefined,
+    staleTime: 30000, // Данные считаются свежими 30 секунд
+    gcTime: 5 * 60 * 1000, // Кэш хранится 5 минут
   });
 }
 

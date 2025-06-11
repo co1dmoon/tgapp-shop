@@ -15,3 +15,14 @@
   background-position: top;
   background-repeat: repeat;
 }
+
+/* Скрытие полосы прокрутки для всех элементов */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Скрытие полосы прокрутки для WebKit браузеров */
+*::-webkit-scrollbar {
+  display: none;
+}

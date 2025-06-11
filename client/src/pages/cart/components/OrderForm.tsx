@@ -89,6 +89,7 @@ export default function OrderForm({
   const { cart, clearCart } = useCartContext();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isMapLoading, setIsMapLoading] = useState(true);
   const [selectedPickupPoint, setSelectedPickupPoint] = useState<{
     id: number;
     name: string;
@@ -323,10 +324,26 @@ export default function OrderForm({
 
           {formik.values.deliveryType === DeliveryType.PICKUP && (
             <div className="flex flex-col gap-2">
-              <YandexMap
-                onSelectPoint={(point) => setSelectedPickupPoint(point)}
-                selectedPointId={selectedPickupPoint?.id}
-              />
+              <div className="relative w-full h-[300px]">
+                {isMapLoading && (
+                  <div className="absolute inset-0 w-full h-full bg-[#161616] rounded-2xl animate-pulse z-10" />
+                )}
+                <div
+                  className={`w-full h-full transition-opacity duration-300 ${
+                    isMapLoading ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  <YandexMap
+                    onSelectPoint={(point) => setSelectedPickupPoint(point)}
+                    selectedPointId={selectedPickupPoint?.id}
+                    onLoad={() => {
+                      setTimeout(() => {
+                        setIsMapLoading(false);
+                      }, 300);
+                    }}
+                  />
+                </div>
+              </div>
               {selectedPickupPoint && (
                 <div className="bg-[#161616] p-4 rounded-2xl">
                   <h3 className="font-primary text-[14px] mb-2">

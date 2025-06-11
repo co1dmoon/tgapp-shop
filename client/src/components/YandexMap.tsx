@@ -31,24 +31,29 @@ const pickupPoints: PickupPoint[] = [
 interface YandexMapProps {
   onSelectPoint: (point: PickupPoint) => void;
   selectedPointId?: number;
+  onLoad?: () => void;
 }
 
-export default function YandexMap({ onSelectPoint, selectedPointId }: YandexMapProps) {
+export default function YandexMap({
+  onSelectPoint,
+  selectedPointId = undefined,
+  onLoad = () => {},
+}: YandexMapProps) {
   const defaultState = {
     center: [55.752, 37.615],
-    zoom: 11
+    zoom: 11,
   };
 
   const handleMapClick = (e: ymaps.MapEvent) => {
-    const coords = e.get('coords');
+    const coords = e.get("coords");
     const closestPoint = pickupPoints.reduce((prev, curr) => {
       const prevDist = Math.sqrt(
         Math.pow(prev.coordinates[0] - coords[0], 2) +
-        Math.pow(prev.coordinates[1] - coords[1], 2)
+          Math.pow(prev.coordinates[1] - coords[1], 2)
       );
       const currDist = Math.sqrt(
         Math.pow(curr.coordinates[0] - coords[0], 2) +
-        Math.pow(curr.coordinates[1] - coords[1], 2)
+          Math.pow(curr.coordinates[1] - coords[1], 2)
       );
       return prevDist < currDist ? prev : curr;
     });
@@ -63,6 +68,7 @@ export default function YandexMap({ onSelectPoint, selectedPointId }: YandexMapP
           width="100%"
           height="100%"
           onClick={handleMapClick}
+          onLoad={onLoad}
         >
           <ZoomControl options={{ position: { right: 10, top: 10 } }} />
           <FullscreenControl options={{ position: { right: 10, top: 50 } }} />
@@ -74,11 +80,14 @@ export default function YandexMap({ onSelectPoint, selectedPointId }: YandexMapP
                 balloonContent: `
                   <strong>${point.name}</strong><br/>
                   ${point.address}
-                `
+                `,
               }}
               options={{
-                preset: selectedPointId === point.id ? 'islands#blueStretchyIcon' : 'islands#redStretchyIcon',
-                iconColor: selectedPointId === point.id ? '#ffff00' : '#ff0000'
+                preset:
+                  selectedPointId === point.id
+                    ? "islands#blueStretchyIcon"
+                    : "islands#redStretchyIcon",
+                iconColor: selectedPointId === point.id ? "#ffff00" : "#ff0000",
               }}
               onClick={() => onSelectPoint(point)}
             />
