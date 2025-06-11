@@ -55,10 +55,29 @@ const deleteCategory = async (id) => {
   }
 };
 
+const getPriceCategory = async (id) => {
+  try {
+    const minPriceProduct = await prisma.product.findFirst({
+      where: {
+        categoryId: Number(id),
+      },
+      orderBy: {
+        price: "asc",
+      },
+      take: 1,
+    });
+    return minPriceProduct.price;
+  } catch (error) {
+    console.error(`Ошибка получения цены категории с ID ${id}`, error);
+    throw error;
+  }
+};
+
 module.exports = {
   getAllCategories,
   createCategory,
   getCategoryById,
   updateCategory,
   deleteCategory,
+  getPriceCategory,
 };

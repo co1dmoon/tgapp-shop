@@ -46,10 +46,13 @@ const getProductsByCategories = async (categories) => {
 const getBestOffersProducts = async (categories) => {
   try {
     return await prisma.product.findMany({
-      where: { favoriteRank: { gt: 0 }, category: { name: { in: categories } } },
+      where: {
+        favoriteRank: { gt: 0 },
+        category: { name: { in: categories } },
+      },
       include: { category: true },
-      orderBy: { favoriteRank: 'asc' },
-      take: 10,
+      orderBy: { favoriteRank: "asc" },
+      take: 4,
     });
   } catch (error) {
     console.error('Ошибка при получении лучших предложений:', error);

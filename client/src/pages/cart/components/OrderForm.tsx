@@ -14,7 +14,10 @@ import { formatPrice } from "../../../utils/formatters";
 import MoscowAddressInput from "./MoscowAddressInput";
 
 const validationSchema = yup.object().shape({
-  contactName: yup.string().required("ФИО обязательно"),
+  contactName: yup
+    .string()
+    .required("ФИО обязательно")
+    .matches(/^[^0-9]*$/, "ФИО не должно содержать цифры"),
   contactPhone: yup.string().required("Телефон обязателен"),
   contactEmail: yup.string().email("Некорректный email").optional(),
   address: yup.string().when("deliveryType", {
@@ -365,6 +368,11 @@ export default function OrderForm({
             label="ФИО получателя*"
             value={formik.values.contactName}
             onChange={formik.handleChange}
+            onKeyUp={(e) => {
+              if (/\d/.test(e.key)) {
+                e.preventDefault();
+              }
+            }}
           />
           <p className="text-red-500 font-primary font-thin text-[10px]">
             {formik.errors.contactName}

@@ -18,6 +18,11 @@ export const categoryService = {
    */
   getCategoryById: async (id: number): Promise<Category> => {
     return API.get(`/categories/${id}`);
+  },
+
+
+  getCategoryPrice: async (id: number): Promise<number> => {
+    return API.get(`/categories/${id}/price`)
   }
 };
 

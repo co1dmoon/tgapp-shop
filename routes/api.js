@@ -27,6 +27,15 @@ router.get('/categories/:id', async (req, res) => {
   }
 });
 
+router.get("/:categories/:id/price", async (req, res) => {
+  try {
+    const price = await categoryController.getPriceCategory(req.params.id);
+    res.json(price);
+  } catch (error) {
+    res.status(500).json({ error: "Ошибка при получении категории" });
+  }
+});
+
 // API для товаров
 router.get('/products', async (req, res) => {
   try {
@@ -103,4 +112,5 @@ router.get('/user/:userId', async (req, res) => {
     res.status(500).json({ error: 'Ошибка при получении пользователя' });
   }
 });
+
 module.exports = router;

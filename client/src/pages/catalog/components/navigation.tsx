@@ -3,8 +3,13 @@ import { MdArrowOutward } from "react-icons/md";
 import { useAppContext } from "../../../store/AppContext";
 
 export default function Navigation() {
-  const { selectedCategory, setSelectedCategory, selectedProductId } =
-    useAppContext();
+  const {
+    selectedCategory,
+    setSelectedCategory,
+    setSelectedDeviceCategory,
+    setSelectedPcCategory,
+    selectedProductId,
+  } = useAppContext();
 
   const categories = [
     {
@@ -23,9 +28,11 @@ export default function Navigation() {
     <div className="grid grid-cols-2 gap-4 p-4">
       {categories?.map((category) => (
         <button
-          onClick={() =>
-            setSelectedCategory(category.id as "игровые пк" | "девайсы")
-          }
+          onClick={() => {
+            setSelectedCategory(category.id as "игровые пк" | "девайсы");
+            setSelectedDeviceCategory(null);
+            setSelectedPcCategory(null);
+          }}
           key={category.id}
           className={clsx(
             "rounded-xl text-[12px] py-2 text-white uppercase font-display text-nowrap flex flex-col justify-between",

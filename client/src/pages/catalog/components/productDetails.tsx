@@ -156,13 +156,16 @@ export default function ProductDetails() {
       )}
       <div className="flex flex-col gap-4">
         <h2 className="text-[16px] text-left font-display uppercase">Фото:</h2>
-        <div className="w-full flex flex-col gap-4">
-          {images.map((url) => (
-            <img src={url} key={url} className="w-full aspect-square" />
+        <div className="w-full flex flex-col gap-4" key={"images"}>
+          {images.map((url, i) => (
+            <img src={url} key={url ?? i} className="w-full aspect-square" />
           ))}
           {images.length === 0 &&
-            ["", "", ""].map(() => (
-              <div className="w-full aspect-square bg-[#2f2f2f] flex items-center justify-center rounded-xl"></div>
+            ["", "", ""].map((_, i) => (
+              <div
+                className="w-full aspect-square bg-[#2f2f2f] flex items-center justify-center rounded-xl"
+                key={i}
+              ></div>
             ))}
         </div>
         <a

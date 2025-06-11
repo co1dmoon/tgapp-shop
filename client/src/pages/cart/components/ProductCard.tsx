@@ -59,12 +59,12 @@ export default function ProductCard({ cartItem }: { cartItem: CartItem }) {
           </button>
         </div>
         <div className="flex items-center gap-2 justify-between">
-          <p className="text-[12px] font-primary font-thin w-1/3">
+          <p className="text-[14px] font-primary w-1/3 text-[#ffff00]">
             {formatPrice(cartItem.price)}
           </p>
           <div className="flex items-center gap-2 bg-[#ffff00] rounded-xl text-[black] justify-between px-2 w-1/3">
             <button
-              className="text-[12px] font-primary font-thin w-1/3"
+              className="text-[12px] font-primary font-thin w-1/3 flex items-center justify-center"
               onClick={(e) => {
                 e.stopPropagation();
                 if (cartItem.quantity - 1 === 0) {
@@ -80,7 +80,7 @@ export default function ProductCard({ cartItem }: { cartItem: CartItem }) {
               {cartItem.quantity}
             </p>
             <button
-              className="text-[12px] font-primary font-thin w-1/3"
+              className="text-[12px] font-primary font-thin w-1/3 flex items-center justify-center"
               onClick={(e) => {
                 e.stopPropagation();
                 updateQuantity(cartItem.productId, cartItem.quantity + 1);
