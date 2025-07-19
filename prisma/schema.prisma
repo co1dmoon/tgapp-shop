@@ -51,7 +51,7 @@ model Category {
 }
 
 model Product {
-  id           Int         @id @default(autoincrement())
+  id           Int         @id
   name         String
   price        Float
   description  String?
@@ -59,7 +59,6 @@ model Product {
   image        String? // Путь к изображению
   fpsImage     String?
   allImages    String?
-  inStock      Int         @default(0)
   favoriteRank Int?        @default(0) // Поле для ранжирования "лучших предложений"
   categoryId   Int
   category     Category    @relation(fields: [categoryId], references: [id])

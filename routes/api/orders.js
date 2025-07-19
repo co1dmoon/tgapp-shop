@@ -3,20 +3,6 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const telegramBot = require('../../services/telegramBot');
-const AmoCRMClient = require('../../services/amoCRMClient');
-
-// Инициализация AmoCRM клиента
-const amoClient = new AmoCRMClient(
-  process.env.AMO_CLIENT_ID,
-  process.env.AMO_CLIENT_SECRET,
-  process.env.AMO_REDIRECT_URI
-);
-amoClient.baseUrl = `https://${process.env.AMO_DOMAIN}`;
-if (process.env.AMO_ACCESS_TOKEN) {
-  amoClient.accessToken = process.env.AMO_ACCESS_TOKEN;
-  amoClient.refreshToken = process.env.AMO_REFRESH_TOKEN;
-  amoClient.expiresAt = new Date(Date.now() + 86400000); // Устанавливаем примерно на 24 часа вперед
-}
 
 // Получение всех заказов
 router.get('/', async (req, res) => {
@@ -77,14 +63,6 @@ router.post('/', async (req, res) => {
     // Отправляем сообщение через бота
     telegramBot.sendOrderConfirmation(userId, orderMessage, order.id);
 
-    // Отправляем заказ в AmoCRM
-    try {
-      await sendOrderToAmoCRM(order, userId, userName);
-    } catch (amoError) {
-      console.error('Ошибка при отправке заказа в AmoCRM:', amoError);
-      // Продолжаем выполнение, даже если AmoCRM не работает
-    }
-
     res.status(201).json(order);
   } catch (error) {
     console.error('Ошибка при создании заказа:', error);
@@ -109,46 +87,6 @@ function formatOrderMessage(order) {
   message += `Благодарим за покупку! 🙏`;
 
   return message;
-}
-
-// Функция для отправки заказа в AmoCRM
-async function sendOrderToAmoCRM(order, userId, userName) {
-  try {
-    // Создаем сделку в AmoCRM
-    const deal = await amoClient.createDeal({
-      name: `Заказ #${order.id} из Telegram`,
-      price: order.totalAmount,
-      pipeline_id: process.env.AMO_PIPELINE_ID,
-      status_id: process.env.AMO_NEW_STATUS_ID,
-    });
-
-    // Находим или создаем контакт
-    // Здесь мы используем только имя пользователя из Telegram
-    // В реальном проекте нужно запросить телефон/email пользователя при оформлении
-    let contact = await amoClient.createContact({
-      name: userName || `Пользователь Telegram ${userId}`,
-    });
-
-    // Связываем контакт со сделкой
-    await amoClient.linkContactToDeal(contact.id, deal.id);
-
-    // Добавляем товары в заказ
-    for (const item of order.orderItems) {
-      await amoClient.addProductToDeal(deal.id, {
-        name: item.product.name,
-        price: item.price,
-        quantity: item.quantity,
-      });
-    }
-
-    console.log(
-      `Заказ #${order.id} успешно отправлен в AmoCRM, создана сделка #${deal.id}`
-    );
-    return deal;
-  } catch (error) {
-    console.error(`Ошибка при отправке заказа #${order.id} в AmoCRM:`, error);
-    throw error;
-  }
 }
 
 // Получение заказа по ID

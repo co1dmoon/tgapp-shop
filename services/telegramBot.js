@@ -6,6 +6,7 @@ const productController = require('../controllers/productController');
 const orderController = require('../controllers/orderController');
 const adminController = require('../controllers/adminController');
 const userController = require('../controllers/userController');
+const s3Service = require('./s3Service');
 
 // Получаем URL веб-приложения из переменных окружения
 // const webAppUrl = process.env.WEBAPP_URL;
@@ -21,6 +22,20 @@ if (!botToken) {
   process.exit(1); // Критическая ошибка, выходим
 }
 const bot = new Telegraf(botToken);
+
+// Проверяем конфигурацию S3
+if (!s3Service.isConfigured()) {
+  console.warn('⚠️ S3 хранилище не настроено!');
+  console.warn('Для загрузки изображений в VK Cloud S3 добавьте в .env:');
+  console.warn('VK_S3_ACCESS_KEY_ID=your_access_key');
+  console.warn('VK_S3_SECRET_ACCESS_KEY=your_secret_key');
+  console.warn('VK_S3_BUCKET_NAME=your_bucket_name');
+  console.warn('VK_S3_ENDPOINT=https://hb.bizmrg.com');
+  console.warn('VK_S3_REGION=ru-msk');
+  console.warn('Бот будет работать, но изображения будут сохраняться как file_id');
+} else {
+  console.log('✅ S3 хранилище настроено и готово к работе');
+}
 
 // Состояния пользователей для FSM (Finite State Machine) - если используется для админки
 const userStates = {};
@@ -152,6 +167,29 @@ const initBot = async (webAppUrl) => {
       );
     });
 
+    // /cancel (отмена создания товара для админов)
+    bot.command('cancel', checkAdmin, async (ctx) => {
+      const userId = ctx.from.id;
+      const state = getState(userId);
+      
+      if (state) {
+        setState(userId, null); // Сбрасываем состояние
+        await ctx.reply('❌ Создание товара отменено.');
+        
+        // Возвращаемся в админ панель
+        setTimeout(async () => {
+          try {
+            const keyboard = await getMainMenuKeyboard(userId, webAppUrl);
+            await ctx.reply('Вы вернулись в главное меню:', keyboard);
+          } catch (error) {
+            console.error('Ошибка при возвращении в главное меню:', error);
+          }
+        }, 500);
+      } else {
+        await ctx.reply('Нет активного процесса создания товара для отмены.');
+      }
+    });
+
     // Обработчик кнопки 'Мои заказы'
     bot.action('my_orders', async (ctx) => {
       await ctx.answerCbQuery(); // Отвечаем на callback, чтобы убрать 'loading'
@@ -267,12 +305,6 @@ const initBot = async (webAppUrl) => {
             parse_mode: 'HTML',
           });
 
-          // Опционально: Отправка заказа в AmoCRM (если настроено)
-          // try {
-          //     await createAmoOrder(order);
-          // } catch (amoError) {
-          //     console.error("[AMOCRM Error] Не удалось отправить заказ в AmoCRM:", amoError);
-          // }
         } else {
           console.warn('[DEBUG] Получены невалидные данные из WebApp:', data);
           await ctx.reply(
@@ -442,13 +474,13 @@ const initBot = async (webAppUrl) => {
       });
     });
 
-    // Шаг 1 добавления товара: запрос имени
+    // Шаг 1 добавления товара: запрос ID
     bot.action(/^add_product_to_(\d+)$/, checkAdmin, async (ctx) => {
       await ctx.answerCbQuery();
       const catId = parseInt(ctx.match[1]);
-      setState(ctx.from.id, `wait_product_name_${catId}`);
+      setState(ctx.from.id, `wait_product_id_${catId}`);
       await ctx.reply(
-        `Введите название нового товара для категории ID ${catId}:`
+        `🆔 Введите ID нового товара для категории ID ${catId}:\n\nВажно: ID должен быть уникальным числом!\n\n💡 Для отмены создания товара введите /cancel`
       );
     });
 
@@ -618,6 +650,23 @@ const initBot = async (webAppUrl) => {
       const state = getState(userId);
       const text = ctx.message.text.trim();
 
+      // Обработка команды отмены
+      if (text === '/cancel' && state) {
+        setState(userId, null); // Сбрасываем состояние
+        await ctx.reply('❌ Создание товара отменено.');
+        
+        // Возвращаемся в админ панель
+        setTimeout(async () => {
+          try {
+            const keyboard = await getMainMenuKeyboard(userId, webAppUrl);
+            await ctx.reply('Вы вернулись в главное меню:', keyboard);
+          } catch (error) {
+            console.error('Ошибка при возвращении в главное меню:', error);
+          }
+        }, 500);
+        return;
+      }
+
       // Выход, если нет активного состояния для пользователя
       if (!state) {
         // Можно добавить ответ по умолчанию или пересылку админу
@@ -653,124 +702,394 @@ const initBot = async (webAppUrl) => {
         return; // Завершаем обработку
       }
 
-      // --- FSM для добавления товара ---
-      // Шаг 1: Получаем имя товара
-      if (state.startsWith('wait_product_name_')) {
-        const catId = parseInt(state.replace('wait_product_name_', ''));
-        if (text.length < 2 || text.length > 100) {
+      // --- FSM для добавления товара (улучшенная версия) ---
+      
+      // Шаг 1: Получаем ID товара
+      if (state.startsWith('wait_product_id_')) {
+        const catId = parseInt(state.replace('wait_product_id_', ''));
+        const productId = parseInt(text);
+        
+        if (isNaN(productId) || productId <= 0) {
           return ctx.reply(
-            'Название товара должно быть от 2 до 100 символов. Попробуйте еще раз:'
+            '❌ ID должен быть положительным числом. Попробуйте еще раз:\n\n💡 Для отмены введите /cancel'
           );
         }
-        // Сохраняем имя и переходим к запросу цены
-        setState(userId, `wait_product_price_${catId}_${text}`);
+        
+        // Проверяем уникальность ID
+        try {
+          const existingProduct = await productController.getProductById(productId);
+          if (existingProduct) {
+            return ctx.reply(
+              `❌ Товар с ID ${productId} уже существует!\n\nВведите другой уникальный ID:\n\n💡 Для отмены введите /cancel`
+            );
+          }
+        } catch (error) {
+          // Если товар не найден - это хорошо, ID свободен
+        }
+        
+        setState(userId, `wait_product_name_${catId}|||${productId}`);
         return ctx.reply(
-          'Введите цену товара (только число, например: 99990):'
+          '📝 Введите название товара:\n\n💡 Для отмены введите /cancel'
         );
       }
 
-      // Шаг 2: Получаем цену товара
+      // Шаг 2: Получаем название товара
+      if (state.startsWith('wait_product_name_')) {
+        const [catId, productId] = state.replace('wait_product_name_', '').split('|||');
+        
+        if (text.length < 2 || text.length > 100) {
+          return ctx.reply(
+            'Название товара должно быть от 2 до 100 символов. Попробуйте еще раз:\n\n💡 Для отмены введите /cancel'
+          );
+        }
+        setState(userId, `wait_product_price_${catId}|||${productId}|||${text}`);
+        return ctx.reply(
+          'Введите цену товара (только число, например: 99990):\n\n💡 Для отмены введите /cancel'
+        );
+      }
+
+      // Шаг 3: Получаем цену товара
       if (state.startsWith('wait_product_price_')) {
-        const parts = state.replace('wait_product_price_', '').split('_');
-        const catId = parseInt(parts[0]);
-        const productName = parts.slice(1).join('_'); // Восстанавливаем имя, если в нем были подчеркивания
+        const [catId, productId, productName] = state.replace('wait_product_price_', '').split('|||');
 
         const priceText = text.replace(/\s/g, '').replace(',', '.');
         const price = parseFloat(priceText);
 
         if (isNaN(price) || price <= 0) {
           return ctx.reply(
-            'Некорректная цена. Введите положительное число (например: 99990):'
+            'Некорректная цена. Введите положительное число (например: 99990):\n\n💡 Для отмены введите /cancel'
           );
         }
-        // Сохраняем цену и переходим к запросу характеристик
-        setState(userId, `wait_product_specs_${catId}_${productName}_${price}`);
+        
+        setState(userId, `wait_product_description_${catId}|||${productId}|||${productName}|||${price}`);
         return ctx.reply(
-          'Введите краткие характеристики товара (например: CPU, GPU, RAM, SSD):'
+          'Введите полное описание товара (или "-" для пропуска):\n\n💡 Для отмены введите /cancel'
         );
       }
 
-      // Шаг 3: Получаем характеристики
-      if (state.startsWith('wait_product_specs_')) {
-        const parts = state.replace('wait_product_specs_', '').split('_');
-        const catId = parseInt(parts[0]);
-        const price = parseFloat(parts[parts.length - 1]);
-        const productName = parts.slice(1, -1).join('_'); // Имя между ID категории и ценой
-        const specs = text;
-        if (specs.length < 5 || specs.length > 255) {
-          return ctx.reply(
-            'Характеристики должны быть от 5 до 255 символов. Попробуйте еще раз:'
-          );
-        }
-        // Сохраняем характеристики и переходим к запросу описания
-        setState(
-          userId,
-          `wait_product_description_${catId}_${productName}_${price}_${specs}`
-        );
-        return ctx.reply('Введите полное описание товара (или "-", если нет):');
-      }
-
-      // Шаг 4: Получаем описание
+      // Шаг 4: Получаем описание товара
       if (state.startsWith('wait_product_description_')) {
-        const parts = state.replace('wait_product_description_', '').split('_');
-        const catId = parseInt(parts[0]);
-        const price = parseFloat(parts[parts.length - 2]);
-        const specs = parts[parts.length - 1];
-        const productName = parts.slice(1, -2).join('_');
+        const [catId, productId, productName, priceStr] = state.replace('wait_product_description_', '').split('|||');
+        const price = parseFloat(priceStr);
         const description = text === '-' ? null : text;
-        // Переходим к запросу URL изображения
-        setState(
-          userId,
-          `wait_product_image_${catId}_${productName}_${price}_${specs}_${description}`
-        );
+        
+        setState(userId, `wait_product_specs_${catId}|||${productId}|||${productName}|||${price}|||${description || 'null'}`);
         return ctx.reply(
-          'Отправьте URL изображения товара (или "-", если нет):'
+          `📋 Введите характеристики товара (каждая с новой строки).\n\nПример для ПК:\nПроцессор: Intel i7-12700F\nВидеокарта: RTX 4070\nRAM: 16GB DDR4\nSSD: 1TB NVMe\n\nПример для девайса:\nТип: Игровая мышь\nDPI: 16000\nПодключение: USB\nВес: 85г\n\nИли "-" для пропуска:\n\n💡 Для отмены введите /cancel`
         );
       }
 
-      // Шаг 5: Получаем URL изображения и создаем товар
-      if (state.startsWith('wait_product_image_')) {
-        const parts = state.replace('wait_product_image_', '').split('_');
-        const catId = parseInt(parts[0]);
-        const description =
-          parts[parts.length - 1] === 'null' ? null : parts[parts.length - 1];
-        const specs = parts[parts.length - 2];
-        const price = parseFloat(parts[parts.length - 3]);
-        const productName = parts.slice(1, -3).join('_');
-        const imageUrl = text === '-' ? null : text;
+      // Шаг 5: Получаем характеристики (преобразуем переносы строк в JSON)
+      if (state.startsWith('wait_product_specs_')) {
+        const [catId, productId, productName, priceStr, description] = state.replace('wait_product_specs_', '').split('|||');
+        const price = parseFloat(priceStr);
+        
+        let specs = null;
+        if (text !== '-') {
+          try {
+            // Преобразуем формат "ключ: значение" (каждая пара с новой строки) в JSON
+            const specsObj = {};
+            const pairs = text.split('\n').map(pair => pair.trim()).filter(pair => pair);
+            
+            if (pairs.length === 0) {
+              throw new Error('Пустые характеристики');
+            }
+            
+            for (const pair of pairs) {
+              const colonIndex = pair.indexOf(':');
+              if (colonIndex === -1) {
+                throw new Error(`Некорректная строка "${pair}". Используйте формат "ключ: значение"`);
+              }
+              
+              const key = pair.substring(0, colonIndex).trim();
+              const value = pair.substring(colonIndex + 1).trim();
+              
+              if (!key || !value) {
+                throw new Error(`Некорректная строка "${pair}". Ключ и значение не должны быть пустыми`);
+              }
+              
+              specsObj[key] = value;
+            }
+            
+            specs = JSON.stringify(specsObj);
+          } catch (error) {
+            return ctx.reply(
+              `❌ Некорректный формат характеристик!\n\nОшибка: ${error.message}\n\nПравильный формат (каждая с новой строки):\nПроцессор: Intel i7\nВидеокарта: RTX 4070\nRAM: 16GB\n\nПопробуйте еще раз или введите "-" для пропуска:\n\n💡 Для отмены введите /cancel`
+            );
+          }
+        }
+        
+        setState(userId, `wait_product_image_${catId}|||${productId}|||${productName}|||${price}|||${description}|||${specs || 'null'}`);
+        return ctx.reply(
+          '🖼️ Отправьте основное изображение товара (фото) или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
+        );
+      }
 
-        // Проверка URL (очень базовая)
-        if (imageUrl && !imageUrl.startsWith('http')) {
+      // Шаг 6: Получаем основное изображение (только текстовая команда пропуска)
+      if (state.startsWith('wait_product_image_')) {
+        const [catId, productId, productName, priceStr, description, specs] = state.replace('wait_product_image_', '').split('|||');
+        const price = parseFloat(priceStr);
+        
+        // Проверяем текстовое сообщение для пропуска
+        if (text === '-') {
+          setState(userId, `wait_product_fps_image_${catId}|||${productId}|||${productName}|||${price}|||${description}|||${specs}|||null`);
           return ctx.reply(
-            'Некорректный URL изображения. Должен начинаться с http/https. Попробуйте снова или введите "-":'
+            '🎮 Отправьте изображение с FPS тестами (фото) или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
           );
+        }
+        
+        // Если не "-", просим отправить корректные данные
+        return ctx.reply(
+          '❌ Пожалуйста, отправьте изображение (фото) или "-" для пропуска.\n\n💡 Для отмены введите /cancel'
+        );
+      }
+
+      // Шаг 7: Получаем FPS изображение (только текстовая команда пропуска)
+      if (state.startsWith('wait_product_fps_image_')) {
+        const [catId, productId, productName, priceStr, description, specs, image] = state.replace('wait_product_fps_image_', '').split('|||');
+        const price = parseFloat(priceStr);
+        
+        // Проверяем текстовое сообщение для пропуска
+        if (text === '-') {
+          setState(userId, `wait_product_all_images_${catId}|||${productId}|||${productName}|||${price}|||${description}|||${specs}|||${image}|||null`);
+          return ctx.reply(
+            `📸 Отправляйте дополнительные изображения товара по одному (фото).\nКогда закончите, напишите "готово" или "-" для пропуска:\n\n💡 Для отмены введите /cancel`
+          );
+        }
+        
+        // Если не "-", просим отправить корректные данные
+        return ctx.reply(
+          '❌ Пожалуйста, отправьте изображение (фото) или "-" для пропуска.\n\n💡 Для отмены введите /cancel'
+        );
+      }
+
+      // Шаг 8: Получаем дополнительные изображения (только текстовые команды)
+      if (state.startsWith('wait_product_all_images_')) {
+        const stateParts = state.replace('wait_product_all_images_', '').split('|||');
+        const [catId, productId, productName, priceStr, description, specs, image, fpsImage] = stateParts.slice(0, 8);
+        // Дополнительные изображения могут быть уже накоплены в state
+        const existingImages = stateParts.slice(8) || [];
+        const price = parseFloat(priceStr);
+        
+        // Проверяем команды завершения или пропуска
+        if (text === 'готово' || text === '-') {
+          let allImagesJson = null;
+          if (existingImages.length > 0) {
+            allImagesJson = JSON.stringify(existingImages);
+          }
+          
+          setState(userId, `wait_product_rank_${catId}|||${productId}|||${productName}|||${price}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImagesJson || 'null'}`);
+          return ctx.reply(
+            `⭐ Введите ранг товара для "лучших предложений" (0-100, где 0 = обычный товар, 100 = топ предложение):\n\nИли "-" для установки 0:\n\n💡 Для отмены введите /cancel`
+          );
+        }
+        
+        // Если не команда завершения
+        return ctx.reply(
+          '❌ Пожалуйста, отправьте изображение (фото), напишите "готово" для завершения или "-" для пропуска.\n\n💡 Для отмены введите /cancel'
+        );
+      }
+
+      // Шаг 9: Получаем ранг и создаем товар
+      if (state.startsWith('wait_product_rank_')) {
+        const [catId, productId, productName, priceStr, description, specs, image, fpsImage, allImages] = state.replace('wait_product_rank_', '').split('|||');
+        const price = parseFloat(priceStr);
+        const id = parseInt(productId);
+        
+        let favoriteRank = 0;
+        if (text !== '-') {
+          favoriteRank = parseInt(text);
+          if (isNaN(favoriteRank) || favoriteRank < 0 || favoriteRank > 100) {
+            return ctx.reply(
+              '❌ Ранг должен быть числом от 0 до 100. Попробуйте еще раз или "-" для 0:\n\n💡 Для отмены введите /cancel'
+            );
+          }
         }
 
         try {
+          // Показываем сообщение о начале загрузки
+          await ctx.reply('📤 Загружаю изображения в хранилище...');
+          
+          // Загружаем все изображения в S3
+          let uploadedImages = {};
+          
+          // Проверяем, настроен ли S3 сервис
+          if (s3Service.isConfigured()) {
+            // Получаем информацию о категории для правильной организации файлов
+            const category = await categoryController.getCategoryById(parseInt(catId));
+            if (!category) {
+              throw new Error(`Категория с ID ${catId} не найдена`);
+            }
+            
+            uploadedImages = await s3Service.uploadProductImages({
+              mainImage: image === 'null' ? null : image,
+              fpsImage: fpsImage === 'null' ? null : fpsImage,
+              additionalImages: allImages === 'null' ? null : allImages,
+              productInfo: {
+                productId: id,
+                productName: productName,
+                categoryId: parseInt(catId),
+                categoryName: category.name
+              }
+            });
+            console.log('Изображения загружены в S3:', uploadedImages);
+          } else {
+            console.warn('S3 не настроен, сохраняем file_id в базу данных');
+            // Если S3 не настроен, сохраняем file_id как есть (для разработки)
+            uploadedImages = {
+              mainImageUrl: image === 'null' ? null : image,
+              fpsImageUrl: fpsImage === 'null' ? null : fpsImage,
+              additionalImagesUrls: allImages === 'null' ? null : allImages
+            };
+          }
+
+          // Формируем данные для создания товара с S3 ссылками
           const productData = {
+            id: id,
             name: productName,
             price: price,
-            specs: specs,
-            description: description,
-            image: imageUrl,
-            categoryId: catId,
+            description: description === 'null' ? null : description,
+            specs: specs === 'null' ? null : specs,
+            image: uploadedImages.mainImageUrl,
+            fpsImage: uploadedImages.fpsImageUrl,
+            allImages: uploadedImages.additionalImagesUrls,
+            favoriteRank: favoriteRank,
+            categoryId: parseInt(catId),
           };
+
+          console.log('Создаем товар с данными:', productData);
+          
           const product = await productController.createProduct(productData);
           setState(userId, null); // Сбрасываем состояние
-          await ctx.reply(
-            `✅ Товар "${productName}" (ID: ${product.id}) успешно создан в категории ID ${catId}!`
-          );
+          
+          // Формируем сообщение с полной информацией о созданном товаре
+          let successMessage = `✅ <b>Товар успешно создан!</b>\n\n`;
+          successMessage += `🆔 <b>ID:</b> ${product.id}\n`;
+          successMessage += `🏷️ <b>Название:</b> ${productName}\n`;
+          successMessage += `💰 <b>Цена:</b> ${price.toLocaleString('ru-RU')} ₽\n`;
+          
+          if (favoriteRank > 0) {
+            successMessage += `⭐ <b>Ранг:</b> ${favoriteRank}/100\n`;
+          }
+          
+          // Информация о загруженных изображениях
+          let imageCount = 0;
+          if (uploadedImages.mainImageUrl) imageCount++;
+          if (uploadedImages.fpsImageUrl) imageCount++;
+          if (uploadedImages.additionalImagesUrls) {
+            try {
+              const additionalUrls = JSON.parse(uploadedImages.additionalImagesUrls);
+              imageCount += additionalUrls.length;
+            } catch (e) {}
+          }
+          if (imageCount > 0) {
+            successMessage += `📸 <b>Изображений загружено:</b> ${imageCount}\n`;
+          }
+          
+          if (description && description !== 'null') {
+            successMessage += `📝 <b>Описание:</b> ${description.substring(0, 100)}${description.length > 100 ? '...' : ''}\n`;
+          }
+          
+          // Показываем характеристики если есть
+          if (specs && specs !== 'null') {
+            try {
+              const specsObj = JSON.parse(specs);
+              const specsDisplay = Object.entries(specsObj).map(([key, value]) => `${key}: ${value}`).join('\n');
+              successMessage += `📋 <b>Характеристики:</b>\n${specsDisplay.substring(0, 200)}${specsDisplay.length > 200 ? '...' : ''}\n`;
+            } catch (e) {
+              console.error('Ошибка при парсинге specs:', e);
+            }
+          }
+          
+          await ctx.reply(successMessage, { parse_mode: 'HTML' });
+          
           // Возвращаемся к списку товаров этой категории
-          await bot.actions[`products_cat_${catId}`](ctx);
+          setTimeout(async () => {
+            try {
+              await bot.actions[`products_cat_${parseInt(catId)}`](ctx);
+            } catch (error) {
+              console.error('Ошибка при возвращении к списку товаров:', error);
+            }
+          }, 1000);
+          
         } catch (error) {
           console.error('Ошибка при создании товара:', error);
-          await ctx.reply(
-            'Произошла ошибка при создании товара. Пожалуйста, проверьте данные или попробуйте позже.'
-          );
+          
+          let errorMessage = '❌ Произошла ошибка при создании товара:\n\n';
+          
+          if (error.message.includes('S3')) {
+            errorMessage += '📤 Ошибка загрузки изображений в хранилище.\nПроверьте настройки S3 или попробуйте позже.';
+          } else if (error.message.includes('unique') || error.message.includes('UNIQUE')) {
+            errorMessage += `🆔 Товар с ID ${id} уже существует!\nВыберите другой ID.`;
+          } else if (error.message.includes('file_id') || error.message.includes('Telegram')) {
+            errorMessage += '📸 Ошибка обработки изображений.\nПопробуйте отправить изображения заново.';
+          } else {
+            errorMessage += 'Неизвестная ошибка. Проверьте данные или попробуйте позже.';
+          }
+          
+          errorMessage += '\n\n💡 Создание товара отменено. Для новой попытки используйте /admin';
+          
+          await ctx.reply(errorMessage);
           setState(userId, null); // Сбрасываем состояние при ошибке
         }
         return; // Завершаем обработку
       }
+    });
+
+    // --- Обработка фото для FSM ---
+    bot.on('photo', async (ctx) => {
+      const userId = ctx.from.id;
+      const state = getState(userId);
+      
+      // Если нет состояния, игнорируем фото
+      if (!state) {
+        return;
+      }
+      
+      // Получаем фото наилучшего качества
+      const photo = ctx.message.photo[ctx.message.photo.length - 1];
+      const fileId = photo.file_id;
+      
+      // Шаг 6: Получаем основное изображение
+      if (state.startsWith('wait_product_image_')) {
+        const [catId, productId, productName, priceStr, description, specs] = state.replace('wait_product_image_', '').split('|||');
+        
+        setState(userId, `wait_product_fps_image_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${fileId}`);
+        return ctx.reply(
+          '✅ Основное изображение получено!\n\n🎮 Отправьте изображение с FPS тестами (фото) или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
+        );
+      }
+      
+      // Шаг 7: Получаем FPS изображение
+      if (state.startsWith('wait_product_fps_image_')) {
+        const [catId, productId, productName, priceStr, description, specs, image] = state.replace('wait_product_fps_image_', '').split('|||');
+        
+        setState(userId, `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fileId}`);
+        return ctx.reply(
+          '✅ FPS изображение получено!\n\n📸 Отправляйте дополнительные изображения товара по одному (фото).\nКогда закончите, напишите "готово" или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
+        );
+      }
+      
+      // Шаг 8: Получаем дополнительные изображения
+      if (state.startsWith('wait_product_all_images_')) {
+        const stateParts = state.replace('wait_product_all_images_', '').split('|||');
+        const [catId, productId, productName, priceStr, description, specs, image, fpsImage] = stateParts.slice(0, 8);
+        const existingImages = stateParts.slice(8) || [];
+        
+        // Добавляем новый file_id к существующим
+        const updatedImages = [...existingImages, fileId];
+        const newState = `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${updatedImages.join('|||')}`;
+        
+        setState(userId, newState);
+        return ctx.reply(
+          `✅ Дополнительное изображение ${updatedImages.length} получено!\n\nОтправьте еще одно изображение или напишите "готово" для завершения:\n\n💡 Для отмены введите /cancel`
+        );
+      }
+      
+      // Если фото отправлено не в нужном состоянии
+      return ctx.reply(
+        '❌ Изображение сейчас не ожидается. Используйте кнопки меню для навигации.\n\n💡 Для отмены текущего действия введите /cancel'
+      );
     });
 
     // --- Запуск бота ---

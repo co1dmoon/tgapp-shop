@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { createDeal } = require('../services/amoCRM');
 const { bot } = require('../telegramBot');
 
 // Обработка создания заказа
@@ -15,16 +14,6 @@ router.post('/createOrder', async (req, res) => {
 
     // Генерируем номер заказа
     const orderId = `TG${Date.now().toString().slice(-8)}`;
-
-    // Создаем запись в AmoCRM, если включена интеграция
-    let amoCRMData = null;
-    try {
-      amoCRMData = await createDeal(userData, cartItems, totalPrice);
-      console.log('Заказ создан в AmoCRM:', amoCRMData);
-    } catch (error) {
-      console.error('Ошибка при создании заказа в AmoCRM:', error.message);
-      // Продолжаем выполнение, даже если интеграция с AmoCRM не сработала
-    }
 
     // Отправляем сообщение пользователю в Telegram
     try {
@@ -56,7 +45,6 @@ router.post('/createOrder', async (req, res) => {
       success: true,
       id: orderId,
       message: 'Заказ успешно создан',
-      amoCRMData: amoCRMData,
     });
   } catch (error) {
     console.error('Ошибка при создании заказа:', error);

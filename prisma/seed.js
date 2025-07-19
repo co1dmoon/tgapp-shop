@@ -167,6 +167,7 @@ async function main() {
     // Создаем товары для Full HD
     const pcFullHD1 = await prisma.product.create({
       data: {
+        id: 1001,
         name: 'GAMING FULL HD PRO',
         price: 85000,
         specs: JSON.stringify({
@@ -182,6 +183,7 @@ async function main() {
 
     const pcFullHD2 = await prisma.product.create({
       data: {
+        id: 1002,
         name: 'GAMING FULL HD MAX',
         price: 95000,
         specs: JSON.stringify({
@@ -198,6 +200,7 @@ async function main() {
     // Создаем товары для 2K
     const pc2K1 = await prisma.product.create({
       data: {
+        id: 2001,
         name: 'GAMING 2K PRO',
         price: 120000,
         specs: JSON.stringify({
@@ -213,6 +216,7 @@ async function main() {
 
     const pc2K2 = await prisma.product.create({
       data: {
+        id: 2002,
         name: 'GAMING 2K MAX',
         price: 140000,
         specs: JSON.stringify({
@@ -229,6 +233,7 @@ async function main() {
     // Создаем товары для 4K
     const pc4K1 = await prisma.product.create({
       data: {
+        id: 4001,
         name: 'GAMING 4K PRO',
         price: 180000,
         specs: JSON.stringify({
@@ -244,6 +249,7 @@ async function main() {
 
     const pc4K2 = await prisma.product.create({
       data: {
+        id: 4002,
         name: 'GAMING 4K MAX',
         price: 220000,
         specs: JSON.stringify({
@@ -260,6 +266,7 @@ async function main() {
     // Создаем товары для мониторов
     const monitor1 = await prisma.product.create({
       data: {
+        id: 5001,
         name: 'ASUS TUF VG279Q',
         price: 25000,
         specs: JSON.stringify({
@@ -276,6 +283,7 @@ async function main() {
 
     const monitor2 = await prisma.product.create({
       data: {
+        id: 5002,
         name: 'LG 27GP850-B',
         price: 45000,
         specs: JSON.stringify({
@@ -292,6 +300,7 @@ async function main() {
 
     const monitor3 = await prisma.product.create({
       data: {
+        id: 5003,
         name: 'Samsung Odyssey G7',
         price: 65000,
         specs: JSON.stringify({
@@ -309,6 +318,7 @@ async function main() {
     // Создаем товары для клавиатур
     const keyboard1 = await prisma.product.create({
       data: {
+        id: 6001,
         name: 'Logitech G Pro X',
         price: 15000,
         specs: JSON.stringify({
@@ -323,6 +333,7 @@ async function main() {
 
     const keyboard2 = await prisma.product.create({
       data: {
+        id: 6002,
         name: 'Razer BlackWidow V3',
         price: 18000,
         specs: JSON.stringify({
@@ -338,6 +349,7 @@ async function main() {
     // Создаем товары для мышей
     const mouse1 = await prisma.product.create({
       data: {
+        id: 7001,
         name: 'Logitech G Pro X Superlight',
         price: 12000,
         specs: JSON.stringify({
@@ -352,6 +364,7 @@ async function main() {
 
     const mouse2 = await prisma.product.create({
       data: {
+        id: 7002,
         name: 'Razer DeathAdder V3 Pro',
         price: 14000,
         specs: JSON.stringify({
@@ -367,6 +380,7 @@ async function main() {
     // Создаем товары для наушников
     const headphones1 = await prisma.product.create({
       data: {
+        id: 8001,
         name: 'SteelSeries Arctis Pro',
         price: 20000,
         specs: JSON.stringify({
@@ -381,6 +395,7 @@ async function main() {
 
     const headphones2 = await prisma.product.create({
       data: {
+        id: 8002,
         name: 'HyperX Cloud II',
         price: 15000,
         specs: JSON.stringify({
