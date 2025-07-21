@@ -821,7 +821,7 @@ const initBot = async (webAppUrl) => {
         
         setState(userId, `wait_product_image_${catId}|||${productId}|||${productName}|||${price}|||${description}|||${specs || 'null'}`);
         return ctx.reply(
-          '🖼️ Отправьте основное изображение товара (фото) или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
+          '🖼️ Отправьте основное изображение товара:\n\n📸 Фото (со сжатием) - быстрая отправка\n📎 Файл (без сжатия) - лучшее качество\n\nИли "-" для пропуска:\n\n💡 Для отмены введите /cancel'
         );
       }
 
@@ -834,13 +834,13 @@ const initBot = async (webAppUrl) => {
         if (text === '-') {
           setState(userId, `wait_product_fps_image_${catId}|||${productId}|||${productName}|||${price}|||${description}|||${specs}|||null`);
           return ctx.reply(
-            '🎮 Отправьте изображение с FPS тестами (фото) или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
+            '🎮 Отправьте изображение с FPS тестами:\n\n📸 Фото (со сжатием) или 📎 Файл (без сжатия)\n\nИли "-" для пропуска:\n\n💡 Для отмены введите /cancel'
           );
         }
         
         // Если не "-", просим отправить корректные данные
         return ctx.reply(
-          '❌ Пожалуйста, отправьте изображение (фото) или "-" для пропуска.\n\n💡 Для отмены введите /cancel'
+          '❌ Пожалуйста, отправьте изображение (📸 фото или 📎 файл) или "-" для пропуска.\n\n💡 Для отмены введите /cancel'
         );
       }
 
@@ -853,13 +853,13 @@ const initBot = async (webAppUrl) => {
         if (text === '-') {
           setState(userId, `wait_product_all_images_${catId}|||${productId}|||${productName}|||${price}|||${description}|||${specs}|||${image}|||null`);
           return ctx.reply(
-            `📸 Отправляйте дополнительные изображения товара по одному (фото).\nКогда закончите, напишите "готово" или "-" для пропуска:\n\n💡 Для отмены введите /cancel`
+            `📸 Отправляйте дополнительные изображения товара:\n\n• 🖼️ По одному (фото или файлы)\n• 📚 Альбомом до 10 изображений сразу\n\nКогда закончите, напишите "готово" или "-" для пропуска:\n\n💡 Для отмены введите /cancel`
           );
         }
         
         // Если не "-", просим отправить корректные данные
         return ctx.reply(
-          '❌ Пожалуйста, отправьте изображение (фото) или "-" для пропуска.\n\n💡 Для отмены введите /cancel'
+          '❌ Пожалуйста, отправьте изображение (📸 фото или 📎 файл) или "-" для пропуска.\n\n💡 Для отмены введите /cancel'
         );
       }
 
@@ -886,7 +886,7 @@ const initBot = async (webAppUrl) => {
         
         // Если не команда завершения
         return ctx.reply(
-          '❌ Пожалуйста, отправьте изображение (фото), напишите "готово" для завершения или "-" для пропуска.\n\n💡 Для отмены введите /cancel'
+          '❌ Пожалуйста, отправьте изображение (📸 фото или 📎 файл), напишите "готово" для завершения или "-" для пропуска.\n\n💡 Для отмены введите /cancel'
         );
       }
 
@@ -936,10 +936,11 @@ const initBot = async (webAppUrl) => {
           } else {
             console.warn('S3 не настроен, сохраняем file_id в базу данных');
             // Если S3 не настроен, сохраняем file_id как есть (для разработки)
+            // Убеждаемся что additionalImages остается JSON массивом
             uploadedImages = {
               mainImageUrl: image === 'null' ? null : image,
               fpsImageUrl: fpsImage === 'null' ? null : fpsImage,
-              additionalImagesUrls: allImages === 'null' ? null : allImages
+              additionalImagesUrls: allImages === 'null' ? null : allImages // уже JSON строка из FSM
             };
           }
 
@@ -1036,6 +1037,111 @@ const initBot = async (webAppUrl) => {
       }
     });
 
+    // Временное хранилище для медиа-групп (альбомов)
+    const mediaGroupBuffer = new Map();
+    
+    // Функция обработки фото из медиа-группы
+    async function handleMediaGroupPhoto(ctx, userId, state, fileId, mediaGroupId) {
+      // Только для дополнительных изображений поддерживаем альбомы
+      if (!state.startsWith('wait_product_all_images_')) {
+        // Для основного и FPS изображения - одиночные фото
+        return await handleSinglePhoto(ctx, userId, state, fileId);
+      }
+      
+      // Инициализируем буфер для этой медиа-группы
+      if (!mediaGroupBuffer.has(mediaGroupId)) {
+        mediaGroupBuffer.set(mediaGroupId, {
+          userId,
+          state,
+          fileIds: [],
+          timeout: null,
+          ctx
+        });
+      }
+      
+      const groupData = mediaGroupBuffer.get(mediaGroupId);
+      groupData.fileIds.push(fileId);
+      
+      // Очищаем предыдущий таймаут
+      if (groupData.timeout) {
+        clearTimeout(groupData.timeout);
+      }
+      
+      // Устанавливаем новый таймаут на обработку (2 секунды после последнего фото)
+      groupData.timeout = setTimeout(async () => {
+        await processMediaGroup(mediaGroupId, groupData);
+        mediaGroupBuffer.delete(mediaGroupId);
+      }, 2000);
+    }
+    
+    // Функция обработки завершенной медиа-группы
+    async function processMediaGroup(mediaGroupId, groupData) {
+      const { userId, state, fileIds, ctx } = groupData;
+      
+      if (!state.startsWith('wait_product_all_images_')) {
+        return;
+      }
+      
+      const stateParts = state.replace('wait_product_all_images_', '').split('|||');
+      const [catId, productId, productName, priceStr, description, specs, image, fpsImage] = stateParts.slice(0, 8);
+      const existingImages = stateParts.slice(8) || [];
+      
+      // Добавляем все новые file_id к существующим
+      const updatedImages = [...existingImages, ...fileIds];
+      const newState = `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${updatedImages.join('|||')}`;
+      
+      setState(userId, newState);
+      
+      // Отправляем подтверждение
+      await ctx.reply(
+        `✅ Получено ${fileIds.length} дополнительных изображений из альбома!\n\nВсего дополнительных изображений: ${updatedImages.length}\n\nОтправьте еще изображения или напишите "готово" для завершения:\n\n💡 Для отмены введите /cancel`
+      );
+    }
+    
+    // Функция обработки одиночного фото
+    async function handleSinglePhoto(ctx, userId, state, fileId) {
+      // Шаг 6: Основное изображение
+      if (state.startsWith('wait_product_image_')) {
+        const [catId, productId, productName, priceStr, description, specs] = state.replace('wait_product_image_', '').split('|||');
+        
+        setState(userId, `wait_product_fps_image_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${fileId}`);
+        return ctx.reply(
+          '✅ Основное изображение получено!\n\n🎮 Отправьте изображение с FPS тестами:\n\n📸 Фото (со сжатием) или 📎 Файл (без сжатия)\n\nИли "-" для пропуска:\n\n💡 Для отмены введите /cancel'
+        );
+      }
+      
+      // Шаг 7: FPS изображение
+      if (state.startsWith('wait_product_fps_image_')) {
+        const [catId, productId, productName, priceStr, description, specs, image] = state.replace('wait_product_fps_image_', '').split('|||');
+        
+        setState(userId, `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fileId}`);
+        return ctx.reply(
+          '✅ FPS изображение получено!\n\n📸 Отправляйте дополнительные изображения товара:\n\n• 🖼️ По одному (фото или файлы)\n• 📚 Альбомом до 10 изображений сразу\n\nКогда закончите, напишите "готово" или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
+        );
+      }
+      
+      // Шаг 8: Дополнительные изображения (одиночные)
+      if (state.startsWith('wait_product_all_images_')) {
+        const stateParts = state.replace('wait_product_all_images_', '').split('|||');
+        const [catId, productId, productName, priceStr, description, specs, image, fpsImage] = stateParts.slice(0, 8);
+        const existingImages = stateParts.slice(8) || [];
+        
+        // Добавляем новый file_id к существующим
+        const updatedImages = [...existingImages, fileId];
+        const newState = `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${updatedImages.join('|||')}`;
+        
+        setState(userId, newState);
+        return ctx.reply(
+          `✅ Дополнительное изображение ${updatedImages.length} получено!\n\n📸 Отправьте еще изображения:\n• Одиночными или альбомом\n• Или напишите "готово" для завершения\n\n💡 Для отмены введите /cancel`
+        );
+      }
+      
+      // Если фото в неподходящем состоянии
+      return ctx.reply(
+        '❌ Изображение сейчас не ожидается. Используйте кнопки меню для навигации.\n\n💡 Для отмены текущего действия введите /cancel'
+      );
+    }
+    
     // --- Обработка фото для FSM ---
     bot.on('photo', async (ctx) => {
       const userId = ctx.from.id;
@@ -1050,27 +1156,65 @@ const initBot = async (webAppUrl) => {
       const photo = ctx.message.photo[ctx.message.photo.length - 1];
       const fileId = photo.file_id;
       
-      // Шаг 6: Получаем основное изображение
+      // Проверяем, является ли фото частью медиа-группы (альбома)
+      if (ctx.message.media_group_id) {
+        // Это часть альбома - обрабатываем особым образом
+        await handleMediaGroupPhoto(ctx, userId, state, fileId, ctx.message.media_group_id);
+        return;
+      }
+      
+      // Используем новые функции для обработки
+      return await handleSinglePhoto(ctx, userId, state, fileId);
+    });
+
+    // --- Обработка документов (изображений без сжатия) для FSM ---
+    bot.on('document', async (ctx) => {
+      const userId = ctx.from.id;
+      const state = getState(userId);
+      
+      // Если нет состояния, игнорируем документ
+      if (!state) {
+        return;
+      }
+      
+      const document = ctx.message.document;
+      
+      // Проверяем, является ли документ изображением
+      const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      if (!document.mime_type || !imageTypes.includes(document.mime_type.toLowerCase())) {
+        return ctx.reply(
+          '❌ Пожалуйста, отправьте изображение (JPEG, PNG, WebP или GIF).\n\n💡 Если отправляете как файл, убедитесь что это изображение'
+        );
+      }
+      
+      // Проверяем размер файла (макс 20MB для Telegram Bot API)
+      if (document.file_size > 20 * 1024 * 1024) {
+        return ctx.reply(
+          '❌ Изображение слишком большое (максимум 20MB).\n\nПопробуйте сжать изображение или отправить с галочкой "Сжать изображение".'
+        );
+      }
+      
+      const fileId = document.file_id;
+      
+      // Используем те же функции что и для фото, но добавляем уточнение о файле
       if (state.startsWith('wait_product_image_')) {
         const [catId, productId, productName, priceStr, description, specs] = state.replace('wait_product_image_', '').split('|||');
         
         setState(userId, `wait_product_fps_image_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${fileId}`);
         return ctx.reply(
-          '✅ Основное изображение получено!\n\n🎮 Отправьте изображение с FPS тестами (фото) или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
+          '✅ Основное изображение получено! (загружено как файл)\n\n🎮 Отправьте изображение с FPS тестами:\n\n📸 Фото (со сжатием) или 📎 Файл (без сжатия)\n\nИли "-" для пропуска:\n\n💡 Для отмены введите /cancel'
         );
       }
       
-      // Шаг 7: Получаем FPS изображение
       if (state.startsWith('wait_product_fps_image_')) {
         const [catId, productId, productName, priceStr, description, specs, image] = state.replace('wait_product_fps_image_', '').split('|||');
         
         setState(userId, `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fileId}`);
         return ctx.reply(
-          '✅ FPS изображение получено!\n\n📸 Отправляйте дополнительные изображения товара по одному (фото).\nКогда закончите, напишите "готово" или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
+          '✅ FPS изображение получено! (загружено как файл)\n\n📸 Отправляйте дополнительные изображения товара:\n\n• 🖼️ По одному (фото или файлы)\n• 📚 Альбомом до 10 изображений сразу\n\nКогда закончите, напишите "готово" или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
         );
       }
       
-      // Шаг 8: Получаем дополнительные изображения
       if (state.startsWith('wait_product_all_images_')) {
         const stateParts = state.replace('wait_product_all_images_', '').split('|||');
         const [catId, productId, productName, priceStr, description, specs, image, fpsImage] = stateParts.slice(0, 8);
@@ -1082,11 +1226,11 @@ const initBot = async (webAppUrl) => {
         
         setState(userId, newState);
         return ctx.reply(
-          `✅ Дополнительное изображение ${updatedImages.length} получено!\n\nОтправьте еще одно изображение или напишите "готово" для завершения:\n\n💡 Для отмены введите /cancel`
+          `✅ Дополнительное изображение ${updatedImages.length} получено! (загружено как файл)\n\n📸 Отправьте еще изображения:\n• Одиночными или альбомом\n• Или напишите "готово" для завершения\n\n💡 Для отмены введите /cancel`
         );
       }
       
-      // Если фото отправлено не в нужном состоянии
+      // Если документ отправлен не в нужном состоянии
       return ctx.reply(
         '❌ Изображение сейчас не ожидается. Используйте кнопки меню для навигации.\n\n💡 Для отмены текущего действия введите /cancel'
       );

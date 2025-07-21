@@ -6,6 +6,22 @@ import ProductCard from "./components/ProductCard";
 export default function Cart() {
   const { cart } = useCartContext();
 
+  const createCheckoutUrl = () => {
+    const baseUrl = 'https://example.com/checkout';
+
+
+    const productParams = cart.items.map(item => `${item.productId}:${item.quantity}`).join(',');
+
+
+    const total = cart.total;
+
+    const url = new URL(baseUrl);
+    url.searchParams.set('products', productParams);
+    url.searchParams.set('total', total.toString());
+
+    return url.toString();
+  };
+
   if (cart.items.length === 0) {
     return (
       <div className="p-4">
@@ -30,7 +46,11 @@ export default function Cart() {
         Итого: {formatPrice(cart.total)}
       </p>
 
-      <a className="bg-[#ffff00] text-black font-display rounded-xl flex items-center justify-center p-2 w-full" href="/#" target="_blank">
+      <a
+        className="bg-[#ffff00] text-black font-display rounded-xl flex items-center justify-center p-2 w-full"
+        href={createCheckoutUrl()}
+        target="_blank"
+      >
         Перейти к оформлению
       </a>
     </div>
