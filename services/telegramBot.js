@@ -349,32 +349,144 @@ const initBot = async (webAppUrl) => {
       await showAdminPanel(ctx);
     });
 
-    // --- Управление Категориями ---
-    bot.action('admin_categories', checkAdmin, async (ctx) => {
-      await ctx.answerCbQuery();
+    // Функция для показа списка категорий
+    async function showCategoriesList(ctx, useEdit = true) {
       const categories = await categoryController.getAllCategories();
       let message = '<b>Управление категориями:</b>\n\n';
+      const keyboardRows = [];
       if (categories.length === 0) {
         message += 'Категории отсутствуют.';
       } else {
-        categories.forEach((cat) => {
-          message += `• ${cat.name} (ID: ${cat.id})\n`;
+        categories.forEach((cat, idx) => {
+          message += `${idx + 1}. ${cat.name} (ID: ${cat.id})\n`;
+          keyboardRows.push([
+            Markup.button.callback(`👁 Просмотреть`, `view_category_${cat.id}`),
+            Markup.button.callback(`✏️ Редактировать`, `edit_category_${cat.id}`)
+          ]);
         });
       }
+      keyboardRows.push([
+        Markup.button.callback('➕ Добавить категорию', 'add_category')
+      ]);
+      keyboardRows.push([
+        Markup.button.callback('🔙 Назад', 'admin_panel')
+      ]);
+      
+      const options = {
+        parse_mode: 'HTML',
+        reply_markup: { inline_keyboard: keyboardRows },
+      };
+      
+      if (useEdit && ctx.callbackQuery) {
+        await ctx.editMessageText(message, options);
+      } else {
+        await ctx.reply(message, options);
+      }
+    }
+
+    // --- Управление Категориями (расширенное) ---
+    bot.action('admin_categories', checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      await showCategoriesList(ctx, true);
+    });
+
+    // FSM: создание категории (шаг 1)
+    bot.action('add_category', checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      setState(ctx.from.id, 'wait_new_category_name');
+      await ctx.reply('📝 Введите название новой категории:\n\n💡 Для отмены введите /cancel');
+    });
+
+    // FSM: просмотр категории
+    bot.action(/^view_category_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const catId = parseInt(ctx.match[1]);
+      try {
+        const cat = await categoryController.getCategoryById(catId);
+        if (!cat) {
+          return ctx.editMessageText('Категория не найдена.', {
+            reply_markup: Markup.inlineKeyboard([
+              [Markup.button.callback('🔙 Назад', 'admin_categories')]
+            ]).reply_markup,
+          });
+        }
+        let message = `<b>📂 Категория:</b> ${cat.name}\n`;
+        message += `<b>ID:</b> ${cat.id}\n`;
+        if (cat.description) message += `<b>Описание:</b> ${cat.description}\n`;
+        if (cat.image) message += `<b>Изображение:</b> [есть]\n`;
+        message += `\n<b>Товаров:</b> ${cat.products.length}`;
       await ctx.editMessageText(message, {
         parse_mode: 'HTML',
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback('➕ Добавить', 'add_category')],
-          // Добавить кнопки Редактировать/Удалить, если нужно
-          [Markup.button.callback('🔙 Назад', 'admin_panel')],
+            [Markup.button.callback('✏️ Редактировать', `edit_category_${cat.id}`), Markup.button.callback('🗑 Удалить', `delete_category_${cat.id}`)],
+            [Markup.button.callback('🔙 К списку категорий', 'admin_categories')]
         ]).reply_markup,
       });
+      } catch (error) {
+        await ctx.reply('Ошибка при просмотре категории.');
+      }
     });
 
-    bot.action('add_category', checkAdmin, async (ctx) => {
+    // FSM: редактирование категории (главное меню)
+    bot.action(/^edit_category_(\d+)$/, checkAdmin, async (ctx) => {
       await ctx.answerCbQuery();
-      setState(ctx.from.id, 'wait_category_name');
-      await ctx.reply('Введите название новой категории:');
+      const catId = parseInt(ctx.match[1]);
+      try {
+        const cat = await categoryController.getCategoryById(catId);
+        if (!cat) return ctx.editMessageText('Категория не найдена.');
+        const message = `<b>✏️ Редактирование категории:</b> ${cat.name}\n\nВыберите, что хотите изменить:`;
+        await ctx.editMessageText(message, {
+          parse_mode: 'HTML',
+          reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('📝 Название', `edit_category_name_${catId}`)],
+            [Markup.button.callback('📋 Описание', `edit_category_desc_${catId}`)],
+            [Markup.button.callback('🖼 Изображение', `edit_category_image_${catId}`)],
+            [Markup.button.callback('👁 Просмотреть', `view_category_${catId}`)],
+            [Markup.button.callback('🔙 К списку категорий', 'admin_categories')]
+          ]).reply_markup,
+        });
+      } catch (error) {
+        await ctx.reply('Ошибка при редактировании категории.');
+      }
+    });
+
+    // FSM: удаление категории (подтверждение)
+    bot.action(/^delete_category_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const catId = parseInt(ctx.match[1]);
+      try {
+        const cat = await categoryController.getCategoryById(catId);
+        if (!cat) return ctx.editMessageText('Категория не найдена.');
+        await ctx.editMessageText(
+          `⚠️ <b>Подтверждение удаления</b>\n\nВы действительно хотите удалить категорию <b>"${cat.name}"</b> (ID: ${catId})?\n\n<i>Это действие нельзя отменить!</i>`,
+          {
+            parse_mode: 'HTML',
+            reply_markup: Markup.inlineKeyboard([
+              [Markup.button.callback('✅ Да, удалить', `confirm_delete_category_${catId}`), Markup.button.callback('❌ Отменить', `view_category_${catId}`)]
+            ]).reply_markup,
+          }
+        );
+      } catch (error) {
+        await ctx.reply('Ошибка при удалении категории.');
+      }
+    });
+
+    // FSM: подтверждение удаления категории
+    bot.action(/^confirm_delete_category_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const catId = parseInt(ctx.match[1]);
+      try {
+        const cat = await categoryController.getCategoryById(catId);
+        if (!cat) return ctx.editMessageText('Категория не найдена.');
+        await categoryController.deleteCategory(catId);
+        await ctx.editMessageText(`✅ Категория "${cat.name}" (ID: ${catId}) успешно удалена!`, {
+          reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('🔙 К списку категорий', 'admin_categories')]
+          ]).reply_markup,
+        });
+      } catch (error) {
+        await ctx.reply('Ошибка при удалении категории.');
+      }
     });
 
     // --- Управление Товарами ---
@@ -1121,13 +1233,14 @@ ${specsText}
             `Категория "${text}" (ID: ${category.id}) успешно создана!`
           );
           // Возвращаемся к списку категорий
-          await bot.actions.admin_categories(ctx);
+          await showCategoriesList(ctx, false);
         } catch (error) {
           console.error('Ошибка при создании категории:', error);
+          setState(userId, null); // Сбрасываем состояние при ошибке
           await ctx.reply(
-            'Произошла ошибка при создании категории. Возможно, имя уже занято.'
+            '❌ Произошла ошибка при создании категории. Возможно, имя уже занято.\n\nПопробуйте снова или используйте другое название.'
           );
-          // Оставляем состояние, чтобы пользователь мог попробовать снова
+          await showCategoriesList(ctx, false);
         }
         return; // Завершаем обработку
       }
@@ -1243,7 +1356,7 @@ ${specsText}
             
             specs = JSON.stringify(specsObj);
           } catch (error) {
-            return ctx.reply(
+          return ctx.reply(
               `❌ Некорректный формат характеристик!\n\nОшибка: ${error.message}\n\nПравильный формат (каждая с новой строки):\nПроцессор: Intel i7\nВидеокарта: RTX 4070\nRAM: 16GB\n\nПопробуйте еще раз или введите "-" для пропуска:\n\n💡 Для отмены введите /cancel`
             );
           }
@@ -1437,7 +1550,7 @@ ${specsText}
           // Возвращаемся к списку товаров этой категории
           setTimeout(async () => {
             try {
-              await bot.actions[`products_cat_${parseInt(catId)}`](ctx);
+              await showProductsPage(ctx, parseInt(catId), 0);
             } catch (error) {
               console.error('Ошибка при возвращении к списку товаров:', error);
             }
@@ -1775,256 +1888,162 @@ ${specsText}
           '❌ Пожалуйста, отправьте изображения, напишите "готово" для завершения или "удалить" для удаления всех доп. изображений.\n\n💡 Для отмены введите /cancel'
         );
       }
+
+      // --- FSM для создания и редактирования категории (текстовые сообщения) ---
+      if (state === 'wait_new_category_name') {
+        if (text.length < 2 || text.length > 50) {
+          return ctx.reply('Название категории должно быть от 2 до 50 символов. Попробуйте еще раз:');
+        }
+        setState(userId, `wait_new_category_desc|||${text}`);
+        return ctx.reply('📋 Введите описание категории (или "-" для пропуска):\n\n💡 Для отмены введите /cancel');
+      }
+      // FSM: создание категории (шаг 2)
+      if (state && state.startsWith('wait_new_category_desc|||')) {
+        const name = state.replace('wait_new_category_desc|||', '');
+        const desc = text === '-' ? null : text;
+        setState(userId, `wait_new_category_image|||${name}|||${desc || ''}`);
+        return ctx.reply('🖼 Отправьте изображение категории (или "-" для пропуска):\n\n💡 Для отмены введите /cancel');
+      }
+      // FSM: создание категории (шаг 3, пропуск изображения)
+      if (state && state.startsWith('wait_new_category_image|||')) {
+        const [_, name, desc] = state.split('|||');
+        if (text === '-') {
+          // Создаем категорию без изображения
+          try {
+            const category = await categoryController.createCategory({
+              name,
+              description: desc || null,
+              image: null,
+            });
+            setState(userId, null);
+            await ctx.reply(`✅ Категория "${name}" успешно создана!`);
+            await showCategoriesList(ctx, false);
+          } catch (error) {
+            console.error('Ошибка при создании категории:', error);
+          setState(userId, null); // Сбрасываем состояние при ошибке
+            await ctx.reply('❌ Ошибка при создании категории. Возможно, имя уже занято.\n\nПопробуйте снова или используйте другое название.');
+            await showCategoriesList(ctx, false);
+          }
+          return;
+        }
+        // Если не "-", просим отправить изображение
+        return ctx.reply('❌ Пожалуйста, отправьте изображение или "-" для пропуска.\n\n💡 Для отмены введите /cancel');
+      }
+
+      // FSM: редактирование названия категории
+      if (state && state.startsWith('edit_category_name_')) {
+        const catId = parseInt(state.replace('edit_category_name_', ''));
+        if (text.length < 2 || text.length > 50) {
+          return ctx.reply('Название категории должно быть от 2 до 50 символов. Попробуйте еще раз:');
+        }
+        try {
+          await categoryController.updateCategory(catId, { name: text });
+          setState(userId, null);
+          await ctx.reply(`✅ Название категории обновлено на: "${text}"`);
+          setTimeout(async () => { await bot.actions[`view_category_${catId}`](ctx); }, 500);
+        } catch (error) {
+          await ctx.reply('Ошибка при обновлении названия категории.');
+        }
+        return;
+      }
+      // FSM: редактирование описания категории
+      if (state && state.startsWith('edit_category_desc_')) {
+        const catId = parseInt(state.replace('edit_category_desc_', ''));
+        const desc = text === '-' ? null : text;
+        try {
+          await categoryController.updateCategory(catId, { description: desc });
+          setState(userId, null);
+          await ctx.reply(`✅ Описание категории ${desc ? 'обновлено' : 'удалено'}`);
+          setTimeout(async () => { await bot.actions[`view_category_${catId}`](ctx); }, 500);
+        } catch (error) {
+          await ctx.reply('Ошибка при обновлении описания категории.');
+        }
+        return;
+      }
+      // FSM: редактирование изображения категории (только текстовая команда пропуска)
+      if (state && state.startsWith('edit_category_image_')) {
+        const catId = parseInt(state.replace('edit_category_image_', ''));
+        if (text === '-') {
+          try {
+            await categoryController.updateCategory(catId, { image: null });
+            setState(userId, null);
+            await ctx.reply('✅ Изображение категории удалено');
+            setTimeout(async () => { await bot.actions[`view_category_${catId}`](ctx); }, 500);
+          } catch (error) {
+            await ctx.reply('Ошибка при удалении изображения категории.');
+          }
+          return;
+        }
+        return ctx.reply('❌ Пожалуйста, отправьте изображение или "-" для удаления.\n\n💡 Для отмены введите /cancel');
+      }
     });
 
-    // Временное хранилище для медиа-групп (альбомов)
-    const mediaGroupBuffer = new Map();
-    
-    // Функция обработки фото из медиа-группы
-    async function handleMediaGroupPhoto(ctx, userId, state, fileId, mediaGroupId) {
-      // Поддерживаем альбомы для дополнительных изображений (создание и редактирование)
-      if (!state.startsWith('wait_product_all_images_') && !state.startsWith('edit_all_images_')) {
-        // Для основного и FPS изображения - одиночные фото
-        return await handleSinglePhoto(ctx, userId, state, fileId);
-      }
-      
-      // Инициализируем буфер для этой медиа-группы
-      if (!mediaGroupBuffer.has(mediaGroupId)) {
-        mediaGroupBuffer.set(mediaGroupId, {
-          userId,
-          state,
-          fileIds: [],
-          timeout: null,
-          ctx
-        });
-      }
-      
-      const groupData = mediaGroupBuffer.get(mediaGroupId);
-      groupData.fileIds.push(fileId);
-      
-      // Очищаем предыдущий таймаут
-      if (groupData.timeout) {
-        clearTimeout(groupData.timeout);
-      }
-      
-      // Устанавливаем новый таймаут на обработку (2 секунды после последнего фото)
-      groupData.timeout = setTimeout(async () => {
-        await processMediaGroup(mediaGroupId, groupData);
-        mediaGroupBuffer.delete(mediaGroupId);
-      }, 2000);
-    }
-    
-    // Функция обработки завершенной медиа-группы
-    async function processMediaGroup(mediaGroupId, groupData) {
-      const { userId, state, fileIds, ctx } = groupData;
-      
-      // Обработка для создания товара
-      if (state.startsWith('wait_product_all_images_')) {
-        const stateParts = state.replace('wait_product_all_images_', '').split('|||');
-        const [catId, productId, productName, priceStr, description, specs, image, fpsImage] = stateParts.slice(0, 8);
-        const existingImages = stateParts.slice(8) || [];
-        
-        // Добавляем все новые file_id к существующим
-        const updatedImages = [...existingImages, ...fileIds];
-        const newState = `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${updatedImages.join('|||')}`;
-        
-        setState(userId, newState);
-        
-        // Отправляем подтверждение
-        await ctx.reply(
-          `✅ Получено ${fileIds.length} дополнительных изображений из альбома!\n\nВсего дополнительных изображений: ${updatedImages.length}\n\nОтправьте еще изображения или напишите "готово" для завершения:\n\n💡 Для отмены введите /cancel`
-        );
-        return;
-      }
-      
-      // Обработка для редактирования товара
-      if (state.startsWith('edit_all_images_')) {
-        const stateParts = state.replace('edit_all_images_', '').split('|||');
-        const productId = parseInt(stateParts[0]);
-        const existingImages = stateParts.slice(1) || [];
-        
-        // Добавляем все новые file_id к существующим
-        const updatedImages = [...existingImages, ...fileIds];
-        const newState = `edit_all_images_${productId}|||${updatedImages.join('|||')}`;
-        
-        setState(userId, newState);
-        
-        // Отправляем подтверждение
-        await ctx.reply(
-          `✅ Получено ${fileIds.length} дополнительных изображений из альбома!\n\nВсего добавлено изображений: ${updatedImages.length}\n\nОтправьте еще изображения или напишите "готово" для сохранения:\n\n💡 Для отмены введите /cancel`
-        );
-        return;
-      }
-    }
-    
-    // Функция обработки одиночного фото
-    async function handleSinglePhoto(ctx, userId, state, fileId) {
-      // Шаг 6: Основное изображение
-      if (state.startsWith('wait_product_image_')) {
-        const [catId, productId, productName, priceStr, description, specs] = state.replace('wait_product_image_', '').split('|||');
-        
-        setState(userId, `wait_product_fps_image_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${fileId}`);
-        return ctx.reply(
-          '✅ Основное изображение получено!\n\n🎮 Отправьте изображение с FPS тестами:\n\n📸 Фото (со сжатием) или 📎 Файл (без сжатия)\n\nИли "-" для пропуска:\n\n💡 Для отмены введите /cancel'
-        );
-      }
-      
-      // Шаг 7: FPS изображение
-      if (state.startsWith('wait_product_fps_image_')) {
-        const [catId, productId, productName, priceStr, description, specs, image] = state.replace('wait_product_fps_image_', '').split('|||');
-        
-        setState(userId, `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fileId}`);
-        return ctx.reply(
-          '✅ FPS изображение получено!\n\n📸 Отправляйте дополнительные изображения товара:\n\n• 🖼️ По одному (фото или файлы)\n• 📚 Альбомом до 10 изображений сразу\n\nКогда закончите, напишите "готово" или "-" для пропуска:\n\n💡 Для отмены введите /cancel'
-        );
-      }
-      
-      // Шаг 8: Дополнительные изображения (одиночные)
-      if (state.startsWith('wait_product_all_images_')) {
-        const stateParts = state.replace('wait_product_all_images_', '').split('|||');
-        const [catId, productId, productName, priceStr, description, specs, image, fpsImage] = stateParts.slice(0, 8);
-        const existingImages = stateParts.slice(8) || [];
-        
-        // Добавляем новый file_id к существующим
-        const updatedImages = [...existingImages, fileId];
-        const newState = `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${updatedImages.join('|||')}`;
-        
-        setState(userId, newState);
-        return ctx.reply(
-          `✅ Дополнительное изображение ${updatedImages.length} получено!\n\n📸 Отправьте еще изображения:\n• Одиночными или альбомом\n• Или напишите "готово" для завершения\n\n💡 Для отмены введите /cancel`
-        );
-      }
-      
-      // --- Редактирование изображений ---
-      
-      // Редактирование основного изображения
-      if (state.startsWith('edit_image_')) {
-        const productId = parseInt(state.replace('edit_image_', ''));
-        
-        try {
-          // Показываем сообщение о начале загрузки
-          await ctx.reply('📤 Загружаю изображение в хранилище...');
-          
-          // Загружаем изображение в S3
-          let newImageUrl = fileId; // Значение по умолчанию для случая если S3 не настроен
-          
-          if (s3Service.isConfigured()) {
-            // Получаем информацию о товаре для правильной организации файлов
-            const product = await productController.getProductById(productId);
-            if (!product) {
-              throw new Error('Товар не найден');
-            }
-            
-            const category = await categoryController.getCategoryById(product.categoryId);
-            if (!category) {
-              throw new Error('Категория не найдена');
-            }
-            
-            const uploadResult = await s3Service.uploadProductImages({
-              mainImage: fileId,
-              fpsImage: null,
-              additionalImages: null,
-              productInfo: {
-                productId: productId,
-                productName: product.name,
-                categoryId: product.categoryId,
-                categoryName: category.name
-              }
-            });
-            
-            newImageUrl = uploadResult.mainImageUrl;
-          }
-          
-          await productController.updateProduct(productId, { image: newImageUrl });
-          setState(userId, null);
-          await ctx.reply('✅ Основное изображение обновлено!');
-          
-          // Возвращаемся к просмотру товара
-          setTimeout(async () => {
-            await bot.actions[`view_product_${productId}`](ctx);
-          }, 500);
-        } catch (error) {
-          console.error('Ошибка при обновлении основного изображения:', error);
-          await ctx.reply('❌ Произошла ошибка при обновлении изображения.');
+    // --- FSM для создания и редактирования категории (фото/документы) ---
+    bot.on(['photo', 'document'], async (ctx) => {
+      const userId = ctx.from.id;
+      const state = getState(userId);
+      let fileId = null;
+      if (ctx.message.photo) {
+        // Берем наилучшее качество
+        fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
+      } else if (ctx.message.document) {
+        const doc = ctx.message.document;
+        const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+        if (!doc.mime_type || !imageTypes.includes(doc.mime_type.toLowerCase())) {
+          return ctx.reply('❌ Пожалуйста, отправьте изображение (JPEG, PNG, WebP или GIF).');
         }
-        return;
+        fileId = doc.file_id;
       }
-      
-      // Редактирование FPS изображения
-      if (state.startsWith('edit_fps_image_')) {
-        const productId = parseInt(state.replace('edit_fps_image_', ''));
-        
-        try {
-          // Показываем сообщение о начале загрузки
-          await ctx.reply('📤 Загружаю FPS изображение в хранилище...');
-          
-          // Загружаем изображение в S3
-          let newFpsImageUrl = fileId; // Значение по умолчанию для случая если S3 не настроен
-          
-          if (s3Service.isConfigured()) {
-            // Получаем информацию о товаре для правильной организации файлов
-            const product = await productController.getProductById(productId);
-            if (!product) {
-              throw new Error('Товар не найден');
-            }
-            
-            const category = await categoryController.getCategoryById(product.categoryId);
-            if (!category) {
-              throw new Error('Категория не найдена');
-            }
-            
-            const uploadResult = await s3Service.uploadProductImages({
-              mainImage: null,
-              fpsImage: fileId,
-              additionalImages: null,
-              productInfo: {
-                productId: productId,
-                productName: product.name,
-                categoryId: product.categoryId,
-                categoryName: category.name
-              }
-            });
-            
-            newFpsImageUrl = uploadResult.fpsImageUrl;
-          }
-          
-          await productController.updateProduct(productId, { fpsImage: newFpsImageUrl });
-          setState(userId, null);
-          await ctx.reply('✅ FPS изображение обновлено!');
-          
-          // Возвращаемся к просмотру товара
-          setTimeout(async () => {
-            await bot.actions[`view_product_${productId}`](ctx);
-          }, 500);
-        } catch (error) {
-          console.error('Ошибка при обновлении FPS изображения:', error);
-          await ctx.reply('❌ Произошла ошибка при обновлении FPS изображения.');
-        }
-        return;
-      }
-      
-      // Редактирование дополнительных изображений (одиночные)
-      if (state.startsWith('edit_all_images_')) {
-        const stateParts = state.replace('edit_all_images_', '').split('|||');
-        const productId = parseInt(stateParts[0]);
-        const existingImages = stateParts.slice(1) || [];
-        
-        // Добавляем новый file_id к существующим
-        const updatedImages = [...existingImages, fileId];
-        const newState = `edit_all_images_${productId}|||${updatedImages.join('|||')}`;
-        
-        setState(userId, newState);
-        return ctx.reply(
-          `✅ Дополнительное изображение ${updatedImages.length} получено!\n\n📸 Отправьте еще изображения или напишите "готово" для сохранения:\n\n💡 Для отмены введите /cancel`
-        );
-      }
+      if (!state || !fileId) return;
 
-      // Если фото в неподходящем состоянии
-      return ctx.reply(
-        '❌ Изображение сейчас не ожидается. Используйте кнопки меню для навигации.\n\n💡 Для отмены текущего действия введите /cancel'
-      );
-    }
-    
+      // FSM: создание категории (шаг 3, изображение)
+      if (state.startsWith('wait_new_category_image|||')) {
+        const [_, name, desc] = state.split('|||');
+        try {
+          let imageUrl = fileId;
+          if (s3Service.isConfigured()) {
+            // Загружаем в S3
+            const uploadResult = await s3Service.uploadCategoryImage({ fileId, categoryName: name });
+            imageUrl = uploadResult.url;
+          }
+          const category = await categoryController.createCategory({
+            name,
+            description: desc || null,
+            image: imageUrl,
+          });
+          setState(userId, null);
+          await ctx.reply(`✅ Категория "${name}" успешно создана!`);
+          await showCategoriesList(ctx, false);
+        } catch (error) {
+          console.error('Ошибка при создании категории с изображением:', error);
+          setState(userId, null); // Сбрасываем состояние при ошибке
+          await ctx.reply('❌ Ошибка при создании категории с изображением. Возможно, имя уже занято.\n\nПопробуйте снова или используйте другое название.');
+          await showCategoriesList(ctx, false);
+        }
+        return;
+      }
+      // FSM: редактирование изображения категории
+      if (state.startsWith('edit_category_image_')) {
+        const catId = parseInt(state.replace('edit_category_image_', ''));
+        try {
+          let imageUrl = fileId;
+          if (s3Service.isConfigured()) {
+            // Загружаем в S3
+            const cat = await categoryController.getCategoryById(catId);
+            const uploadResult = await s3Service.uploadCategoryImage({ fileId, categoryName: cat.name });
+            imageUrl = uploadResult.url;
+          }
+          await categoryController.updateCategory(catId, { image: imageUrl });
+          setState(userId, null);
+          await ctx.reply('✅ Изображение категории обновлено!');
+          setTimeout(async () => { await bot.actions[`view_category_${catId}`](ctx); }, 500);
+        } catch (error) {
+          await ctx.reply('Ошибка при обновлении изображения категории.');
+        }
+        return;
+      }
+    });
+
     // --- Обработка фото для FSM ---
     bot.on('photo', async (ctx) => {
       const userId = ctx.from.id;

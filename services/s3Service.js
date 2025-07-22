@@ -2,6 +2,7 @@ const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/cl
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const dotenv = require('dotenv');
+const path = require('path');
 
 dotenv.config();
 
@@ -248,6 +249,31 @@ class S3Service {
       process.env.VK_S3_BUCKET_NAME &&
       this.telegramToken
     );
+  }
+
+  // --- Новый метод для загрузки изображения категории ---
+  async uploadCategoryImage({ fileId, categoryName }) {
+    // 1. Скачиваем файл из Telegram
+    const fileBuffer = await this.downloadTelegramFile(fileId);
+    // 2. Генерируем путь
+    const fileName = this.generateCategoryFileName(categoryName);
+    // 3. Определяем mime-type
+    const contentType = this.getMimeType(fileName);
+    // 4. Загружаем в S3
+    await this.uploadToS3(fileBuffer, fileName, contentType);
+    // 5. Возвращаем публичный URL
+    return { url: this.getPublicUrl(fileName) };
+  }
+
+  generateCategoryFileName(categoryName) {
+    const safeCategoryName = this.sanitizeFileName(categoryName);
+    const uuid = uuidv4();
+    const extension = 'jpg';
+    return `categories/${safeCategoryName}/main/image-${uuid}.${extension}`;
+  }
+
+  getPublicUrl(fileName) {
+    return `https://${this.bucketName}.${process.env.VK_S3_ENDPOINT?.replace('https://', '') || 'hb.bizmrg.com'}/${fileName}`;
   }
 }
 
