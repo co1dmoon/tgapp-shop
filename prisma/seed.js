@@ -315,6 +315,262 @@ async function main() {
       },
     });
 
+    // Добавляем еще 15 мониторов для тестирования пагинации
+    const monitor4 = await prisma.product.create({
+      data: {
+        id: 5004,
+        name: 'ASUS ROG Swift PG259QN',
+        price: 55000,
+        specs: JSON.stringify({
+          Диагональ: '25"',
+          Разрешение: 'Full HD',
+          Частота: '360Hz',
+          Матрица: 'IPS',
+          Отклик: '1ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor5 = await prisma.product.create({
+      data: {
+        id: 5005,
+        name: 'Dell Alienware AW3420DW',
+        price: 75000,
+        specs: JSON.stringify({
+          Диагональ: '34"',
+          Разрешение: 'UWQHD',
+          Частота: '120Hz',
+          Матрица: 'IPS',
+          Отклик: '2ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor6 = await prisma.product.create({
+      data: {
+        id: 5006,
+        name: 'AOC 24G2U',
+        price: 18000,
+        specs: JSON.stringify({
+          Диагональ: '24"',
+          Разрешение: 'Full HD',
+          Частота: '144Hz',
+          Матрица: 'IPS',
+          Отклик: '1ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor7 = await prisma.product.create({
+      data: {
+        id: 5007,
+        name: 'MSI Optix MAG274QRF-QD',
+        price: 42000,
+        specs: JSON.stringify({
+          Диагональ: '27"',
+          Разрешение: '2K',
+          Частота: '165Hz',
+          Матрица: 'IPS',
+          Отклик: '1ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor8 = await prisma.product.create({
+      data: {
+        id: 5008,
+        name: 'BenQ ZOWIE XL2546K',
+        price: 48000,
+        specs: JSON.stringify({
+          Диагональ: '25"',
+          Разрешение: 'Full HD',
+          Частота: '240Hz',
+          Матрица: 'TN',
+          Отклик: '0.5ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor9 = await prisma.product.create({
+      data: {
+        id: 5009,
+        name: 'ViewSonic Elite XG270QG',
+        price: 52000,
+        specs: JSON.stringify({
+          Диагональ: '27"',
+          Разрешение: '2K',
+          Частота: '165Hz',
+          Матрица: 'IPS',
+          Отклик: '1ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor10 = await prisma.product.create({
+      data: {
+        id: 5010,
+        name: 'Acer Predator X27',
+        price: 95000,
+        specs: JSON.stringify({
+          Диагональ: '27"',
+          Разрешение: '4K',
+          Частота: '144Hz',
+          Матрица: 'IPS',
+          Отклик: '4ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor11 = await prisma.product.create({
+      data: {
+        id: 5011,
+        name: 'GIGABYTE M27Q',
+        price: 35000,
+        specs: JSON.stringify({
+          Диагональ: '27"',
+          Разрешение: '2K',
+          Частота: '170Hz',
+          Матрица: 'IPS',
+          Отклик: '0.5ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor12 = await prisma.product.create({
+      data: {
+        id: 5012,
+        name: 'HP OMEN 27i',
+        price: 38000,
+        specs: JSON.stringify({
+          Диагональ: '27"',
+          Разрешение: '2K',
+          Частота: '165Hz',
+          Матрица: 'IPS',
+          Отклик: '1ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor13 = await prisma.product.create({
+      data: {
+        id: 5013,
+        name: 'Xiaomi Mi Curved Gaming',
+        price: 28000,
+        specs: JSON.stringify({
+          Диагональ: '34"',
+          Разрешение: 'UWQHD',
+          Частота: '144Hz',
+          Матрица: 'VA',
+          Отклик: '4ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor14 = await prisma.product.create({
+      data: {
+        id: 5014,
+        name: 'Philips 276E8VJSB',
+        price: 22000,
+        specs: JSON.stringify({
+          Диагональ: '27"',
+          Разрешение: '4K',
+          Частота: '60Hz',
+          Матрица: 'IPS',
+          Отклик: '5ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor15 = await prisma.product.create({
+      data: {
+        id: 5015,
+        name: 'iiyama ProLite XUB2792QSU',
+        price: 32000,
+        specs: JSON.stringify({
+          Диагональ: '27"',
+          Разрешение: '2K',
+          Частота: '75Hz',
+          Матрица: 'IPS',
+          Отклик: '4ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor16 = await prisma.product.create({
+      data: {
+        id: 5016,
+        name: 'ASUS TUF Gaming VG32VQ',
+        price: 40000,
+        specs: JSON.stringify({
+          Диагональ: '32"',
+          Разрешение: '2K',
+          Частота: '144Hz',
+          Матрица: 'VA',
+          Отклик: '1ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor17 = await prisma.product.create({
+      data: {
+        id: 5017,
+        name: 'LG UltraGear 38GN950',
+        price: 85000,
+        specs: JSON.stringify({
+          Диагональ: '38"',
+          Разрешение: 'UWQHD+',
+          Частота: '160Hz',
+          Матрица: 'Nano IPS',
+          Отклик: '1ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
+    const monitor18 = await prisma.product.create({
+      data: {
+        id: 5018,
+        name: 'Samsung Odyssey G9',
+        price: 120000,
+        specs: JSON.stringify({
+          Диагональ: '49"',
+          Разрешение: 'Dual QHD',
+          Частота: '240Hz',
+          Матрица: 'VA',
+          Отклик: '1ms',
+        }),
+        categoryId: categoryMonitors.id,
+        favoriteRank: 0,
+      },
+    });
+
     // Создаем товары для клавиатур
     const keyboard1 = await prisma.product.create({
       data: {

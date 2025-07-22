@@ -410,35 +410,106 @@ const initBot = async (webAppUrl) => {
       );
     });
 
-    // Действие при выборе категории для просмотра товаров
+    // Действие при выборе категории для просмотра товаров (первая страница)
     bot.action(/^products_cat_(\d+)$/, checkAdmin, async (ctx) => {
       await ctx.answerCbQuery();
       const catId = parseInt(ctx.match[1]);
+      // Показываем первую страницу (страницы начинаются с 0)
+      await showProductsPage(ctx, catId, 0);
+    });
+
+    // Действие для навигации по страницам товаров
+    bot.action(/^products_page_(\d+)_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const catId = parseInt(ctx.match[1]);
+      const page = parseInt(ctx.match[2]);
+      await showProductsPage(ctx, catId, page);
+    });
+
+    // Функция отображения товаров с пагинацией
+    async function showProductsPage(ctx, catId, page = 0) {
       try {
         const products = await productController.getProductsByCategory(catId);
         const category = await categoryController.getCategoryById(catId);
-        let message = `<b>Товары в категории "${category.name}":</b>\n\n`;
+        
+        const ITEMS_PER_PAGE = 5; // Показываем по 5 товаров на странице
+        const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+        const currentPage = Math.max(0, Math.min(page, totalPages - 1));
+        
+        // Получаем товары для текущей страницы
+        const startIndex = currentPage * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+        const pageProducts = products.slice(startIndex, endIndex);
+        
+        let message = `<b>Товары в категории "${category.name}":</b>\n`;
+        message += `📦 Всего товаров: ${products.length}\n`;
+        if (totalPages > 1) {
+          message += `📄 Страница ${currentPage + 1} из ${totalPages}\n`;
+        }
+        message += '\n';
+        
+        const keyboardRows = [];
+        
         if (products.length === 0) {
           message += 'Товары отсутствуют.';
         } else {
-          products.forEach((p) => {
-            message += `• ${p.name} - ${p.price.toLocaleString(
-              'ru-RU'
-            )} ₽ (ID: ${p.id})\n`;
+          pageProducts.forEach((p, index) => {
+            const globalIndex = startIndex + index + 1;
+            message += `${globalIndex}. ${p.name} - ${p.price.toLocaleString('ru-RU')} ₽ (ID: ${p.id})\n`;
+            
+            // Добавляем кнопки для каждого товара на странице
+            keyboardRows.push([
+              Markup.button.callback(`👁 Просмотреть ${globalIndex}`, `view_product_${p.id}`),
+              Markup.button.callback(`✏️ Редактировать ${globalIndex}`, `edit_product_${p.id}`)
+            ]);
           });
+          
+          // Добавляем навигацию по страницам, если товаров больше чем помещается на одной странице
+          if (totalPages > 1) {
+            const navButtons = [];
+            
+            // Кнопка "Предыдущая страница"
+            if (currentPage > 0) {
+              navButtons.push(
+                Markup.button.callback('⬅️ Пред.', `products_page_${catId}_${currentPage - 1}`)
+              );
+            }
+            
+            // Информация о странице
+            navButtons.push(
+              Markup.button.callback(`${currentPage + 1}/${totalPages}`, 'noop')
+            );
+            
+            // Кнопка "Следующая страница"
+            if (currentPage < totalPages - 1) {
+              navButtons.push(
+                Markup.button.callback('След. ➡️', `products_page_${catId}_${currentPage + 1}`)
+              );
+            }
+            
+            keyboardRows.push(navButtons);
+          }
         }
+        
+        // Добавляем общие кнопки
+        keyboardRows.push([
+          Markup.button.callback('➕ Добавить товар сюда', `add_product_to_${catId}`)
+        ]);
+        
+        // Если товаров много, добавляем кнопку поиска
+        if (products.length > 10) {
+          keyboardRows.push([
+            Markup.button.callback('🔍 Найти товар', `search_product_${catId}`)
+          ]);
+        }
+        
+        keyboardRows.push([
+          Markup.button.callback('🔙 К категориям', 'admin_products')
+        ]);
+        
         await ctx.editMessageText(message, {
           parse_mode: 'HTML',
-          reply_markup: Markup.inlineKeyboard([
-            [
-              Markup.button.callback(
-                '➕ Добавить сюда',
-                `add_product_to_${catId}`
-              ),
-            ],
-            // Добавить кнопки Редактировать/Удалить товар
-            [Markup.button.callback('🔙 К категориям', 'admin_products')],
-          ]).reply_markup,
+          reply_markup: { inline_keyboard: keyboardRows },
         });
       } catch (error) {
         console.error(
@@ -447,7 +518,83 @@ const initBot = async (webAppUrl) => {
         );
         await ctx.editMessageText('Произошла ошибка при получении товаров.');
       }
+    }
+
+    // Обработчик для неактивных кнопок (например, индикатор страницы)
+    bot.action('noop', async (ctx) => {
+      await ctx.answerCbQuery();
     });
+
+    // Поиск товаров в категории
+    bot.action(/^search_product_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const catId = parseInt(ctx.match[1]);
+      setState(ctx.from.id, `search_in_category_${catId}`);
+      await ctx.reply(
+        '🔍 Введите название товара для поиска:\n\n💡 Будет найдены товары, содержащие ваш запрос в названии\n💡 Для отмены введите /cancel'
+      );
+    });
+
+    // Функция поиска и отображения найденных товаров
+    async function showSearchResults(ctx, catId, searchQuery) {
+      try {
+        const allProducts = await productController.getProductsByCategory(catId);
+        const category = await categoryController.getCategoryById(catId);
+        
+        // Фильтруем товары по поисковому запросу (регистронезависимо)
+        const foundProducts = allProducts.filter(product => 
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.id.toString().includes(searchQuery)
+        );
+        
+        let message = `<b>Результаты поиска в категории "${category.name}":</b>\n`;
+        message += `🔍 Запрос: "${searchQuery}"\n`;
+        message += `📦 Найдено: ${foundProducts.length} из ${allProducts.length}\n\n`;
+        
+        const keyboardRows = [];
+        
+        if (foundProducts.length === 0) {
+          message += 'Товары не найдены.\n\nПопробуйте изменить поисковый запрос.';
+        } else {
+          // Ограничиваем до 8 результатов для удобства
+          const displayProducts = foundProducts.slice(0, 8);
+          
+          displayProducts.forEach((p, index) => {
+            message += `${index + 1}. ${p.name} - ${p.price.toLocaleString('ru-RU')} ₽ (ID: ${p.id})\n`;
+            
+            // Добавляем кнопки для каждого найденного товара
+            keyboardRows.push([
+              Markup.button.callback(`👁 Просмотреть ${index + 1}`, `view_product_${p.id}`),
+              Markup.button.callback(`✏️ Редактировать ${index + 1}`, `edit_product_${p.id}`)
+            ]);
+          });
+          
+          if (foundProducts.length > 8) {
+            message += `\n... и еще ${foundProducts.length - 8} товаров`;
+            keyboardRows.push([
+              Markup.button.callback('🔍 Уточнить поиск', `search_product_${catId}`)
+            ]);
+          }
+        }
+        
+        // Добавляем общие кнопки
+        keyboardRows.push([
+          Markup.button.callback('🔍 Новый поиск', `search_product_${catId}`),
+          Markup.button.callback('📋 Все товары', `products_cat_${catId}`)
+        ]);
+        keyboardRows.push([
+          Markup.button.callback('🔙 К категориям', 'admin_products')
+        ]);
+        
+        await ctx.reply(message, {
+          parse_mode: 'HTML',
+          reply_markup: { inline_keyboard: keyboardRows },
+        });
+      } catch (error) {
+        console.error('Ошибка при поиске товаров:', error);
+        await ctx.reply('❌ Произошла ошибка при поиске товаров.');
+      }
+    }
 
     // Начало добавления нового товара (выбор категории)
     bot.action('add_product', checkAdmin, async (ctx) => {
@@ -481,6 +628,268 @@ const initBot = async (webAppUrl) => {
       setState(ctx.from.id, `wait_product_id_${catId}`);
       await ctx.reply(
         `🆔 Введите ID нового товара для категории ID ${catId}:\n\nВажно: ID должен быть уникальным числом!\n\n💡 Для отмены создания товара введите /cancel`
+      );
+    });
+
+    // --- Просмотр детальной информации о товаре ---
+    bot.action(/^view_product_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      
+      try {
+        const product = await productController.getProductById(productId);
+        if (!product) {
+          return ctx.editMessageText('Товар не найден.', {
+            reply_markup: Markup.inlineKeyboard([
+              [Markup.button.callback('🔙 Назад', 'admin_products')]
+            ]).reply_markup,
+          });
+        }
+
+        // Парсим спецификации
+        let specsText = 'Не указаны';
+        if (product.specs) {
+          try {
+            const specs = JSON.parse(product.specs);
+            specsText = Object.entries(specs)
+              .map(([key, value]) => `• ${key}: ${value}`)
+              .join('\n');
+          } catch (e) {
+            specsText = product.specs;
+          }
+        }
+
+        // Парсим дополнительные изображения
+        let additionalImagesText = 'Нет';
+        if (product.allImages) {
+          try {
+            const images = JSON.parse(product.allImages);
+            additionalImagesText = `${images.length} изображения`;
+          } catch (e) {
+            additionalImagesText = 'Ошибка формата';
+          }
+        }
+
+        const message = `<b>📋 Детальная информация о товаре</b>
+
+🆔 <b>ID:</b> ${product.id}
+📦 <b>Название:</b> ${product.name}
+💰 <b>Цена:</b> ${product.price.toLocaleString('ru-RU')} ₽
+📝 <b>Описание:</b> ${product.description || 'Не указано'}
+
+<b>🔧 Характеристики:</b>
+${specsText}
+
+<b>🖼 Изображения:</b>
+• Основное: ${product.image ? 'Есть' : 'Нет'}
+• FPS изображение: ${product.fpsImage ? 'Есть' : 'Нет'}
+• Дополнительные: ${additionalImagesText}
+
+⭐ <b>Ранг избранного:</b> ${product.favoriteRank || 0}
+📅 <b>Создан:</b> ${new Date(product.createdAt).toLocaleDateString('ru-RU')}
+📅 <b>Обновлен:</b> ${new Date(product.updatedAt).toLocaleDateString('ru-RU')}`;
+
+        await ctx.editMessageText(message, {
+          parse_mode: 'HTML',
+          reply_markup: Markup.inlineKeyboard([
+            [
+              Markup.button.callback('✏️ Редактировать', `edit_product_${productId}`),
+              Markup.button.callback('🗑 Удалить', `delete_product_${productId}`)
+            ],
+            [
+              Markup.button.callback('📋 К товарам', `products_cat_${product.categoryId}`),
+              Markup.button.callback('🔍 Поиск', `search_product_${product.categoryId}`)
+            ]
+          ]).reply_markup,
+        });
+      } catch (error) {
+        console.error('Ошибка при просмотре товара:', error);
+        await ctx.editMessageText('Произошла ошибка при получении информации о товаре.');
+      }
+    });
+
+    // --- Редактирование товара - главное меню ---
+    bot.action(/^edit_product_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      
+      try {
+        const product = await productController.getProductById(productId);
+        if (!product) {
+          return ctx.editMessageText('Товар не найден.');
+        }
+
+        const message = `<b>✏️ Редактирование товара:</b> ${product.name}
+
+Выберите, что хотите изменить:`;
+
+        await ctx.editMessageText(message, {
+          parse_mode: 'HTML',
+          reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('📝 Название', `edit_product_name_${productId}`)],
+            [Markup.button.callback('💰 Цена', `edit_product_price_${productId}`)],
+            [Markup.button.callback('📋 Описание', `edit_product_description_${productId}`)],
+            [Markup.button.callback('🔧 Характеристики', `edit_product_specs_${productId}`)],
+            [Markup.button.callback('🖼 Основное изображение', `edit_product_image_${productId}`)],
+            [Markup.button.callback('🎮 FPS изображение', `edit_product_fps_image_${productId}`)],
+            [Markup.button.callback('📸 Доп. изображения', `edit_product_all_images_${productId}`)],
+            [Markup.button.callback('⭐ Ранг избранного', `edit_product_rank_${productId}`)],
+            [
+              Markup.button.callback('👁 Просмотреть', `view_product_${productId}`)
+            ],
+            [
+              Markup.button.callback('📋 К товарам', `products_cat_${product.categoryId}`),
+              Markup.button.callback('🔍 Поиск', `search_product_${product.categoryId}`)
+            ]
+          ]).reply_markup,
+        });
+      } catch (error) {
+        console.error('Ошибка при редактировании товара:', error);
+        await ctx.editMessageText('Произошла ошибка.');
+      }
+    });
+
+    // --- Удаление товара ---
+    bot.action(/^delete_product_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      
+      try {
+        const product = await productController.getProductById(productId);
+        if (!product) {
+          return ctx.editMessageText('Товар не найден.');
+        }
+
+        await ctx.editMessageText(
+          `⚠️ <b>Подтверждение удаления</b>
+
+Вы действительно хотите удалить товар:
+<b>"${product.name}"</b> (ID: ${productId})?
+
+<i>Это действие нельзя отменить!</i>`, 
+          {
+            parse_mode: 'HTML',
+            reply_markup: Markup.inlineKeyboard([
+              [
+                Markup.button.callback('✅ Да, удалить', `confirm_delete_product_${productId}`),
+                Markup.button.callback('❌ Отменить', `view_product_${productId}`)
+              ]
+            ]).reply_markup,
+          }
+        );
+      } catch (error) {
+        console.error('Ошибка при удалении товара:', error);
+        await ctx.editMessageText('Произошла ошибка.');
+      }
+    });
+
+    // --- Подтверждение удаления товара ---
+    bot.action(/^confirm_delete_product_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      
+      try {
+        const product = await productController.getProductById(productId);
+        if (!product) {
+          return ctx.editMessageText('Товар не найден.');
+        }
+
+        const categoryId = product.categoryId;
+        await productController.deleteProduct(productId);
+
+        await ctx.editMessageText(
+          `✅ Товар "${product.name}" (ID: ${productId}) успешно удален!`,
+          {
+            reply_markup: Markup.inlineKeyboard([
+              [Markup.button.callback('🔙 К товарам категории', `products_cat_${categoryId}`)]
+            ]).reply_markup,
+          }
+        );
+      } catch (error) {
+        console.error('Ошибка при удалении товара:', error);
+        await ctx.editMessageText('Произошла ошибка при удалении товара.');
+      }
+    });
+
+    // --- Обработчики редактирования полей товара ---
+    
+    // Редактирование названия
+    bot.action(/^edit_product_name_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      setState(ctx.from.id, `edit_name_${productId}`);
+      await ctx.reply(
+        `📝 Введите новое название товара:\n\n💡 Для отмены введите /cancel`
+      );
+    });
+
+    // Редактирование цены
+    bot.action(/^edit_product_price_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      setState(ctx.from.id, `edit_price_${productId}`);
+      await ctx.reply(
+        `💰 Введите новую цену товара (только число):\n\nПример: 150000\n\n💡 Для отмены введите /cancel`
+      );
+    });
+
+    // Редактирование описания
+    bot.action(/^edit_product_description_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      setState(ctx.from.id, `edit_description_${productId}`);
+      await ctx.reply(
+        `📋 Введите новое описание товара:\n\n💡 Для отмены введите /cancel`
+      );
+    });
+
+    // Редактирование характеристик
+    bot.action(/^edit_product_specs_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      setState(ctx.from.id, `edit_specs_${productId}`);
+      await ctx.reply(
+        `🔧 Введите новые характеристики в формате:\nКлюч: Значение\nКлюч: Значение\n\nПример:\nПроцессор: Intel i7-12700F\nВидеокарта: RTX 4070\nRAM: 16GB DDR4\n\n💡 Для отмены введите /cancel`
+      );
+    });
+
+    // Редактирование основного изображения
+    bot.action(/^edit_product_image_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      setState(ctx.from.id, `edit_image_${productId}`);
+      await ctx.reply(
+        `🖼 Отправьте новое основное изображение товара:\n\n📸 Фото (со сжатием) или 📎 Файл (без сжатия)\n\n💡 Для отмены введите /cancel`
+      );
+    });
+
+    // Редактирование FPS изображения
+    bot.action(/^edit_product_fps_image_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      setState(ctx.from.id, `edit_fps_image_${productId}`);
+      await ctx.reply(
+        `🎮 Отправьте новое FPS изображение товара:\n\n📸 Фото (со сжатием) или 📎 Файл (без сжатия)\nИли "-" для удаления\n\n💡 Для отмены введите /cancel`
+      );
+    });
+
+    // Редактирование дополнительных изображений
+    bot.action(/^edit_product_all_images_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      setState(ctx.from.id, `edit_all_images_${productId}`);
+      await ctx.reply(
+        `📸 Отправьте новые дополнительные изображения:\n\n📸 Можете отправлять по одному или альбомом\n\nКогда закончите, напишите "готово"\nДля удаления всех доп. изображений напишите "удалить"\n\n💡 Для отмены введите /cancel`
+      );
+    });
+
+    // Редактирование ранга избранного
+    bot.action(/^edit_product_rank_(\d+)$/, checkAdmin, async (ctx) => {
+      await ctx.answerCbQuery();
+      const productId = parseInt(ctx.match[1]);
+      setState(ctx.from.id, `edit_rank_${productId}`);
+      await ctx.reply(
+        `⭐ Введите новый ранг избранного (число от 0 до 100):\n\n0 - не избранное\n1-100 - уровень приоритета\n\n💡 Для отмены введите /cancel`
       );
     });
 
@@ -673,6 +1082,27 @@ const initBot = async (webAppUrl) => {
         // const keyboard = await getMainMenuKeyboard(userId);
         // return ctx.reply('Используйте кнопки меню.', keyboard);
         return; // Игнорируем обычный текст без состояния
+      }
+
+      // --- FSM для поиска товаров ---
+      if (state.startsWith('search_in_category_')) {
+        const catId = parseInt(state.replace('search_in_category_', ''));
+        
+        if (text.length < 1) {
+          return ctx.reply(
+            '❌ Поисковый запрос не может быть пустым. Введите название товара или его ID:\n\n💡 Для отмены введите /cancel'
+          );
+        }
+        
+        if (text.length > 50) {
+          return ctx.reply(
+            '❌ Поисковый запрос слишком длинный (максимум 50 символов). Попробуйте короче:\n\n💡 Для отмены введите /cancel'
+          );
+        }
+        
+        setState(userId, null); // Сбрасываем состояние поиска
+        await showSearchResults(ctx, catId, text);
+        return;
       }
 
       // --- FSM для добавления категории ---
@@ -1035,6 +1465,316 @@ const initBot = async (webAppUrl) => {
         }
         return; // Завершаем обработку
       }
+
+      // --- FSM для редактирования товаров ---
+      
+      // Редактирование названия товара
+      if (state.startsWith('edit_name_')) {
+        const productId = parseInt(state.replace('edit_name_', ''));
+        
+        if (text.length < 2 || text.length > 100) {
+          return ctx.reply(
+            '❌ Название товара должно быть от 2 до 100 символов. Попробуйте еще раз:\n\n💡 Для отмены введите /cancel'
+          );
+        }
+        
+        try {
+          await productController.updateProduct(productId, { name: text });
+          setState(userId, null);
+          await ctx.reply(`✅ Название товара обновлено на: "${text}"`);
+          
+          // Возвращаемся к просмотру товара
+          setTimeout(async () => {
+            await bot.actions[`view_product_${productId}`](ctx);
+          }, 500);
+        } catch (error) {
+          console.error('Ошибка при обновлении названия:', error);
+          await ctx.reply('❌ Произошла ошибка при обновлении названия.');
+        }
+        return;
+      }
+      
+      // Редактирование цены товара
+      if (state.startsWith('edit_price_')) {
+        const productId = parseInt(state.replace('edit_price_', ''));
+        
+        const priceText = text.replace(/\s/g, '').replace(',', '.');
+        const price = parseFloat(priceText);
+        
+        if (isNaN(price) || price <= 0) {
+          return ctx.reply(
+            '❌ Некорректная цена. Введите положительное число (например: 99990):\n\n💡 Для отмены введите /cancel'
+          );
+        }
+        
+        try {
+          await productController.updateProduct(productId, { price });
+          setState(userId, null);
+          await ctx.reply(`✅ Цена товара обновлена на: ${price.toLocaleString('ru-RU')} ₽`);
+          
+          // Возвращаемся к просмотру товара
+          setTimeout(async () => {
+            await bot.actions[`view_product_${productId}`](ctx);
+          }, 500);
+        } catch (error) {
+          console.error('Ошибка при обновлении цены:', error);
+          await ctx.reply('❌ Произошла ошибка при обновлении цены.');
+        }
+        return;
+      }
+      
+      // Редактирование описания товара
+      if (state.startsWith('edit_description_')) {
+        const productId = parseInt(state.replace('edit_description_', ''));
+        
+        const description = text === '-' ? null : text;
+        
+        try {
+          await productController.updateProduct(productId, { description });
+          setState(userId, null);
+          await ctx.reply(
+            `✅ Описание товара ${description ? 'обновлено' : 'удалено'}`
+          );
+          
+          // Возвращаемся к просмотру товара
+          setTimeout(async () => {
+            await bot.actions[`view_product_${productId}`](ctx);
+          }, 500);
+        } catch (error) {
+          console.error('Ошибка при обновлении описания:', error);
+          await ctx.reply('❌ Произошла ошибка при обновлении описания.');
+        }
+        return;
+      }
+      
+      // Редактирование характеристик товара
+      if (state.startsWith('edit_specs_')) {
+        const productId = parseInt(state.replace('edit_specs_', ''));
+        
+        let specs = null;
+        if (text !== '-') {
+          try {
+            // Преобразуем формат "ключ: значение" в JSON
+            const specsObj = {};
+            const pairs = text.split('\n').map(pair => pair.trim()).filter(pair => pair);
+            
+            if (pairs.length === 0) {
+              throw new Error('Пустые характеристики');
+            }
+            
+            for (const pair of pairs) {
+              const colonIndex = pair.indexOf(':');
+              if (colonIndex === -1) {
+                throw new Error(`Некорректная строка "${pair}". Используйте формат "ключ: значение"`);
+              }
+              
+              const key = pair.substring(0, colonIndex).trim();
+              const value = pair.substring(colonIndex + 1).trim();
+              
+              if (!key || !value) {
+                throw new Error(`Некорректная строка "${pair}". Ключ и значение не должны быть пустыми`);
+              }
+              
+              specsObj[key] = value;
+            }
+            
+            specs = JSON.stringify(specsObj);
+          } catch (error) {
+            return ctx.reply(
+              `❌ Некорректный формат характеристик!\n\nОшибка: ${error.message}\n\nПравильный формат:\nПроцессор: Intel i7\nВидеокарта: RTX 4070\nRAM: 16GB\n\nПопробуйте еще раз или введите "-" для удаления:\n\n💡 Для отмены введите /cancel`
+            );
+          }
+        }
+        
+        try {
+          await productController.updateProduct(productId, { specs });
+          setState(userId, null);
+          await ctx.reply(
+            `✅ Характеристики товара ${specs ? 'обновлены' : 'удалены'}`
+          );
+          
+          // Возвращаемся к просмотру товара
+          setTimeout(async () => {
+            await bot.actions[`view_product_${productId}`](ctx);
+          }, 500);
+        } catch (error) {
+          console.error('Ошибка при обновлении характеристик:', error);
+          await ctx.reply('❌ Произошла ошибка при обновлении характеристик.');
+        }
+        return;
+      }
+      
+      // Редактирование ранга избранного
+      if (state.startsWith('edit_rank_')) {
+        const productId = parseInt(state.replace('edit_rank_', ''));
+        
+        let favoriteRank = 0;
+        if (text !== '-') {
+          favoriteRank = parseInt(text);
+          if (isNaN(favoriteRank) || favoriteRank < 0 || favoriteRank > 100) {
+            return ctx.reply(
+              '❌ Ранг должен быть числом от 0 до 100. Попробуйте еще раз или "-" для 0:\n\n💡 Для отмены введите /cancel'
+            );
+          }
+        }
+        
+        try {
+          await productController.updateProduct(productId, { favoriteRank });
+          setState(userId, null);
+          await ctx.reply(`✅ Ранг избранного обновлен на: ${favoriteRank}`);
+          
+          // Возвращаемся к просмотру товара
+          setTimeout(async () => {
+            await bot.actions[`view_product_${productId}`](ctx);
+          }, 500);
+        } catch (error) {
+          console.error('Ошибка при обновлении ранга:', error);
+          await ctx.reply('❌ Произошла ошибка при обновлении ранга.');
+        }
+        return;
+      }
+      
+      // Редактирование основного изображения (только текстовая команда пропуска)
+      if (state.startsWith('edit_image_')) {
+        const productId = parseInt(state.replace('edit_image_', ''));
+        
+        // Проверяем текстовое сообщение для удаления
+        if (text === '-') {
+          try {
+            await productController.updateProduct(productId, { image: null });
+            setState(userId, null);
+            await ctx.reply('✅ Основное изображение удалено');
+            
+            // Возвращаемся к просмотру товара
+            setTimeout(async () => {
+              await bot.actions[`view_product_${productId}`](ctx);
+            }, 500);
+          } catch (error) {
+            console.error('Ошибка при удалении изображения:', error);
+            await ctx.reply('❌ Произошла ошибка при удалении изображения.');
+          }
+          return;
+        }
+        
+        // Если не "-", просим отправить корректные данные
+        return ctx.reply(
+          '❌ Пожалуйста, отправьте изображение (📸 фото или 📎 файл) или "-" для удаления.\n\n💡 Для отмены введите /cancel'
+        );
+      }
+      
+      // Редактирование FPS изображения (только текстовая команда пропуска)
+      if (state.startsWith('edit_fps_image_')) {
+        const productId = parseInt(state.replace('edit_fps_image_', ''));
+        
+        // Проверяем текстовое сообщение для удаления
+        if (text === '-') {
+          try {
+            await productController.updateProduct(productId, { fpsImage: null });
+            setState(userId, null);
+            await ctx.reply('✅ FPS изображение удалено');
+            
+            // Возвращаемся к просмотру товара
+            setTimeout(async () => {
+              await bot.actions[`view_product_${productId}`](ctx);
+            }, 500);
+          } catch (error) {
+            console.error('Ошибка при удалении FPS изображения:', error);
+            await ctx.reply('❌ Произошла ошибка при удалении FPS изображения.');
+          }
+          return;
+        }
+        
+        // Если не "-", просим отправить корректные данные
+        return ctx.reply(
+          '❌ Пожалуйста, отправьте изображение (📸 фото или 📎 файл) или "-" для удаления.\n\n💡 Для отмены введите /cancel'
+        );
+      }
+      
+      // Редактирование дополнительных изображений (только текстовые команды)
+      if (state.startsWith('edit_all_images_')) {
+        const stateParts = state.replace('edit_all_images_', '').split('|||');
+        const productId = parseInt(stateParts[0]);
+        const newImages = stateParts.slice(1) || [];
+        
+        // Проверяем команды
+        if (text === 'готово') {
+          try {
+            if (newImages.length === 0) {
+              // Если нет накопленных изображений, завершаем без изменений
+              setState(userId, null);
+              await ctx.reply('✅ Редактирование дополнительных изображений завершено без изменений');
+            } else {
+              // Показываем сообщение о начале загрузки
+              await ctx.reply(`📤 Загружаю ${newImages.length} дополнительных изображений в хранилище...`);
+              
+              // Загружаем изображения в S3
+              let newAllImagesJson = JSON.stringify(newImages); // Значение по умолчанию если S3 не настроен
+              
+              if (s3Service.isConfigured()) {
+                // Получаем информацию о товаре для правильной организации файлов
+                const product = await productController.getProductById(productId);
+                if (!product) {
+                  throw new Error('Товар не найден');
+                }
+                
+                const category = await categoryController.getCategoryById(product.categoryId);
+                if (!category) {
+                  throw new Error('Категория не найдена');
+                }
+                
+                const uploadResult = await s3Service.uploadProductImages({
+                  mainImage: null,
+                  fpsImage: null,
+                  additionalImages: JSON.stringify(newImages),
+                  productInfo: {
+                    productId: productId,
+                    productName: product.name,
+                    categoryId: product.categoryId,
+                    categoryName: category.name
+                  }
+                });
+                
+                newAllImagesJson = uploadResult.additionalImagesUrls;
+              }
+              
+              await productController.updateProduct(productId, { allImages: newAllImagesJson });
+              setState(userId, null);
+              await ctx.reply(`✅ ${newImages.length} дополнительных изображений обновлены!`);
+            }
+            
+            // Возвращаемся к просмотру товара
+            setTimeout(async () => {
+              await bot.actions[`view_product_${productId}`](ctx);
+            }, 500);
+          } catch (error) {
+            console.error('Ошибка при обновлении дополнительных изображений:', error);
+            await ctx.reply('❌ Произошла ошибка при обновлении дополнительных изображений.');
+          }
+          return;
+        }
+        
+        if (text === 'удалить') {
+          try {
+            await productController.updateProduct(productId, { allImages: null });
+            setState(userId, null);
+            await ctx.reply('✅ Все дополнительные изображения удалены');
+            
+            // Возвращаемся к просмотру товара
+            setTimeout(async () => {
+              await bot.actions[`view_product_${productId}`](ctx);
+            }, 500);
+          } catch (error) {
+            console.error('Ошибка при удалении доп. изображений:', error);
+            await ctx.reply('❌ Произошла ошибка при удалении дополнительных изображений.');
+          }
+          return;
+        }
+        
+        // Если не команда завершения
+        return ctx.reply(
+          '❌ Пожалуйста, отправьте изображения, напишите "готово" для завершения или "удалить" для удаления всех доп. изображений.\n\n💡 Для отмены введите /cancel'
+        );
+      }
     });
 
     // Временное хранилище для медиа-групп (альбомов)
@@ -1042,8 +1782,8 @@ const initBot = async (webAppUrl) => {
     
     // Функция обработки фото из медиа-группы
     async function handleMediaGroupPhoto(ctx, userId, state, fileId, mediaGroupId) {
-      // Только для дополнительных изображений поддерживаем альбомы
-      if (!state.startsWith('wait_product_all_images_')) {
+      // Поддерживаем альбомы для дополнительных изображений (создание и редактирование)
+      if (!state.startsWith('wait_product_all_images_') && !state.startsWith('edit_all_images_')) {
         // Для основного и FPS изображения - одиночные фото
         return await handleSinglePhoto(ctx, userId, state, fileId);
       }
@@ -1078,24 +1818,43 @@ const initBot = async (webAppUrl) => {
     async function processMediaGroup(mediaGroupId, groupData) {
       const { userId, state, fileIds, ctx } = groupData;
       
-      if (!state.startsWith('wait_product_all_images_')) {
+      // Обработка для создания товара
+      if (state.startsWith('wait_product_all_images_')) {
+        const stateParts = state.replace('wait_product_all_images_', '').split('|||');
+        const [catId, productId, productName, priceStr, description, specs, image, fpsImage] = stateParts.slice(0, 8);
+        const existingImages = stateParts.slice(8) || [];
+        
+        // Добавляем все новые file_id к существующим
+        const updatedImages = [...existingImages, ...fileIds];
+        const newState = `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${updatedImages.join('|||')}`;
+        
+        setState(userId, newState);
+        
+        // Отправляем подтверждение
+        await ctx.reply(
+          `✅ Получено ${fileIds.length} дополнительных изображений из альбома!\n\nВсего дополнительных изображений: ${updatedImages.length}\n\nОтправьте еще изображения или напишите "готово" для завершения:\n\n💡 Для отмены введите /cancel`
+        );
         return;
       }
       
-      const stateParts = state.replace('wait_product_all_images_', '').split('|||');
-      const [catId, productId, productName, priceStr, description, specs, image, fpsImage] = stateParts.slice(0, 8);
-      const existingImages = stateParts.slice(8) || [];
-      
-      // Добавляем все новые file_id к существующим
-      const updatedImages = [...existingImages, ...fileIds];
-      const newState = `wait_product_all_images_${catId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${updatedImages.join('|||')}`;
-      
-      setState(userId, newState);
-      
-      // Отправляем подтверждение
-      await ctx.reply(
-        `✅ Получено ${fileIds.length} дополнительных изображений из альбома!\n\nВсего дополнительных изображений: ${updatedImages.length}\n\nОтправьте еще изображения или напишите "готово" для завершения:\n\n💡 Для отмены введите /cancel`
-      );
+      // Обработка для редактирования товара
+      if (state.startsWith('edit_all_images_')) {
+        const stateParts = state.replace('edit_all_images_', '').split('|||');
+        const productId = parseInt(stateParts[0]);
+        const existingImages = stateParts.slice(1) || [];
+        
+        // Добавляем все новые file_id к существующим
+        const updatedImages = [...existingImages, ...fileIds];
+        const newState = `edit_all_images_${productId}|||${updatedImages.join('|||')}`;
+        
+        setState(userId, newState);
+        
+        // Отправляем подтверждение
+        await ctx.reply(
+          `✅ Получено ${fileIds.length} дополнительных изображений из альбома!\n\nВсего добавлено изображений: ${updatedImages.length}\n\nОтправьте еще изображения или напишите "готово" для сохранения:\n\n💡 Для отмены введите /cancel`
+        );
+        return;
+      }
     }
     
     // Функция обработки одиночного фото
@@ -1136,6 +1895,130 @@ const initBot = async (webAppUrl) => {
         );
       }
       
+      // --- Редактирование изображений ---
+      
+      // Редактирование основного изображения
+      if (state.startsWith('edit_image_')) {
+        const productId = parseInt(state.replace('edit_image_', ''));
+        
+        try {
+          // Показываем сообщение о начале загрузки
+          await ctx.reply('📤 Загружаю изображение в хранилище...');
+          
+          // Загружаем изображение в S3
+          let newImageUrl = fileId; // Значение по умолчанию для случая если S3 не настроен
+          
+          if (s3Service.isConfigured()) {
+            // Получаем информацию о товаре для правильной организации файлов
+            const product = await productController.getProductById(productId);
+            if (!product) {
+              throw new Error('Товар не найден');
+            }
+            
+            const category = await categoryController.getCategoryById(product.categoryId);
+            if (!category) {
+              throw new Error('Категория не найдена');
+            }
+            
+            const uploadResult = await s3Service.uploadProductImages({
+              mainImage: fileId,
+              fpsImage: null,
+              additionalImages: null,
+              productInfo: {
+                productId: productId,
+                productName: product.name,
+                categoryId: product.categoryId,
+                categoryName: category.name
+              }
+            });
+            
+            newImageUrl = uploadResult.mainImageUrl;
+          }
+          
+          await productController.updateProduct(productId, { image: newImageUrl });
+          setState(userId, null);
+          await ctx.reply('✅ Основное изображение обновлено!');
+          
+          // Возвращаемся к просмотру товара
+          setTimeout(async () => {
+            await bot.actions[`view_product_${productId}`](ctx);
+          }, 500);
+        } catch (error) {
+          console.error('Ошибка при обновлении основного изображения:', error);
+          await ctx.reply('❌ Произошла ошибка при обновлении изображения.');
+        }
+        return;
+      }
+      
+      // Редактирование FPS изображения
+      if (state.startsWith('edit_fps_image_')) {
+        const productId = parseInt(state.replace('edit_fps_image_', ''));
+        
+        try {
+          // Показываем сообщение о начале загрузки
+          await ctx.reply('📤 Загружаю FPS изображение в хранилище...');
+          
+          // Загружаем изображение в S3
+          let newFpsImageUrl = fileId; // Значение по умолчанию для случая если S3 не настроен
+          
+          if (s3Service.isConfigured()) {
+            // Получаем информацию о товаре для правильной организации файлов
+            const product = await productController.getProductById(productId);
+            if (!product) {
+              throw new Error('Товар не найден');
+            }
+            
+            const category = await categoryController.getCategoryById(product.categoryId);
+            if (!category) {
+              throw new Error('Категория не найдена');
+            }
+            
+            const uploadResult = await s3Service.uploadProductImages({
+              mainImage: null,
+              fpsImage: fileId,
+              additionalImages: null,
+              productInfo: {
+                productId: productId,
+                productName: product.name,
+                categoryId: product.categoryId,
+                categoryName: category.name
+              }
+            });
+            
+            newFpsImageUrl = uploadResult.fpsImageUrl;
+          }
+          
+          await productController.updateProduct(productId, { fpsImage: newFpsImageUrl });
+          setState(userId, null);
+          await ctx.reply('✅ FPS изображение обновлено!');
+          
+          // Возвращаемся к просмотру товара
+          setTimeout(async () => {
+            await bot.actions[`view_product_${productId}`](ctx);
+          }, 500);
+        } catch (error) {
+          console.error('Ошибка при обновлении FPS изображения:', error);
+          await ctx.reply('❌ Произошла ошибка при обновлении FPS изображения.');
+        }
+        return;
+      }
+      
+      // Редактирование дополнительных изображений (одиночные)
+      if (state.startsWith('edit_all_images_')) {
+        const stateParts = state.replace('edit_all_images_', '').split('|||');
+        const productId = parseInt(stateParts[0]);
+        const existingImages = stateParts.slice(1) || [];
+        
+        // Добавляем новый file_id к существующим
+        const updatedImages = [...existingImages, fileId];
+        const newState = `edit_all_images_${productId}|||${updatedImages.join('|||')}`;
+        
+        setState(userId, newState);
+        return ctx.reply(
+          `✅ Дополнительное изображение ${updatedImages.length} получено!\n\n📸 Отправьте еще изображения или напишите "готово" для сохранения:\n\n💡 Для отмены введите /cancel`
+        );
+      }
+
       // Если фото в неподходящем состоянии
       return ctx.reply(
         '❌ Изображение сейчас не ожидается. Используйте кнопки меню для навигации.\n\n💡 Для отмены текущего действия введите /cancel'
@@ -1230,6 +2113,130 @@ const initBot = async (webAppUrl) => {
         );
       }
       
+      // --- Редактирование изображений (документы) ---
+      
+      // Редактирование основного изображения
+      if (state.startsWith('edit_image_')) {
+        const productId = parseInt(state.replace('edit_image_', ''));
+        
+        try {
+          // Показываем сообщение о начале загрузки
+          await ctx.reply('📤 Загружаю изображение в хранилище... (загружено как файл)');
+          
+          // Загружаем изображение в S3
+          let newImageUrl = fileId; // Значение по умолчанию для случая если S3 не настроен
+          
+          if (s3Service.isConfigured()) {
+            // Получаем информацию о товаре для правильной организации файлов
+            const product = await productController.getProductById(productId);
+            if (!product) {
+              throw new Error('Товар не найден');
+            }
+            
+            const category = await categoryController.getCategoryById(product.categoryId);
+            if (!category) {
+              throw new Error('Категория не найдена');
+            }
+            
+            const uploadResult = await s3Service.uploadProductImages({
+              mainImage: fileId,
+              fpsImage: null,
+              additionalImages: null,
+              productInfo: {
+                productId: productId,
+                productName: product.name,
+                categoryId: product.categoryId,
+                categoryName: category.name
+              }
+            });
+            
+            newImageUrl = uploadResult.mainImageUrl;
+          }
+          
+          await productController.updateProduct(productId, { image: newImageUrl });
+          setState(userId, null);
+          await ctx.reply('✅ Основное изображение обновлено!');
+          
+          // Возвращаемся к просмотру товара
+          setTimeout(async () => {
+            await bot.actions[`view_product_${productId}`](ctx);
+          }, 500);
+        } catch (error) {
+          console.error('Ошибка при обновлении основного изображения:', error);
+          await ctx.reply('❌ Произошла ошибка при обновлении изображения.');
+        }
+        return;
+      }
+      
+      // Редактирование FPS изображения
+      if (state.startsWith('edit_fps_image_')) {
+        const productId = parseInt(state.replace('edit_fps_image_', ''));
+        
+        try {
+          // Показываем сообщение о начале загрузки
+          await ctx.reply('📤 Загружаю FPS изображение в хранилище... (загружено как файл)');
+          
+          // Загружаем изображение в S3
+          let newFpsImageUrl = fileId; // Значение по умолчанию для случая если S3 не настроен
+          
+          if (s3Service.isConfigured()) {
+            // Получаем информацию о товаре для правильной организации файлов
+            const product = await productController.getProductById(productId);
+            if (!product) {
+              throw new Error('Товар не найден');
+            }
+            
+            const category = await categoryController.getCategoryById(product.categoryId);
+            if (!category) {
+              throw new Error('Категория не найдена');
+            }
+            
+            const uploadResult = await s3Service.uploadProductImages({
+              mainImage: null,
+              fpsImage: fileId,
+              additionalImages: null,
+              productInfo: {
+                productId: productId,
+                productName: product.name,
+                categoryId: product.categoryId,
+                categoryName: category.name
+              }
+            });
+            
+            newFpsImageUrl = uploadResult.fpsImageUrl;
+          }
+          
+          await productController.updateProduct(productId, { fpsImage: newFpsImageUrl });
+          setState(userId, null);
+          await ctx.reply('✅ FPS изображение обновлено!');
+          
+          // Возвращаемся к просмотру товара
+          setTimeout(async () => {
+            await bot.actions[`view_product_${productId}`](ctx);
+          }, 500);
+        } catch (error) {
+          console.error('Ошибка при обновлении FPS изображения:', error);
+          await ctx.reply('❌ Произошла ошибка при обновлении FPS изображения.');
+        }
+        return;
+      }
+      
+      // Редактирование дополнительных изображений
+      if (state.startsWith('edit_all_images_')) {
+        const stateParts = state.replace('edit_all_images_', '').split('|||');
+        const productId = parseInt(stateParts[0]);
+        const existingImages = stateParts.slice(1) || [];
+        
+        // Добавляем новый file_id к существующим
+        const updatedImages = [...existingImages, fileId];
+        const newState = `edit_all_images_${productId}|||${updatedImages.join('|||')}`;
+        
+        setState(userId, newState);
+        return ctx.reply(
+          `✅ Дополнительное изображение ${updatedImages.length} получено! (загружено как файл)\n\n📸 Отправьте еще изображения или напишите "готово" для сохранения:\n\n💡 Для отмены введите /cancel`
+        );
+      }
+
       // Если документ отправлен не в нужном состоянии
       return ctx.reply(
         '❌ Изображение сейчас не ожидается. Используйте кнопки меню для навигации.\n\n💡 Для отмены текущего действия введите /cancel'
