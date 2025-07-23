@@ -8,8 +8,8 @@ export default defineConfig({
     react(),
   ],
   build: {
-    outDir: '../public',
-    emptyOutDir: false,
+    outDir: 'dist', // Для Docker окружения билдим в стандартную папку
+    emptyOutDir: true,
   },
   server: {
     allowedHosts: true,
