@@ -35,13 +35,8 @@ const startServer = async () => {
       );
     });
 
-    // Проверяем нужно ли использовать ngrok (только для локальной разработки)
-    const useNgrok = process.env.USE_NGROK !== "false" && 
-                     process.env.NGROK_TOKEN && 
-                     process.env.NODE_ENV !== "production";
-    
-    if (useNgrok) {
-      console.log("🔗 Запуск ngrok для локальной разработки...");
+    // Настройка и запуск ngrok
+    if (process.env.NGROK_TOKEN && process.env.NODE_ENV !== "production") {
       await ngrok.authtoken(process.env.NGROK_TOKEN);
       const webAppUrl = await ngrok.connect(WEBAPP_DEV_URL);
       console.log("ngrok URL:", webAppUrl);
@@ -49,12 +44,8 @@ const startServer = async () => {
       await telegramBot.initBot(webAppUrl);
       console.log("Бот успешно инициализирован с веб-приложением:", webAppUrl);
     } else {
-      console.log("🐳 Запуск в Docker окружении или без ngrok...");
-      const webAppUrl = WEBAPP_URL || `http://localhost:${PORT}`;
-      console.log("WebApp URL:", webAppUrl);
-      
-      await telegramBot.initBot(webAppUrl);
-      console.log("Бот инициализирован с URL:", webAppUrl);
+      await telegramBot.initBot(WEBAPP_URL);
+      console.log("Бот инициализирован с локальным URL (без ngrok)");
     }
   } catch (error) {
     console.error("Ошибка при запуске сервера или ngrok:", error);

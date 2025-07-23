@@ -1,96 +1,16 @@
 version: '3.8'
 
 services:
-  # PostgreSQL база данных
   postgres:
     image: postgres:15
     container_name: tg-shop-postgres
     restart: always
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      - .env
     ports:
       - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
-    networks:
-      - tg-shop-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Database Migration (выполняется один раз)
-  db-migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: tg-shop-migrate
-    env_file:
-      - .env
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - tg-shop-network
-    command: >
-      sh -c "
-        echo '📦 Применение миграций базы данных...' &&
-        npx prisma migrate deploy &&
-        echo '🔧 Генерация Prisma Client...' &&
-        npx prisma generate &&
-        echo '✅ База данных готова!'
-      "
-    restart: "no"
-
-  # Backend (Node.js + Telegram Bot)
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: tg-shop-backend
-    restart: always
-    env_file:
-      - .env
-    environment:
-      # Переопределяем настройки для Docker
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      WEBAPP_URL: http://localhost:3000
-      USE_NGROK: "false"
-      NODE_ENV: production
-    ports:
-      - '3001:3001'
-    depends_on:
-      postgres:
-        condition: service_healthy
-      db-migrate:
-        condition: service_completed_successfully
-    volumes:
-      - ./photos:/app/photos
-    networks:
-      - tg-shop-network
-
-  # Frontend (React + Nginx)
-  frontend:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: tg-shop-frontend
-    restart: always
-    ports:
-      - '3000:80'
-    depends_on:
-      - backend
-    networks:
-      - tg-shop-network
-
-networks:
-  tg-shop-network:
-    driver: bridge
 
 volumes:
-  pgdata:
+  pgdata: 
