@@ -22,6 +22,31 @@ services:
       timeout: 5s
       retries: 5
 
+  # Database Migration (выполняется один раз)
+  db-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tg-shop-migrate
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tg-shop-network
+    command: >
+      sh -c "
+        echo '📦 Применение миграций базы данных...' &&
+        npx prisma migrate deploy &&
+        echo '🔧 Генерация Prisma Client...' &&
+        npx prisma generate &&
+        echo '✅ База данных готова!'
+      "
+    restart: "no"
+
   # Backend (Node.js + Telegram Bot)
   backend:
     build:
@@ -42,6 +67,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     volumes:
       - ./photos:/app/photos
     networks:

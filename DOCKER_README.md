@@ -25,17 +25,19 @@ nano .env
 ./docker-start.sh
 
 # Или вручную:
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
-### 3. Применение миграций
+### 3. Миграции базы данных
+
+Миграции применяются **автоматически** при запуске через специальный `db-migrate` сервис.
 
 ```bash
-# После первого запуска
-docker-compose exec backend npx prisma migrate deploy
+# Ручное применение миграций (если нужно)
+docker compose exec backend npx prisma migrate deploy
 
 # Заполнение тестовыми данными (опционально)
-docker-compose exec backend npm run seed
+docker compose exec backend npm run seed
 ```
 
 ## 📱 Доступ к сервисам
@@ -52,33 +54,41 @@ docker-compose exec backend npm run seed
 │  (React+Nginx)  │────│ (Node.js+Bot)   │────│   (Database)    │
 │   Port: 3000    │    │   Port: 3001    │    │   Port: 5432    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
+                                ⬆
+                  ┌─────────────────┐
+                  │   DB-Migrate    │
+                  │ (Init Service)  │
+                  │ Prisma Migrate  │
+                  └─────────────────┘
 ```
 
 **Изменения в архитектуре:**
 - **Фронтенд** теперь билдится в `client/dist` (вместо `public`)
 - **Nginx** раздает статику и проксирует API к бэкенду
 - **Бэкенд** больше не раздает статические файлы
+- **DB-Migrate** автоматически применяет миграции при запуске
 - **ngrok отключен** в Docker окружении
+- **Используется `docker compose`** (новая версия CLI)
 
 ## 🔧 Управление
 
 ```bash
 # Статус сервисов
-docker-compose ps
+docker compose ps
 
 # Логи
-docker-compose logs -f
-docker-compose logs -f backend
-docker-compose logs -f frontend
+docker compose logs -f
+docker compose logs -f backend
+docker compose logs -f frontend
 
 # Остановка
-docker-compose down
+docker compose down
 
 # Перезапуск
-docker-compose restart
+docker compose restart
 
 # Вход в контейнер
-docker-compose exec backend sh
+docker compose exec backend sh
 ```
 
 ## 🛠️ Разработка vs Docker
@@ -109,15 +119,24 @@ npm run dev
 
 **Проблема:** Контейнеры не запускаются
 ```bash
-docker-compose logs
-docker-compose ps
+docker compose logs
+docker compose ps
 ```
 
 **Проблема:** База данных недоступна
 ```bash
-docker-compose exec postgres psql -U postgres -d tg-shop
+docker compose exec postgres psql -U postgres -d tg-shop
+```
+
+**Проблема:** Миграции не применились
+```bash
+# Проверить логи миграций
+docker compose logs db-migrate
+
+# Применить вручную
+docker compose exec backend npx prisma migrate deploy
 ```
 
 **Проблема:** API недоступно с фронтенда
-- Проверьте логи nginx: `docker-compose logs frontend`
-- Проверьте что бэкенд работает: `docker-compose logs backend` 
+- Проверьте логи nginx: `docker compose logs frontend`
+- Проверьте что бэкенд работает: `docker compose logs backend` 
