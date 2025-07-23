@@ -1,0 +1,274 @@
+const { CONTACT_INFO } = require('../core/config');
+const { formatPrice, formatDate, formatDateTime, formatSpecsForDisplay } = require('../core/utils');
+
+// Приветственные сообщения
+const getWelcomeMessage = (userName) => {
+  return `👋 Привет, ${userName}! Добро пожаловать в b.ZONE pc. Выберите действие:`;
+};
+
+// Сообщения контактов
+const getContactMessage = () => {
+  return `<b>Свяжитесь с нами:</b>
+
+📱 Телефон: <a href="tel:${CONTACT_INFO.phone}">${CONTACT_INFO.phone}</a>
+📧 Email: <a href="mailto:${CONTACT_INFO.email}">${CONTACT_INFO.email}</a>
+💬 Telegram: <a href="https://t.me/${CONTACT_INFO.telegram.replace('@', '')}">${CONTACT_INFO.telegram}</a>
+🌐 Сайт: <a href="${CONTACT_INFO.website}">${CONTACT_INFO.website}</a>`;
+};
+
+// Сообщения каталога
+const getCatalogMessage = () => {
+  return 'Нажмите кнопку ниже, чтобы открыть каталог:';
+};
+
+// Сообщения админки
+const getAdminPanelMessage = () => {
+  return '<b>Панель администратора:</b>';
+};
+
+// Сообщения категорий
+const getCategoriesListMessage = (categories) => {
+  let message = '<b>Управление категориями:</b>\n\n';
+  
+  if (categories.length === 0) {
+    message += 'Категории отсутствуют.';
+  } else {
+    categories.forEach((cat, idx) => {
+      message += `${idx + 1}. ${cat.name} (ID: ${cat.id})\n`;
+    });
+  }
+  
+  return message;
+};
+
+const getCategoryDetailsMessage = (category) => {
+  let message = `<b>📂 Категория:</b> ${category.name}\n`;
+  message += `<b>ID:</b> ${category.id}\n`;
+  if (category.description) {
+    message += `<b>Описание:</b> ${category.description}\n`;
+  }
+  if (category.image) {
+    message += `<b>Изображение:</b> [есть]\n`;
+  }
+  message += `\n<b>Товаров:</b> ${category.products?.length || 0}`;
+  
+  return message;
+};
+
+const getCategoryEditMessage = (categoryName) => {
+  return `<b>✏️ Редактирование категории:</b> ${categoryName}
+
+Выберите, что хотите изменить:`;
+};
+
+const getCategoryDeleteConfirmMessage = (categoryName, categoryId) => {
+  return `⚠️ <b>Подтверждение удаления</b>
+
+Вы действительно хотите удалить категорию <b>"${categoryName}"</b> (ID: ${categoryId})?
+
+<i>Это действие нельзя отменить!</i>`;
+};
+
+const getCategoryCreatedMessage = (categoryName, categoryId) => {
+  return `✅ Категория "${categoryName}" (ID: ${categoryId}) успешно создана!`;
+};
+
+const getCategoryDeletedMessage = (categoryName, categoryId) => {
+  return `✅ Категория "${categoryName}" (ID: ${categoryId}) успешно удалена!`;
+};
+
+// Сообщения товаров
+const getProductsInCategoryMessage = (categoryName, products, currentPage, totalPages) => {
+  let message = `<b>Товары в категории "${categoryName}":</b>\n`;
+  message += `📦 Всего товаров: ${products.length}\n`;
+  
+  if (totalPages > 1) {
+    message += `📄 Страница ${currentPage + 1} из ${totalPages}\n`;
+  }
+  message += '\n';
+  
+  return message;
+};
+
+const getProductListItemMessage = (product, index) => {
+  return `${index}. ${product.name} - ${formatPrice(product.price)} (ID: ${product.id})`;
+};
+
+const getProductDetailsMessage = (product) => {
+  const specsText = formatSpecsForDisplay(product.specs);
+  
+  // Парсим дополнительные изображения
+  let additionalImagesText = 'Нет';
+  if (product.allImages) {
+    try {
+      const images = JSON.parse(product.allImages);
+      additionalImagesText = `${images.length} изображения`;
+    } catch (e) {
+      additionalImagesText = 'Ошибка формата';
+    }
+  }
+
+  return `<b>📋 Детальная информация о товаре</b>
+
+🆔 <b>ID:</b> ${product.id}
+📦 <b>Название:</b> ${product.name}
+💰 <b>Цена:</b> ${formatPrice(product.price)}
+📝 <b>Описание:</b> ${product.description || 'Не указано'}
+
+<b>🔧 Характеристики:</b>
+${specsText}
+
+<b>🖼 Изображения:</b>
+• Основное: ${product.image ? 'Есть' : 'Нет'}
+• FPS изображение: ${product.fpsImage ? 'Есть' : 'Нет'}
+• Дополнительные: ${additionalImagesText}
+
+⭐ <b>Ранг избранного:</b> ${product.favoriteRank || 0}
+📅 <b>Создан:</b> ${formatDate(product.createdAt)}
+📅 <b>Обновлен:</b> ${formatDate(product.updatedAt)}`;
+};
+
+const getProductEditMessage = (productName) => {
+  return `<b>✏️ Редактирование товара:</b> ${productName}
+
+Выберите, что хотите изменить:`;
+};
+
+const getProductDeleteConfirmMessage = (productName, productId) => {
+  return `⚠️ <b>Подтверждение удаления</b>
+
+Вы действительно хотите удалить товар:
+<b>"${productName}"</b> (ID: ${productId})?
+
+<i>Это действие нельзя отменить!</i>`;
+};
+
+const getProductDeletedMessage = (productName, productId) => {
+  return `✅ Товар "${productName}" (ID: ${productId}) успешно удален!`;
+};
+
+const getProductSearchResultsMessage = (categoryName, searchQuery, foundProducts, totalProducts) => {
+  let message = `<b>Результаты поиска в категории "${categoryName}":</b>\n`;
+  message += `🔍 Запрос: "${searchQuery}"\n`;
+  message += `📦 Найдено: ${foundProducts.length} из ${totalProducts}\n\n`;
+  
+  if (foundProducts.length === 0) {
+    message += 'Товары не найдены.\n\nПопробуйте изменить поисковый запрос.';
+  }
+  
+  return message;
+};
+
+// Alias for backward compatibility
+const getSearchResultsMessage = getProductSearchResultsMessage;
+
+// Сообщения для FSM (создание/редактирование)
+const getInputPrompts = {
+  categoryName: 'Введите название новой категории:\n\n💡 Для отмены введите /cancel',
+  categoryDescription: 'Введите описание категории (или "-" для пропуска):\n\n💡 Для отмены введите /cancel',
+  categoryImage: 'Отправьте изображение категории (или "-" для пропуска):\n\n💡 Для отмены введите /cancel',
+  
+  productId: (categoryId) => `Введите ID нового товара для категории ID ${categoryId}:\n\nВажно: ID должен быть уникальным числом!\n\n💡 Для отмены создания товара введите /cancel`,
+  productName: 'Введите название товара:\n\n💡 Для отмены введите /cancel',
+  productPrice: 'Введите цену товара (только число, например: 99990):\n\n💡 Для отмены введите /cancel',
+  productDescription: 'Введите полное описание товара (или "-" для пропуска):\n\n💡 Для отмены введите /cancel',
+  productSpecs: `Введите характеристики товара (каждая с новой строки).
+
+Пример для ПК:
+Процессор: Intel i7-12700F
+Видеокарта: RTX 4070
+RAM: 16GB DDR4
+SSD: 1TB NVMe
+
+Пример для девайса:
+Тип: Игровая мышь
+DPI: 16000
+Подключение: USB
+Вес: 85г
+
+Или "-" для пропуска:
+
+💡 Для отмены введите /cancel`,
+  productMainImage: 'Отправьте основное изображение товара:\n\n📸 Фото (со сжатием) или 📎 Файл (без сжатия)\n\nИли "-" для пропуска:\n\n💡 Для отмены введите /cancel',
+  productFpsImage: 'Отправьте изображение с FPS тестами:\n\n📸 Фото (со сжатием) или 📎 Файл (без сжатия)\n\nИли "-" для пропуска:\n\n💡 Для отмены введите /cancel',
+  productAllImages: `Отправляйте дополнительные изображения товара:
+
+• 🖼️ По одному (фото или файлы)
+• 📚 Альбомом до 10 изображений сразу
+
+Когда закончите, напишите "готово" или "-" для пропуска:
+
+💡 Для отмены введите /cancel`,
+  productRank: `Введите ранг товара для "лучших предложений" (0-100, где 0 = обычный товар, 100 = топ предложение):
+
+Или "-" для установки 0:
+
+💡 Для отмены введите /cancel`,
+  
+  searchQuery: 'Введите название товара для поиска:\n\n💡 Будет найдены товары, содержащие ваш запрос в названии\n💡 Для отмены введите /cancel',
+  
+  // Редактирование полей
+  editProductName: 'Введите новое название товара:\n\n💡 Для отмены введите /cancel',
+  editProductPrice: 'Введите новую цену товара (только число):\n\nПример: 150000\n\n💡 Для отмены введите /cancel',
+  editProductDescription: 'Введите новое описание товара:\n\n💡 Для отмены введите /cancel',
+  editProductSpecs: 'Введите новые характеристики в формате:\nКлюч: Значение\nКлюч: Значение\n\nПример:\nПроцессор: Intel i7-12700F\nВидеокарта: RTX 4070\nRAM: 16GB DDR4\n\n💡 Для отмены введите /cancel',
+  editProductMainImage: 'Отправьте новое основное изображение товара:\n\n📸 Фото (со сжатием) или 📎 Файл (без сжатия)\n\n💡 Для отмены введите /cancel',
+  editProductFpsImage: 'Отправьте новое FPS изображение товара:\n\n📸 Фото (со сжатием) или 📎 Файл (без сжатия)\nИли "-" для удаления\n\n💡 Для отмены введите /cancel',
+  editProductAllImages: 'Отправьте новые дополнительные изображения:\n\n📸 Можете отправлять по одному или альбомом\n\nКогда закончите, напишите "готово"\nДля удаления всех доп. изображений напишите "удалить"\n\n💡 Для отмены введите /cancel',
+  editProductRank: 'Введите новый ранг избранного (число от 0 до 100):\n\n0 - не избранное\n1-100 - уровень приоритета\n\n💡 Для отмены введите /cancel',
+};
+
+// Сообщения об ошибках
+const getErrorMessages = {
+  categoryNameLength: 'Название категории должно быть от 2 до 50 символов. Попробуйте еще раз:',
+  productNameLength: 'Название товара должно быть от 2 до 100 символов. Попробуйте еще раз:\n\n💡 Для отмены введите /cancel',
+  invalidPrice: 'Некорректная цена. Введите положительное число (например: 99990):\n\n💡 Для отмены введите /cancel',
+  invalidProductId: '❌ ID должен быть положительным числом. Попробуйте еще раз:\n\n💡 Для отмены введите /cancel',
+  invalidFavoriteRank: '❌ Ранг должен быть числом от 0 до 100. Попробуйте еще раз или "-" для 0:\n\n💡 Для отмены введите /cancel',
+  idAlreadyExists: (id) => `Товар с ID ${id} уже существует!\n\nВведите другой уникальный ID:\n\n💡 Для отмены введите /cancel`,
+  searchQueryTooShort: 'Поисковый запрос не может быть пустым. Введите название товара или его ID:\n\n💡 Для отмены введите /cancel',
+  searchQueryTooLong: 'Поисковый запрос слишком длинный (максимум 50 символов). Попробуйте короче:\n\n💡 Для отмены введите /cancel',
+  invalidImageFormat: 'Пожалуйста, отправьте изображение (📸 фото или 📎 файл) или "-" для пропуска.\n\n💡 Для отмены введите /cancel',
+  fileTooLarge: 'Изображение слишком большое (максимум 20MB).\n\nПопробуйте сжать изображение или отправить с галочкой "Сжать изображение".',
+  invalidSpecs: (error) => `Некорректный формат характеристик!\n\nОшибка: ${error}\n\nПравильный формат (каждая с новой строки):\nПроцессор: Intel i7\nВидеокарта: RTX 4070\nRAM: 16GB\n\nПопробуйте еще раз или введите "-" для пропуска:\n\n💡 Для отмены введите /cancel`,
+};
+
+// Сообщения об успехе
+const getSuccessMessages = {
+  categoryCreated: (name, id) => `Категория "${name}" (ID: ${id}) успешно создана!`,
+  categoryUpdated: (field) => `${field} категории обновлено!`,
+  categoryDeleted: (name, id) => `Категория "${name}" (ID: ${id}) успешно удалена!`,
+  
+  productCreated: 'Товар успешно создан!',
+  productUpdated: (field) => `${field} товара обновлено!`,
+  productDeleted: (name, id) => `Товар "${name}" (ID: ${id}) успешно удален!`,
+  
+  operationCancelled: 'Операция отменена.',
+  backToMainMenu: 'Вы вернулись в главное меню:',
+  imageUploading: 'Загружаю изображение в хранилище...',
+  imageUploaded: 'Изображение успешно загружено!',
+};
+
+module.exports = {
+  getWelcomeMessage,
+  getContactMessage,
+  getCatalogMessage,
+  getAdminPanelMessage,
+  getCategoriesListMessage,
+  getCategoryDetailsMessage,
+  getCategoryEditMessage,
+  getCategoryDeleteConfirmMessage,
+  getCategoryCreatedMessage,
+  getCategoryDeletedMessage,
+  getProductsInCategoryMessage,
+  getProductListItemMessage,
+  getProductDetailsMessage,
+  getProductEditMessage,
+  getProductDeleteConfirmMessage,
+  getProductDeletedMessage,
+  getProductSearchResultsMessage,
+  getSearchResultsMessage, // backward compatibility alias
+  getInputPrompts,
+  getErrorMessages,
+  getSuccessMessages,
+}; 

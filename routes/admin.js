@@ -3,7 +3,7 @@ const router = express.Router();
 
 const categoryController = require('../controllers/categoryController');
 const productController = require('../controllers/productController');
-const orderController = require('../controllers/orderController');
+// const orderController = require('../controllers/orderController'); // Удален - заказы не нужны
 const adminController = require('../controllers/adminController');
 
 const checkAdmin = async (req, res, next) => {
@@ -91,32 +91,32 @@ router.delete('/products/:id', async (req, res) => {
   }
 });
 
-// API для заказов
-router.get('/orders', async (req, res) => {
-  try {
-    const orders = await orderController.getAllOrders();
-    res.json(orders);
-  } catch (error) {
-    res.status(500).json({ error: 'Ошибка при получении заказов' });
-  }
-});
+// API для заказов - УДАЛЕНО
+// router.get('/orders', async (req, res) => {
+//   try {
+//     const orders = await orderController.getAllOrders();
+//     res.json(orders);
+//   } catch (error) {
+//     res.status(500).json({ error: 'Ошибка при получении заказов' });
+//   }
+// });
 
-router.put('/orders/:id/status', async (req, res) => {
-  try {
-    const { status } = req.body;
-    if (!status) {
-      return res.status(400).json({ error: 'Статус не указан' });
-    }
+// router.put('/orders/:id/status', async (req, res) => {
+//   try {
+//     const { status } = req.body;
+//     if (!status) {
+//       return res.status(400).json({ error: 'Статус не указан' });
+//     }
 
-    const order = await orderController.updateOrderStatus(
-      req.params.id,
-      status
-    );
-    res.json(order);
-  } catch (error) {
-    res.status(500).json({ error: 'Ошибка при обновлении статуса заказа' });
-  }
-});
+//     const order = await orderController.updateOrderStatus(
+//       req.params.id,
+//       status
+//     );
+//     res.json(order);
+//   } catch (error) {
+//     res.status(500).json({ error: 'Ошибка при обновлении статуса заказа' });
+//   }
+// });
 
 // API для администраторов
 router.get('/admins', async (req, res) => {

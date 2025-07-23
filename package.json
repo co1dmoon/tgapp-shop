@@ -1,7 +1,7 @@
 {
-  "name": "maxxpc-tg-bot",
+  "name": "tg-shop-bot",
   "version": "1.0.0",
-  "description": "Telegram бот с веб-приложением для магазина MaxxPC",
+  "description": "Telegram бот с веб-приложением для магазина PC",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

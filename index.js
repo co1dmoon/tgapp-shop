@@ -4,7 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const ngrok = require("ngrok");
-const telegramBot = require("./services/telegramBot");
+const telegramBot = require("./services/telegram/bot"); // Используем новую модульную структуру
 const apiRoutes = require("./routes/api");
 const adminRoutes = require("./routes/admin");
 

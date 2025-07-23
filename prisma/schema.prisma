@@ -24,18 +24,18 @@ model Admin {
   @@map("admins")
 }
 
-model User {
-  id          Int      @id @default(autoincrement())
-  telegramId  String   @unique
-  phoneNumber String
-  username    String?
-  fio         String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  orders      Order[]
+// model User {
+//   id          Int      @id @default(autoincrement())
+//   telegramId  String   @unique
+//   phoneNumber String
+//   username    String?
+//   fio         String?
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+//   orders      Order[]
 
-  @@map("users")
-}
+//   @@map("users")
+// }
 
 model Category {
   id          Int       @id @default(autoincrement())
@@ -51,7 +51,7 @@ model Category {
 }
 
 model Product {
-  id           Int         @id
+  id           Int      @id
   name         String
   price        Float
   description  String?
@@ -59,62 +59,62 @@ model Product {
   image        String? // Путь к изображению
   fpsImage     String?
   allImages    String?
-  favoriteRank Int?        @default(0) // Поле для ранжирования "лучших предложений"
+  favoriteRank Int?     @default(0) // Поле для ранжирования "лучших предложений"
   categoryId   Int
-  category     Category    @relation(fields: [categoryId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  orderItems   OrderItem[]
+  category     Category @relation(fields: [categoryId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  // orderItems   OrderItem[] // Связь удалена - заказы больше не нужны
 
   @@map("products")
 }
 
-model Order {
-  id              Int          @id @default(autoincrement())
-  userId          String // Telegram User ID
-  userName        String // Имя пользователя из Telegram
-  user            User?        @relation(fields: [userModelId], references: [id])
-  userModelId     Int?
-  total           Float
-  status          String       @default("new") // new, processing, completed, cancelled
-  contactName     String?
-  contactPhone    String?
-  contactEmail    String?
-  deliveryAddress String?
-  comments        String?
-  promocode       String?
-  deliveryType    DeliveryType @default(PICKUP)
-  payingType      PayingType   @default(CARD)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  items           OrderItem[]
+// model Order {
+//   id              Int          @id @default(autoincrement())
+//   userId          String // Telegram User ID
+//   userName        String // Имя пользователя из Telegram
+//   user            User?        @relation(fields: [userModelId], references: [id])
+//   userModelId     Int?
+//   total           Float
+//   status          String       @default("new") // new, processing, completed, cancelled
+//   contactName     String?
+//   contactPhone    String?
+//   contactEmail    String?
+//   deliveryAddress String?
+//   comments        String?
+//   promocode       String?
+//   deliveryType    DeliveryType @default(PICKUP)
+//   payingType      PayingType   @default(CARD)
+//   createdAt       DateTime     @default(now())
+//   updatedAt       DateTime     @updatedAt
+//   items           OrderItem[]
 
-  @@map("orders")
-}
+//   @@map("orders")
+// }
 
-model OrderItem {
-  id        Int      @id @default(autoincrement())
-  orderId   Int
-  order     Order    @relation(fields: [orderId], references: [id])
-  productId Int
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int
-  price     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// model OrderItem {
+//   id        Int      @id @default(autoincrement())
+//   orderId   Int
+//   order     Order    @relation(fields: [orderId], references: [id])
+//   productId Int
+//   product   Product  @relation(fields: [productId], references: [id])
+//   quantity  Int
+//   price     Float
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
 
-  @@map("order_items")
-}
+//   @@map("order_items")
+// }
 
-enum DeliveryType {
-  MOSCOW
-  CDEK
-  PICKUP
-}
+// enum DeliveryType {
+//   MOSCOW
+//   CDEK
+//   PICKUP
+// }
 
-enum PayingType {
-  CARD
-  CREDIT
-  CASH
-  OTHER
-}
+// enum PayingType {
+//   CARD
+//   CREDIT
+//   CASH
+//   OTHER
+// }

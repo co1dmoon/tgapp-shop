@@ -3,8 +3,8 @@ const router = express.Router();
 
 const categoryController = require('../controllers/categoryController');
 const productController = require('../controllers/productController');
-const orderController = require('../controllers/orderController');
-const userController = require('../controllers/userController');
+// const orderController = require('../controllers/orderController'); // Удален - заказы не нужны
+// const userController = require('../controllers/userController'); // Удален - пользователи не нужны
 // API для категорий
 router.get('/categories', async (req, res) => {
   try {
@@ -69,48 +69,47 @@ router.get('/products/:id', async (req, res) => {
   }
 });
 
-// API для работы с заказами
-router.post('/orders', async (req, res) => {
-  try {
+// API для работы с заказами - УДАЛЕНО
+// router.post('/orders', async (req, res) => {
+//   try {
+//     const order = await orderController.createOrder(req.body);
+//     res.status(201).json(order);
+//   } catch (error) {
+//     console.error('Ошибка при создании заказа:', error);
+//     res.status(500).json({ error: 'Ошибка при создании заказа' });
+//   }
+// });
 
-    const order = await orderController.createOrder(req.body);
-    res.status(201).json(order);
-  } catch (error) {
-    console.error('Ошибка при создании заказа:', error);
-    res.status(500).json({ error: 'Ошибка при создании заказа' });
-  }
-});
+// router.get('/orders/:id', async (req, res) => {
+//   try {
+//     const order = await orderController.getOrderById(req.params.id);
+//     if (!order) {
+//       return res.status(404).json({ error: 'Заказ не найден' });
+//     }
+//     res.json(order);
+//   } catch (error) {
+//     res.status(500).json({ error: 'Ошибка при получении заказа' });
+//   }
+// });
 
-router.get('/orders/:id', async (req, res) => {
-  try {
-    const order = await orderController.getOrderById(req.params.id);
-    if (!order) {
-      return res.status(404).json({ error: 'Заказ не найден' });
-    }
-    res.json(order);
-  } catch (error) {
-    res.status(500).json({ error: 'Ошибка при получении заказа' });
-  }
-});
+// router.get('/user/:userId/orders', async (req, res) => {
+//   try {
+//     const orders = await orderController.getUserOrders(req.params.userId);
+//     res.json(orders);
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ error: 'Ошибка при получении заказов пользователя' });
+//   }
+// });
 
-router.get('/user/:userId/orders', async (req, res) => {
-  try {
-    const orders = await orderController.getUserOrders(req.params.userId);
-    res.json(orders);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: 'Ошибка при получении заказов пользователя' });
-  }
-});
-
-router.get('/user/:userId', async (req, res) => {
-  try {
-    const user = await userController.getUserByTelegramId(req.params.userId);
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ error: 'Ошибка при получении пользователя' });
-  }
-});
+// router.get('/user/:userId', async (req, res) => {
+//   try {
+//     const user = await userController.getUserByTelegramId(req.params.userId);
+//     res.json(user);
+//   } catch (error) {
+//     res.status(500).json({ error: 'Ошибка при получении пользователя' });
+//   }
+// });
 
 module.exports = router;
