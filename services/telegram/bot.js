@@ -58,19 +58,17 @@ const initTelegramBot = async (webAppUrl) => {
       throw new Error(`Не удается подключиться к Telegram API: ${error.message}`);
     }
     
-    // Добавляем таймаут для launch
-    const launchPromise = bot.launch({
+    // Запускаем бота без ожидания Promise (так как он может не резолвиться)
+    bot.launch({
       dropPendingUpdates: true, // Игнорируем старые сообщения при перезапуске
+    }).catch(error => {
+      console.error('[LAUNCH] ❌ Критическая ошибка при запуске бота:', error);
+      process.exit(1);
     });
     
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('Таймаут запуска бота (30 секунд). Проверьте интернет-соединение и токен.'));
-      }, 30000); // 30 секунд таймаут
-    });
-    
-    await Promise.race([launchPromise, timeoutPromise]);
-    console.log('[LAUNCH] ✅ Бот успешно подключился к Telegram API!');
+    // Даем небольшую паузу для инициализации
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('[LAUNCH] ✅ Бот запущен и готов к работе!');
     
     console.log('[INIT] ✅ Модульный Telegram бот успешно запущен!');
     console.log(`[INIT] Бот @${bot.botInfo.username} активен и готов к работе`);
