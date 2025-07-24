@@ -19,7 +19,7 @@ services:
       - VK_S3_BUCKET_NAME=${VK_S3_BUCKET_NAME}
       - VK_S3_ENDPOINT=${VK_S3_ENDPOINT}
       - VK_S3_REGION=${VK_S3_REGION}
-      - ADMIN_USER_ID=${ADMIN_USER_ID}
+      - ADMIN_IDS=${ADMIN_USER_ID}
     volumes:
       - app_data:/app/data
     networks:
