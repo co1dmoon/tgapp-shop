@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -24,19 +18,6 @@ model Admin {
   @@map("admins")
 }
 
-// model User {
-//   id          Int      @id @default(autoincrement())
-//   telegramId  String   @unique
-//   phoneNumber String
-//   username    String?
-//   fio         String?
-//   createdAt   DateTime @default(now())
-//   updatedAt   DateTime @updatedAt
-//   orders      Order[]
-
-//   @@map("users")
-// }
-
 model Category {
   id          Int       @id @default(autoincrement())
   name        String    @unique
@@ -45,7 +26,7 @@ model Category {
   price       Float?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  products    Product[] // Связь с продуктами
+  products    Product[]
 
   @@map("categories")
 }
@@ -56,65 +37,14 @@ model Product {
   price        Float
   description  String?
   specs        String?
-  image        String? // Путь к изображению
+  image        String?
   fpsImage     String?
   allImages    String?
-  favoriteRank Int?     @default(0) // Поле для ранжирования "лучших предложений"
+  favoriteRank Int?     @default(0)
   categoryId   Int
-  category     Category @relation(fields: [categoryId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  // orderItems   OrderItem[] // Связь удалена - заказы больше не нужны
+  category     Category @relation(fields: [categoryId], references: [id])
 
   @@map("products")
 }
-
-// model Order {
-//   id              Int          @id @default(autoincrement())
-//   userId          String // Telegram User ID
-//   userName        String // Имя пользователя из Telegram
-//   user            User?        @relation(fields: [userModelId], references: [id])
-//   userModelId     Int?
-//   total           Float
-//   status          String       @default("new") // new, processing, completed, cancelled
-//   contactName     String?
-//   contactPhone    String?
-//   contactEmail    String?
-//   deliveryAddress String?
-//   comments        String?
-//   promocode       String?
-//   deliveryType    DeliveryType @default(PICKUP)
-//   payingType      PayingType   @default(CARD)
-//   createdAt       DateTime     @default(now())
-//   updatedAt       DateTime     @updatedAt
-//   items           OrderItem[]
-
-//   @@map("orders")
-// }
-
-// model OrderItem {
-//   id        Int      @id @default(autoincrement())
-//   orderId   Int
-//   order     Order    @relation(fields: [orderId], references: [id])
-//   productId Int
-//   product   Product  @relation(fields: [productId], references: [id])
-//   quantity  Int
-//   price     Float
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-
-//   @@map("order_items")
-// }
-
-// enum DeliveryType {
-//   MOSCOW
-//   CDEK
-//   PICKUP
-// }
-
-// enum PayingType {
-//   CARD
-//   CREDIT
-//   CASH
-//   OTHER
-// }

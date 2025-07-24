@@ -81,9 +81,9 @@ docker compose -f docker-compose.prod.yml up -d
 echo "⏳ Ожидание запуска базы данных..."
 sleep 10
 
-# Применение миграций Prisma
-echo "🔄 Применение миграций базы данных..."
-docker compose -f docker-compose.prod.yml exec app npx prisma migrate deploy || echo "⚠️ Ошибка применения миграций"
+# Синхронизация схемы базы данных с Prisma
+echo "🔄 Синхронизация схемы базы данных..."
+docker compose -f docker-compose.prod.yml exec app npx prisma db push --accept-data-loss || echo "⚠️ Ошибка синхронизации схемы"
 
 # Инициализация данных (если нужно)
 echo "🌱 Инициализация начальных данных..."
