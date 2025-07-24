@@ -73,8 +73,9 @@ SERVER_DOMAIN=1.2.3.4
 # Токен Telegram бота (получить у @BotFather)
 BOT_TOKEN=123456789:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
-# Telegram User ID администратора (получить у @userinfobot)
-ADMIN_USER_ID=123456789
+# Telegram User ID администраторов через запятую (получить у @userinfobot)
+# Можно указать несколько администраторов: 123456789,987654321
+ADMIN_IDS=123456789
 
 # Пароль базы данных (сгенерируйте надежный)
 POSTGRES_PASSWORD=your_very_secure_password_123
@@ -92,11 +93,12 @@ VK_S3_BUCKET_NAME=your_bucket_name
 3. Следуйте инструкциям
 4. Скопируйте токен в переменную `BOT_TOKEN`
 
-### 3. Получение User ID администратора
+### 3. Получение User ID администраторов
 
 1. Откройте [@userinfobot](https://t.me/userinfobot) в Telegram
 2. Отправьте любое сообщение
-3. Скопируйте ваш ID в переменную `ADMIN_USER_ID`
+3. Скопируйте ваш ID в переменную `ADMIN_IDS`
+4. Для нескольких администраторов указывайте через запятую: `123456789,987654321`
 
 ### 4. Настройка VK Cloud S3
 
