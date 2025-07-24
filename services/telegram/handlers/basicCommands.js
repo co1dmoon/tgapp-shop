@@ -81,4 +81,5 @@ const setupBasicHandlers = (bot, webAppUrl) => {
 
 module.exports = {
   setupBasicHandlers,
+  initializeAdmins,
 }; 

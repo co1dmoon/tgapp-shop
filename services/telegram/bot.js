@@ -18,10 +18,11 @@ const initTelegramBot = async (webAppUrl) => {
     console.log('[SETUP] Подключение обработчиков...');
     
     // Базовые команды пользователя (должны быть первыми)
-    const { initializeAdmins } = setupBasicHandlers(bot, webAppUrl);
+    setupBasicHandlers(bot, webAppUrl);
     console.log('[SETUP] ✅ Базовые команды подключены');
     
     // Инициализируем администраторов
+    const { initializeAdmins } = require('./handlers/basicCommands');
     await initializeAdmins();
     
     // Админская панель

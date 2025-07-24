@@ -85,10 +85,6 @@ sleep 10
 echo "🔄 Синхронизация схемы базы данных..."
 docker compose -f docker-compose.prod.yml exec app npx prisma db push --accept-data-loss || echo "⚠️ Ошибка синхронизации схемы"
 
-# Инициализация данных (если нужно)
-echo "🌱 Инициализация начальных данных..."
-docker compose -f docker-compose.prod.yml exec app npm run seed || echo "⚠️ Данные уже инициализированы"
-
 # Проверка статуса сервисов
 echo "🔍 Проверка статуса сервисов..."
 docker compose -f docker-compose.prod.yml ps
@@ -121,6 +117,7 @@ echo "  📜 Логи nginx:    docker compose -f docker-compose.prod.yml logs -
 echo "  🔄 Перезапуск:    docker compose -f docker-compose.prod.yml restart"
 echo "  🛑 Остановка:     docker compose -f docker-compose.prod.yml down"
 echo "  🗄️ Бэкап БД:      ./scripts/backup-db.sh"
+echo "  🌱 Тест данные:   docker compose -f docker-compose.prod.yml exec app npm run seed"
 echo ""
 echo "⚠️  ВАЖНЫЕ ЗАМЕЧАНИЯ:"
 echo "  - Используются самоподписанные SSL сертификаты"
