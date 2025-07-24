@@ -27,7 +27,7 @@ set +a
 echo "📋 Проверка конфигурации..."
 
 # Проверяем обязательные переменные
-required_vars=("BOT_TOKEN" "SERVER_DOMAIN" "ADMIN_USER_ID" "POSTGRES_PASSWORD" "VK_S3_ACCESS_KEY_ID" "VK_S3_SECRET_ACCESS_KEY" "VK_S3_BUCKET_NAME")
+required_vars=("BOT_TOKEN" "SERVER_DOMAIN" "ADMIN_IDS" "POSTGRES_PASSWORD" "VK_S3_ACCESS_KEY_ID" "VK_S3_SECRET_ACCESS_KEY" "VK_S3_BUCKET_NAME")
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
         echo "❌ Переменная $var не установлена в .env.production"
