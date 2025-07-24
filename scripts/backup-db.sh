@@ -28,15 +28,15 @@ BACKUP_PATH="./backup/${BACKUP_NAME}"
 echo "📅 Создание резервной копии: ${BACKUP_NAME}"
 
 # Проверяем, запущен ли контейнер базы данных
-if ! docker-compose -f docker-compose.prod.yml ps db | grep -q "Up"; then
+if ! docker compose -f docker-compose.prod.yml ps db | grep -q "Up"; then
     echo "❌ Контейнер базы данных не запущен"
-    echo "🚀 Запустите сервисы: docker-compose -f docker-compose.prod.yml up -d"
+    echo "🚀 Запустите сервисы: docker compose -f docker-compose.prod.yml up -d"
     exit 1
 fi
 
 # Создаем резервную копию
 echo "🔄 Создание дампа базы данных..."
-docker-compose -f docker-compose.prod.yml exec -T db pg_dump \
+docker compose -f docker-compose.prod.yml exec -T db pg_dump \
     -h localhost \
     -U "${POSTGRES_USER}" \
     -d "${POSTGRES_DB}" \
@@ -85,9 +85,9 @@ fi
 echo ""
 echo "💡 Полезные команды:"
 echo "  📤 Восстановление из бэкапа:"
-echo "     cat ${BACKUP_PATH} | docker-compose -f docker-compose.prod.yml exec -T db psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+echo "     cat ${BACKUP_PATH} | docker compose -f docker-compose.prod.yml exec -T db psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
 echo ""
 echo "  📥 Восстановление из сжатой копии:"
-echo "     zcat ${BACKUP_PATH}.gz | docker-compose -f docker-compose.prod.yml exec -T db psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+echo "     zcat ${BACKUP_PATH}.gz | docker compose -f docker-compose.prod.yml exec -T db psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
 echo ""
 echo "✅ Резервное копирование завершено!" 

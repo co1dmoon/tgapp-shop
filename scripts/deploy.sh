@@ -10,7 +10,7 @@ echo "=================================="
 
 # Проверяем наличие необходимых инструментов
 command -v docker >/dev/null 2>&1 || { echo "❌ Docker не установлен. Установите Docker и повторите попытку." >&2; exit 1; }
-command -v docker-compose >/dev/null 2>&1 || { echo "❌ Docker Compose не установлен. Установите Docker Compose и повторите попытку." >&2; exit 1; }
+docker compose version >/dev/null 2>&1 || { echo "❌ Docker Compose не установлен или не поддерживается. Установите Docker Compose v2+ и повторите попытку." >&2; exit 1; }
 
 # Проверяем наличие файла переменных окружения
 if [ ! -f ".env.production" ]; then
@@ -54,9 +54,9 @@ mkdir -p ./nginx/www
 
 # Проверяем, есть ли запущенные контейнеры
 echo "🔍 Проверка запущенных контейнеров..."
-if docker-compose -f docker-compose.prod.yml ps --services --filter "status=running" | grep -q .; then
+if docker compose -f docker-compose.prod.yml ps --services --filter "status=running" | grep -q .; then
     echo "🔄 Обнаружены запущенные контейнеры, останавливаем..."
-    docker-compose -f docker-compose.prod.yml down
+    docker compose -f docker-compose.prod.yml down
 fi
 
 # Создаем резервную копию базы данных если она существует
@@ -72,10 +72,10 @@ fi
 
 # Сборка и запуск
 echo "🔨 Сборка Docker образов..."
-docker-compose -f docker-compose.prod.yml build --no-cache
+docker compose -f docker-compose.prod.yml build --no-cache
 
 echo "🚀 Запуск сервисов..."
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 
 # Ожидание запуска базы данных
 echo "⏳ Ожидание запуска базы данных..."
@@ -83,15 +83,15 @@ sleep 10
 
 # Применение миграций Prisma
 echo "🔄 Применение миграций базы данных..."
-docker-compose -f docker-compose.prod.yml exec app npx prisma migrate deploy || echo "⚠️ Ошибка применения миграций"
+docker compose -f docker-compose.prod.yml exec app npx prisma migrate deploy || echo "⚠️ Ошибка применения миграций"
 
 # Инициализация данных (если нужно)
 echo "🌱 Инициализация начальных данных..."
-docker-compose -f docker-compose.prod.yml exec app npm run seed || echo "⚠️ Данные уже инициализированы"
+docker compose -f docker-compose.prod.yml exec app npm run seed || echo "⚠️ Данные уже инициализированы"
 
 # Проверка статуса сервисов
 echo "🔍 Проверка статуса сервисов..."
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
 
 # Проверка работоспособности
 echo "🔧 Проверка работоспособности..."
@@ -114,12 +114,12 @@ echo "  🔗 HTTP URL: http://${SERVER_DOMAIN} (редирект на HTTPS)"
 echo "  🤖 Telegram Bot: настроен для работы с https://${SERVER_DOMAIN}"
 echo ""
 echo "📋 Полезные команды:"
-echo "  📊 Статус:        docker-compose -f docker-compose.prod.yml ps"
-echo "  📜 Логи:          docker-compose -f docker-compose.prod.yml logs -f"
-echo "  📜 Логи бота:     docker-compose -f docker-compose.prod.yml logs -f app"
-echo "  📜 Логи nginx:    docker-compose -f docker-compose.prod.yml logs -f nginx"
-echo "  🔄 Перезапуск:    docker-compose -f docker-compose.prod.yml restart"
-echo "  🛑 Остановка:     docker-compose -f docker-compose.prod.yml down"
+echo "  📊 Статус:        docker compose -f docker-compose.prod.yml ps"
+echo "  📜 Логи:          docker compose -f docker-compose.prod.yml logs -f"
+echo "  📜 Логи бота:     docker compose -f docker-compose.prod.yml logs -f app"
+echo "  📜 Логи nginx:    docker compose -f docker-compose.prod.yml logs -f nginx"
+echo "  🔄 Перезапуск:    docker compose -f docker-compose.prod.yml restart"
+echo "  🛑 Остановка:     docker compose -f docker-compose.prod.yml down"
 echo "  🗄️ Бэкап БД:      ./scripts/backup-db.sh"
 echo ""
 echo "⚠️  ВАЖНЫЕ ЗАМЕЧАНИЯ:"

@@ -41,8 +41,11 @@ newgrp docker
 
 ### 3. Установка Docker Compose
 ```bash
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+# Docker Compose v2 включен в Docker Desktop
+# Для серверов убедитесь что у вас Docker v20.10+ с встроенным compose plugin
+
+# Проверка установки
+docker compose version
 ```
 
 ### 4. Клонирование проекта
@@ -139,10 +142,10 @@ mv .env.production.local .env.production
 После завершения проверьте:
 ```bash
 # Статус сервисов
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
 
 # Логи приложения
-docker-compose -f docker-compose.prod.yml logs -f app
+docker compose -f docker-compose.prod.yml logs -f app
 
 # Проверка HTTPS
 curl -k https://your-server-ip/health
@@ -195,16 +198,16 @@ sudo dpkg-reconfigure -plow unattended-upgrades
 ### Просмотр логов
 ```bash
 # Все сервисы
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml logs -f
 
 # Только бот
-docker-compose -f docker-compose.prod.yml logs -f app
+docker compose -f docker-compose.prod.yml logs -f app
 
 # Только nginx
-docker-compose -f docker-compose.prod.yml logs -f nginx
+docker compose -f docker-compose.prod.yml logs -f nginx
 
 # Только база данных
-docker-compose -f docker-compose.prod.yml logs -f db
+docker compose -f docker-compose.prod.yml logs -f db
 ```
 
 ### Мониторинг ресурсов
@@ -226,10 +229,10 @@ docker system df
 ### Восстановление из резервной копии
 ```bash
 # Из обычного файла
-cat ./backup/backup_file.sql | docker-compose -f docker-compose.prod.yml exec -T db psql -U tgappshop -d tgappshop
+cat ./backup/backup_file.sql | docker compose -f docker-compose.prod.yml exec -T db psql -U tgappshop -d tgappshop
 
 # Из сжатого файла
-zcat ./backup/backup_file.sql.gz | docker-compose -f docker-compose.prod.yml exec -T db psql -U tgappshop -d tgappshop
+zcat ./backup/backup_file.sql.gz | docker compose -f docker-compose.prod.yml exec -T db psql -U tgappshop -d tgappshop
 ```
 
 ## 🔄 Обновление приложения
@@ -240,15 +243,15 @@ zcat ./backup/backup_file.sql.gz | docker-compose -f docker-compose.prod.yml exe
 git pull origin main
 
 # Перезапуск сервисов
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml down
 ./scripts/deploy.sh
 ```
 
 ### Обновление зависимостей
 ```bash
 # Пересборка образов
-docker-compose -f docker-compose.prod.yml build --no-cache
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml build --no-cache
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ## 🚨 Устранение неполадок
@@ -263,10 +266,10 @@ chmod +x scripts/*.sh
 **2. Ошибка подключения к базе данных**
 ```bash
 # Проверьте статус
-docker-compose -f docker-compose.prod.yml ps db
+docker compose -f docker-compose.prod.yml ps db
 
 # Перезапустите базу данных
-docker-compose -f docker-compose.prod.yml restart db
+docker compose -f docker-compose.prod.yml restart db
 ```
 
 **3. SSL сертификат не работает**
@@ -274,13 +277,13 @@ docker-compose -f docker-compose.prod.yml restart db
 # Пересоздайте сертификаты
 rm -rf nginx/ssl/
 ./scripts/setup-ssl.sh
-docker-compose -f docker-compose.prod.yml restart nginx
+docker compose -f docker-compose.prod.yml restart nginx
 ```
 
 **4. Telegram бот не отвечает**
 ```bash
 # Проверьте логи
-docker-compose -f docker-compose.prod.yml logs -f app
+docker compose -f docker-compose.prod.yml logs -f app
 
 # Проверьте переменные
 grep BOT_TOKEN .env.production
@@ -290,16 +293,16 @@ grep BOT_TOKEN .env.production
 
 ```bash
 # Остановка всех сервисов
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml down
 
 # Принудительная пересборка
-docker-compose -f docker-compose.prod.yml build --no-cache
+docker compose -f docker-compose.prod.yml build --no-cache
 
 # Очистка неиспользуемых ресурсов
 docker system prune -f
 
 # Перезапуск конкретного сервиса
-docker-compose -f docker-compose.prod.yml restart app
+docker compose -f docker-compose.prod.yml restart app
 ```
 
 ## 🌟 Дополнительные возможности
