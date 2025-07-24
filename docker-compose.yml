@@ -1,16 +1,29 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15
-    container_name: tg-shop-postgres
-    restart: always
-    env_file:
-      - .env
+  db:
+    image: postgres:15-alpine
+    container_name: tgapp-shop-db-dev
+    environment:
+      POSTGRES_DB: tg-shop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - tgapp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tg-shop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  pgdata: 
+  postgres_data_dev:
+    driver: local
+
+networks:
+  tgapp-network:
+    driver: bridge 

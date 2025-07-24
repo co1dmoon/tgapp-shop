@@ -77,13 +77,7 @@ docker compose -f docker-compose.prod.yml build --no-cache
 echo "🚀 Запуск сервисов..."
 docker compose -f docker-compose.prod.yml up -d
 
-# Ожидание запуска базы данных
-echo "⏳ Ожидание запуска базы данных..."
-sleep 10
-
-# Синхронизация схемы базы данных с Prisma
-echo "🔄 Синхронизация схемы базы данных..."
-docker compose -f docker-compose.prod.yml exec app npx prisma db push --accept-data-loss || echo "⚠️ Ошибка синхронизации схемы"
+# База данных и схема инициализируются автоматически в контейнере
 
 # Проверка статуса сервисов
 echo "🔍 Проверка статуса сервисов..."

@@ -3,10 +3,38 @@ const path = require('path');
 const cors = require('cors');
 require('dotenv').config();
 
+const { exec } = require('child_process');
+const { promisify } = require('util');
+const execAsync = promisify(exec);
+
 const ngrok = require("ngrok");
 const telegramBot = require("./services/telegram/bot"); // Используем новую модульную структуру
 const apiRoutes = require("./routes/api");
 const adminRoutes = require("./routes/admin");
+
+// Функция инициализации базы данных
+async function initializeDatabase() {
+  console.log('🔄 Инициализация базы данных...');
+  
+  const maxRetries = 60;
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      console.log(`⏳ Попытка подключения к БД (${retries + 1}/${maxRetries})...`);
+      await execAsync('npx prisma db push --accept-data-loss --skip-generate');
+      console.log('✅ База данных готова, схема синхронизирована');
+      return;
+    } catch (error) {
+      retries++;
+      if (retries >= maxRetries) {
+        console.error('❌ Не удалось подключиться к базе данных:', error.message);
+        process.exit(1);
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+}
 
 const PORT = process.env.PORT || 3001;
 const WEBAPP_DEV_URL = process.env.WEBAPP_DEV_URL;
@@ -37,6 +65,9 @@ app.use("/admin", adminRoutes);
 // Запуск сервера и настройка ngrok
 const startServer = async () => {
   try {
+    // Инициализация базы данных
+    await initializeDatabase();
+    
     // Запуск Express сервера
     app.listen(PORT, () => {
       console.log(`Сервер запущен на порту ${PORT}`);
