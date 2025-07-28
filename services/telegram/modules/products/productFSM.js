@@ -104,7 +104,7 @@ const handleProductId = async (ctx, userId, state, text) => {
   const productId = text.trim().toUpperCase();
   
   if (!productId || productId.length < 3 || productId.length > 20) {
-    return ctx.reply('❌ ProductId должен быть от 3 до 20 символов!\n\nВведите уникальный строковый идентификатор товара:\n\n💡 Для отмены введите /cancel');
+    return ctx.reply('❌ ProductId должен быть от 3 до 20 символов!\n\nВведите уникальный строковый идентификатор товара для связи с сайтом:\n\n💡 Для отмены введите /cancel');
   }
   
   // Проверяем уникальность productId

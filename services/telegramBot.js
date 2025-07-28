@@ -571,7 +571,7 @@ const initBot = async (webAppUrl) => {
       const catId = parseInt(ctx.match[1]);
       setState(ctx.from.id, `wait_product_id_${catId}`);
       await ctx.reply(
-        `🆔 Введите ID нового товара для категории ID ${catId}:\n\nВажно: ID должен быть уникальным числом!\n\n💡 Для отмены создания товара введите /cancel`
+        `🆔 Введите ID нового товара для связи с сайтом.\n\nВажно: ID должен быть уникальным!\n\n💡 Для отмены создания товара введите /cancel`
       );
     });
 
