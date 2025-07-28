@@ -43,33 +43,33 @@ const getCategoryManagementKeyboard = () => {
 };
 
 // Клавиатура для просмотра категории
-const getCategoryViewKeyboard = (categoryId) => {
+const getCategoryViewKeyboard = (categoryId, categoryName) => {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('✏️ Редактировать', `edit_category_${categoryId}`),
-      Markup.button.callback('🗑 Удалить', `delete_category_${categoryId}`)
+      Markup.button.callback(`✏️ Редактировать "${categoryName}"`, `edit_category_${categoryId}`),
+      Markup.button.callback(`🗑 Удалить "${categoryName}"`, `delete_category_${categoryId}`)
     ],
     [Markup.button.callback('🔙 К списку категорий', 'admin_categories')]
   ]);
 };
 
 // Клавиатура редактирования категории
-const getCategoryEditKeyboard = (categoryId) => {
+const getCategoryEditKeyboard = (categoryId, categoryName) => {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('📝 Название', `edit_category_name_${categoryId}`)],
-    [Markup.button.callback('📋 Описание', `edit_category_desc_${categoryId}`)],
-    [Markup.button.callback('🖼 Изображение', `edit_category_image_${categoryId}`)],
-    [Markup.button.callback('👁 Просмотреть', `view_category_${categoryId}`)],
+    [Markup.button.callback(`📝 Название "${categoryName}"`, `edit_category_name_${categoryId}`)],
+    [Markup.button.callback(`📋 Описание "${categoryName}"`, `edit_category_desc_${categoryId}`)],
+    [Markup.button.callback(`🖼 Изображение "${categoryName}"`, `edit_category_image_${categoryId}`)],
+    [Markup.button.callback(`👁 Просмотреть "${categoryName}"`, `view_category_${categoryId}`)],
     [Markup.button.callback('🔙 К списку категорий', 'admin_categories')]
   ]);
 };
 
 // Клавиатура подтверждения удаления категории
-const getCategoryDeleteKeyboard = (categoryId) => {
+const getCategoryDeleteKeyboard = (categoryId, categoryName) => {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('✅ Да, удалить', `confirm_delete_category_${categoryId}`),
-      Markup.button.callback('❌ Отменить', `view_category_${categoryId}`)
+      Markup.button.callback(`✅ Да, удалить "${categoryName}"`, `confirm_delete_category_${categoryId}`),
+      Markup.button.callback(`❌ Отменить удаление "${categoryName}"`, `view_category_${categoryId}`)
     ]
   ]);
 };
@@ -101,9 +101,10 @@ const getProductListKeyboard = (products, categoryId, currentPage, totalPages, h
   // Кнопки для каждого товара на странице
   products.forEach((product, index) => {
     const globalIndex = currentPage * 5 + index + 1; // 5 товаров на страницу
+    const productInfo = `${product.name} (${product.productId})`;
     keyboardRows.push([
-      Markup.button.callback(`👁 Просмотреть ${globalIndex}`, `view_product_${product.id}`),
-      Markup.button.callback(`✏️ Редактировать ${globalIndex}`, `edit_product_${product.id}`)
+      Markup.button.callback(`👁 ${productInfo}`, `view_product_${product.id}`),
+      Markup.button.callback(`✏️ ${productInfo}`, `edit_product_${product.id}`)
     ]);
   });
   
@@ -149,15 +150,23 @@ const getProductListKeyboard = (products, categoryId, currentPage, totalPages, h
 };
 
 // Клавиатура для результатов поиска товаров
-const getProductSearchResultsKeyboard = (products, categoryId) => {
+const getProductSearchResultsKeyboard = (products, categoryId, hasMoreResults = false, moreCount = 0) => {
   const keyboardRows = [];
   
   products.forEach((product, index) => {
+    const productInfo = `${product.name} (${product.productId})`;
     keyboardRows.push([
-      Markup.button.callback(`👁 Просмотреть ${index + 1}`, `view_product_${product.id}`),
-      Markup.button.callback(`✏️ Редактировать ${index + 1}`, `edit_product_${product.id}`)
+      Markup.button.callback(`👁 ${productInfo}`, `view_product_${product.id}`),
+      Markup.button.callback(`✏️ ${productInfo}`, `edit_product_${product.id}`)
     ]);
   });
+  
+  // Добавляем информацию о дополнительных результатах, если есть
+  if (hasMoreResults && moreCount > 0) {
+    keyboardRows.push([
+      Markup.button.callback(`📄 Показать еще ${moreCount} товаров`, 'noop')
+    ]);
+  }
   
   keyboardRows.push([
     Markup.button.callback('🔍 Новый поиск', `search_product_${categoryId}`),
@@ -171,11 +180,12 @@ const getProductSearchResultsKeyboard = (products, categoryId) => {
 };
 
 // Клавиатура просмотра товара
-const getProductViewKeyboard = (productId, categoryId) => {
+const getProductViewKeyboard = (productId, categoryId, productName, productStringId) => {
+  const productInfo = `${productName} (${productStringId})`;
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('✏️ Редактировать', `edit_product_${productId}`),
-      Markup.button.callback('🗑 Удалить', `delete_product_${productId}`)
+      Markup.button.callback(`✏️ Редактировать "${productInfo}"`, `edit_product_${productId}`),
+      Markup.button.callback(`🗑 Удалить "${productInfo}"`, `delete_product_${productId}`)
     ],
     [
       Markup.button.callback('📋 К товарам', `products_cat_${categoryId}`),
@@ -185,17 +195,18 @@ const getProductViewKeyboard = (productId, categoryId) => {
 };
 
 // Клавиатура редактирования товара
-const getProductEditKeyboard = (productId, categoryId) => {
+const getProductEditKeyboard = (productId, categoryId, productName, productStringId) => {
+  const productInfo = `${productName} (${productStringId})`;
   return Markup.inlineKeyboard([
-    [Markup.button.callback('📝 Название', `edit_product_name_${productId}`)],
-    [Markup.button.callback('💰 Цена', `edit_product_price_${productId}`)],
-    [Markup.button.callback('📋 Описание', `edit_product_description_${productId}`)],
-    [Markup.button.callback('🔧 Характеристики', `edit_product_specs_${productId}`)],
-    [Markup.button.callback('🖼 Основное изображение', `edit_product_image_${productId}`)],
-    [Markup.button.callback('🎮 FPS изображение', `edit_product_fps_image_${productId}`)],
-    [Markup.button.callback('📸 Доп. изображения', `edit_product_all_images_${productId}`)],
-    [Markup.button.callback('⭐ Ранг избранного', `edit_product_rank_${productId}`)],
-    [Markup.button.callback('👁 Просмотреть', `view_product_${productId}`)],
+    [Markup.button.callback(`📝 Название "${productInfo}"`, `edit_product_name_${productId}`)],
+    [Markup.button.callback(`💰 Цена "${productInfo}"`, `edit_product_price_${productId}`)],
+    [Markup.button.callback(`📋 Описание "${productInfo}"`, `edit_product_description_${productId}`)],
+    [Markup.button.callback(`🔧 Характеристики "${productInfo}"`, `edit_product_specs_${productId}`)],
+    [Markup.button.callback(`🖼 Основное изображение "${productInfo}"`, `edit_product_image_${productId}`)],
+    [Markup.button.callback(`🎮 FPS изображение "${productInfo}"`, `edit_product_fps_image_${productId}`)],
+    [Markup.button.callback(`📸 Доп. изображения "${productInfo}"`, `edit_product_all_images_${productId}`)],
+    [Markup.button.callback(`⭐ Ранг избранного "${productInfo}"`, `edit_product_rank_${productId}`)],
+    [Markup.button.callback(`👁 Просмотреть "${productInfo}"`, `view_product_${productId}`)],
     [
       Markup.button.callback('📋 К товарам', `products_cat_${categoryId}`),
       Markup.button.callback('🔍 Поиск', `search_product_${categoryId}`)
@@ -204,11 +215,12 @@ const getProductEditKeyboard = (productId, categoryId) => {
 };
 
 // Клавиатура подтверждения удаления товара
-const getProductDeleteKeyboard = (productId) => {
+const getProductDeleteKeyboard = (productId, productName, productStringId) => {
+  const productInfo = `${productName} (${productStringId})`;
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('✅ Да, удалить', `confirm_delete_product_${productId}`),
-      Markup.button.callback('❌ Отменить', `view_product_${productId}`)
+      Markup.button.callback(`✅ Да, удалить "${productInfo}"`, `confirm_delete_product_${productId}`),
+      Markup.button.callback(`❌ Отменить удаление "${productInfo}"`, `view_product_${productId}`)
     ]
   ]);
 };

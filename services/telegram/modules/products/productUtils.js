@@ -90,7 +90,7 @@ const showProductDetails = async (ctx, productId) => {
     }
 
     const message = getProductDetailsMessage(product);
-    const keyboard = getProductViewKeyboard(productId, product.categoryId);
+    const keyboard = getProductViewKeyboard(productId, product.categoryId, product.name, product.productId);
 
     await ctx.editMessageText(message, {
       parse_mode: 'HTML',

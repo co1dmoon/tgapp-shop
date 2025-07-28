@@ -78,7 +78,7 @@ const showCategoryDetails = async (ctx, categoryId) => {
     }
 
     const message = getCategoryDetailsMessage(category);
-    const keyboard = getCategoryViewKeyboard(categoryId);
+    const keyboard = getCategoryViewKeyboard(categoryId, category.name);
 
     await ctx.editMessageText(message, {
       parse_mode: 'HTML',

@@ -134,17 +134,17 @@ const getProductEditMessage = (productName) => {
 Выберите, что хотите изменить:`;
 };
 
-const getProductDeleteConfirmMessage = (productName, productId) => {
+const getProductDeleteConfirmMessage = (productName, productStringId) => {
   return `⚠️ <b>Подтверждение удаления</b>
 
 Вы действительно хотите удалить товар:
-<b>"${productName}"</b> (${productId})?
+<b>"${productName}"</b> (${productStringId})?
 
 <i>Это действие нельзя отменить!</i>`;
 };
 
-const getProductDeletedMessage = (productName, productId) => {
-  return `✅ Товар "${productName}" (${productId}) успешно удален!`;
+const getProductDeletedMessage = (productName, productStringId) => {
+  return `✅ Товар "${productName}" (${productStringId}) успешно удален!`;
 };
 
 const getProductSearchResultsMessage = (categoryName, searchQuery, foundProducts, totalProducts) => {

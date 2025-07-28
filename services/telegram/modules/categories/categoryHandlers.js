@@ -40,7 +40,7 @@ const setupCategoryHandlers = (bot) => {
       }
       
       const message = getCategoryEditMessage(category.name);
-      const keyboard = getCategoryEditKeyboard(categoryId);
+      const keyboard = getCategoryEditKeyboard(categoryId, category.name);
       
       await ctx.editMessageText(message, {
         parse_mode: 'HTML',
@@ -64,7 +64,7 @@ const setupCategoryHandlers = (bot) => {
       }
       
       const message = getCategoryDeleteConfirmMessage(category.name, categoryId);
-      const keyboard = getCategoryDeleteKeyboard(categoryId);
+      const keyboard = getCategoryDeleteKeyboard(categoryId, category.name);
       
       await ctx.editMessageText(message, {
         parse_mode: 'HTML',

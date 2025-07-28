@@ -157,7 +157,7 @@ const showProductEditMenu = async (ctx, productId) => {
     }
 
     const message = getProductEditMessage(product.name);
-    const keyboard = getProductEditKeyboard(productId, product.categoryId);
+    const keyboard = getProductEditKeyboard(productId, product.categoryId, product.name, product.productId);
 
     await ctx.editMessageText(message, {
       parse_mode: 'HTML',
@@ -177,8 +177,8 @@ const showProductDeleteConfirmation = async (ctx, productId) => {
       return ctx.editMessageText('Товар не найден.');
     }
 
-    const message = getProductDeleteConfirmMessage(product.name, productId);
-    const keyboard = getProductDeleteKeyboard(productId);
+    const message = getProductDeleteConfirmMessage(product.name, product.productId);
+    const keyboard = getProductDeleteKeyboard(productId, product.name, product.productId);
 
     await ctx.editMessageText(message, {
       parse_mode: 'HTML',
@@ -201,7 +201,7 @@ const deleteProduct = async (ctx, productId) => {
     const categoryId = product.categoryId;
     await productController.deleteProduct(productId);
 
-    const message = getProductDeletedMessage(product.name, productId);
+    const message = getProductDeletedMessage(product.name, product.productId);
     const keyboard = getBackToProductsKeyboard(categoryId);
 
     await ctx.editMessageText(message, {
@@ -217,7 +217,7 @@ const deleteProduct = async (ctx, productId) => {
 const startProductCreation = async (ctx, categoryId) => {
   setState(ctx.from.id, `wait_product_id_${categoryId}`);
   await ctx.reply(
-    `🆔 Введите ID нового товара для категории ID ${categoryId}:\n\nВажно: ID должен быть уникальным числом!\n\n💡 Для отмены создания товара введите /cancel`
+  `🆔 Введите ID нового товара для связи с сайтом.\n\nВажно: ID должен быть уникальным!\n\n💡 Для отмены создания товара введите /cancel`
   );
 };
 

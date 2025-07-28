@@ -53,7 +53,8 @@ const showSearchResults = async (ctx, categoryId, searchQuery) => {
     const foundProducts = allProducts.filter(product => {
       const nameMatch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
       const idMatch = product.id.toString().includes(searchQuery);
-      return nameMatch || idMatch;
+      const productIdMatch = product.productId.toLowerCase().includes(searchQuery.toLowerCase());
+      return nameMatch || idMatch || productIdMatch;
     });
     
     const message = getProductSearchResultsMessage(
@@ -103,7 +104,7 @@ const setupProductSearch = (bot) => {
     setState(ctx.from.id, `search_in_category_${categoryId}`);
     
     await ctx.reply(
-      '🔍 Введите название товара для поиска:\n\n💡 Будут найдены товары, содержащие ваш запрос в названии или ID\n💡 Для отмены введите /cancel'
+      '🔍 Введите название товара для поиска:\n\n💡 Будут найдены товары, содержащие ваш запрос в названии, ID или productId\n💡 Для отмены введите /cancel'
     );
   });
 };

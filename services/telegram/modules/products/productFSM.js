@@ -362,7 +362,7 @@ const createProduct = async (ctx, userId, productData) => {
         fpsImage: productData.fpsImage === 'null' ? null : productData.fpsImage,
         additionalImages: productData.allImages === 'null' ? null : productData.allImages,
         productInfo: {
-          productId: productData.id,
+          productId: productData.productId,
           productName: productData.name,
           categoryId: productData.categoryId,
           categoryName: category.name
@@ -381,7 +381,7 @@ const createProduct = async (ctx, userId, productData) => {
 
     // Формируем данные для создания товара с S3 ссылками
     const finalProductData = {
-      id: productData.id,
+      productId: productData.productId,
       name: productData.name,
       price: productData.price,
       description: productData.description,
@@ -411,7 +411,7 @@ const createProduct = async (ctx, userId, productData) => {
     
     // Формируем сообщение с полной информацией о созданном товаре
     let successMessage = `✅ <b>Товар успешно создан!</b>\n\n`;
-    successMessage += `🆔 <b>ID:</b> ${product.id}\n`;
+    successMessage += `🆔 <b>ProductId:</b> ${productData.productId}\n`;
     successMessage += `🏷️ <b>Название:</b> ${productData.name}\n`;
     successMessage += `💰 <b>Цена:</b> ${productData.price.toLocaleString('ru-RU')} ₽\n`;
     
@@ -454,7 +454,7 @@ const createProduct = async (ctx, userId, productData) => {
     if (error.message.includes('S3')) {
       errorMessage += '📤 Ошибка загрузки изображений в хранилище.\nПроверьте настройки S3 или попробуйте позже.';
     } else if (error.message.includes('unique') || error.message.includes('UNIQUE')) {
-      errorMessage += `🆔 Товар с ID ${productData.id} уже существует!\nВыберите другой ID.`;
+      errorMessage += `🆔 Товар с productId "${productData.productId}" уже существует!\nВыберите другой productId.`;
     } else if (error.message.includes('file_id') || error.message.includes('Telegram')) {
       errorMessage += '📸 Ошибка обработки изображений.\nПопробуйте отправить изображения заново.';
     } else {
