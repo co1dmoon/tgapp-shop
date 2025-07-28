@@ -10,6 +10,42 @@ const {
 } = require('../../ui/messages');
 const { delay } = require('../../core/utils');
 
+// Вспомогательная функция для безопасного показа деталей категории
+const safeShowCategoryDetails = async (ctx, categoryId) => {
+  try {
+    // Получаем данные категории
+    const category = await categoryController.getCategoryById(categoryId);
+    if (!category) {
+      const { getBackToCategoriesKeyboard } = require('../../ui/keyboards');
+      const keyboard = getBackToCategoriesKeyboard();
+      await ctx.reply('Категория не найдена.', keyboard);
+      return;
+    }
+
+    // Формируем сообщение и клавиатуру
+    const { getCategoryDetailsMessage } = require('../../ui/messages');
+    const { getCategoryViewKeyboard } = require('../../ui/keyboards');
+    
+    const message = getCategoryDetailsMessage(category);
+    const keyboard = getCategoryViewKeyboard(categoryId, category.name);
+
+    // Отправляем новое сообщение вместо редактирования
+    await ctx.reply(message, {
+      parse_mode: 'HTML',
+      ...keyboard,
+    });
+  } catch (error) {
+    console.warn('Не удалось показать обновленные детали категории:', error.message);
+    // Отправляем простое сообщение с кнопкой возврата
+    const { getBackToCategoriesKeyboard } = require('../../ui/keyboards');
+    const category = await categoryController.getCategoryById(categoryId);
+    if (category) {
+      const keyboard = getBackToCategoriesKeyboard();
+      await ctx.reply(`✅ Категория "${category.name}" обновлена!`, keyboard);
+    }
+  }
+};
+
 // Обработка FSM для категорий
 const handleCategoryFSM = async (ctx, userId, state, text, webAppUrl) => {
   try {
@@ -127,7 +163,7 @@ const handleEditCategoryName = async (ctx, userId, state, text) => {
     
     // Возвращаемся к просмотру категории через небольшую задержку
     await delay(500);
-    await showCategoryDetails(ctx, categoryId);
+    await safeShowCategoryDetails(ctx, categoryId);
   } catch (error) {
     console.error('Ошибка при обновлении названия категории:', error);
     clearState(userId);
@@ -154,7 +190,7 @@ const handleEditCategoryDescription = async (ctx, userId, state, text) => {
     
     // Возвращаемся к просмотру категории через небольшую задержку
     await delay(500);
-    await showCategoryDetails(ctx, categoryId);
+    await safeShowCategoryDetails(ctx, categoryId);
   } catch (error) {
     console.error('Ошибка при обновлении описания категории:', error);
     clearState(userId);

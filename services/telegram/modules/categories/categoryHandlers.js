@@ -4,12 +4,14 @@ const { showCategoriesList, showCategoryDetails } = require('./categoryUtils');
 const {
   getCategoryEditMessage,
   getCategoryDeleteConfirmMessage,
+  getCategoryDeleteWithProductsMessage,
   getCategoryDeletedMessage,
   getInputPrompts,
 } = require('../../ui/messages');
 const {
   getCategoryEditKeyboard,
   getCategoryDeleteKeyboard,
+  getCategoryDeleteWithProductsKeyboard,
   getBackToCategoriesKeyboard,
 } = require('../../ui/keyboards');
 
@@ -63,13 +65,24 @@ const setupCategoryHandlers = (bot) => {
         return ctx.editMessageText('Категория не найдена.');
       }
       
-      const message = getCategoryDeleteConfirmMessage(category.name, categoryId);
-      const keyboard = getCategoryDeleteKeyboard(categoryId, category.name);
-      
-      await ctx.editMessageText(message, {
-        parse_mode: 'HTML',
-        ...keyboard,
-      });
+      // Проверяем, есть ли товары в категории
+      if (category.products.length > 0) {
+        const message = getCategoryDeleteWithProductsMessage(category.name, categoryId, category.products.length);
+        const keyboard = getCategoryDeleteWithProductsKeyboard(categoryId, category.name);
+        
+        await ctx.editMessageText(message, {
+          parse_mode: 'HTML',
+          ...keyboard,
+        });
+      } else {
+        const message = getCategoryDeleteConfirmMessage(category.name, categoryId);
+        const keyboard = getCategoryDeleteKeyboard(categoryId, category.name);
+        
+        await ctx.editMessageText(message, {
+          parse_mode: 'HTML',
+          ...keyboard,
+        });
+      }
     } catch (error) {
       console.error('Ошибка при удалении категории:', error);
       await ctx.reply('Ошибка при удалении категории.');
@@ -98,6 +111,31 @@ const setupCategoryHandlers = (bot) => {
     } catch (error) {
       console.error('Ошибка при удалении категории:', error);
       await ctx.reply('Ошибка при удалении категории.');
+    }
+  });
+
+  // Подтверждение удаления категории с товарами
+  bot.action(/^confirm_delete_category_with_products_(\d+)$/, checkAdmin, async (ctx) => {
+    await ctx.answerCbQuery();
+    const categoryId = parseInt(ctx.match[1]);
+    
+    try {
+      const category = await categoryController.getCategoryById(categoryId);
+      if (!category) {
+        return ctx.editMessageText('Категория не найдена.');
+      }
+      
+      await categoryController.deleteCategoryWithProducts(categoryId);
+      
+      const message = `✅ Категория "${category.name}" (ID: ${categoryId}) и все её товары (${category.products.length} шт.) успешно удалены!`;
+      const keyboard = getBackToCategoriesKeyboard();
+      
+      await ctx.editMessageText(message, {
+        ...keyboard,
+      });
+    } catch (error) {
+      console.error('Ошибка при удалении категории с товарами:', error);
+      await ctx.reply('Ошибка при удалении категории с товарами.');
     }
   });
 

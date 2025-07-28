@@ -26,6 +26,7 @@ const LIMITS = {
   CATEGORY_NAME: { min: 2, max: 50 },
   PRODUCT_NAME: { min: 2, max: 100 },
   SEARCH_QUERY: { max: 50 },
+  SEARCH_RESULTS: { max: 8 },
   MAX_FILE_SIZE: 20 * 1024 * 1024, // 20MB
 };
 

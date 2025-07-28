@@ -14,6 +14,12 @@ const {
 // Обработка поиска товаров в категории
 const handleProductSearch = async (ctx, state, searchQuery) => {
   try {
+    // Проверяем, что константы LIMITS правильно загружены
+    if (!LIMITS || !LIMITS.SEARCH_QUERY || typeof LIMITS.SEARCH_QUERY.max !== 'number') {
+      console.error('Ошибка: LIMITS.SEARCH_QUERY.max не определен');
+      return ctx.reply('❌ Ошибка конфигурации поиска. Обратитесь к администратору.');
+    }
+
     const categoryId = parseInt(state.replace('search_in_category_', ''));
     
     // Валидация поискового запроса
@@ -41,6 +47,12 @@ const handleProductSearch = async (ctx, state, searchQuery) => {
 // Функция поиска и отображения найденных товаров
 const showSearchResults = async (ctx, categoryId, searchQuery) => {
   try {
+    // Проверяем, что константы LIMITS правильно загружены
+    if (!LIMITS || !LIMITS.SEARCH_RESULTS || typeof LIMITS.SEARCH_RESULTS.max !== 'number') {
+      console.error('Ошибка: LIMITS.SEARCH_RESULTS.max не определен');
+      return ctx.reply('❌ Ошибка конфигурации поиска. Обратитесь к администратору.');
+    }
+
     const allProducts = await productController.getProductsByCategory(categoryId);
     const category = await categoryController.getCategoryById(categoryId);
     

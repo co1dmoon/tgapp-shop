@@ -69,6 +69,18 @@ const getCategoryDeleteConfirmMessage = (categoryName, categoryId) => {
 <i>Это действие нельзя отменить!</i>`;
 };
 
+const getCategoryDeleteWithProductsMessage = (categoryName, categoryId, productsCount) => {
+  return `⚠️ <b>Внимание! Категория содержит товары</b>
+
+Категория <b>"${categoryName}"</b> (ID: ${categoryId}) содержит <b>${productsCount} товаров</b>.
+
+Выберите действие:
+• Удалить категорию вместе со всеми товарами
+• Отменить операцию
+
+<i>Удаление товаров нельзя отменить!</i>`;
+};
+
 const getCategoryCreatedMessage = (categoryName, categoryId) => {
   return `✅ Категория "${categoryName}" (ID: ${categoryId}) успешно создана!`;
 };
@@ -168,7 +180,7 @@ const getInputPrompts = {
   categoryDescription: 'Введите описание категории (или "-" для пропуска):\n\n💡 Для отмены введите /cancel',
   categoryImage: 'Отправьте изображение категории (или "-" для пропуска):\n\n💡 Для отмены введите /cancel',
   
-  productId: (categoryId) => `Введите уникальный строковый идентификатор товара (productId):\n\nПримеры: PC-FHD-001, MON-ASUS-001, KB-LOGI-001\n\nВажно: от 3 до 20 символов, только буквы, цифры и дефисы!\n\n💡 Для отмены создания товара введите /cancel`,
+  productId: (categoryId) => `Введите уникальный строковый идентификатор товара (productId) для связи с сайтом:\n\nПримеры: PC-FHD-001, MON-ASUS-001, KB-LOGI-001\n\nВажно: от 3 до 20 символов, только буквы, цифры и дефисы!\n\n💡 Для отмены создания товара введите /cancel`,
   productName: 'Введите название товара:\n\n💡 Для отмены введите /cancel',
   productPrice: 'Введите цену товара (только число, например: 99990):\n\n💡 Для отмены введите /cancel',
   productDescription: 'Введите полное описание товара (или "-" для пропуска):\n\n💡 Для отмены введите /cancel',
@@ -208,7 +220,7 @@ DPI: 16000
   searchQuery: 'Введите название товара для поиска:\n\n💡 Будет найдены товары, содержащие ваш запрос в названии\n💡 Для отмены введите /cancel',
   
   // Редактирование полей
-  editProductId: 'Введите новый уникальный строковый идентификатор товара (productId):\n\nПримеры: PC-FHD-001, MON-ASUS-001, KB-LOGI-001\n\nВажно: от 3 до 20 символов, только буквы, цифры и дефисы!\n\n💡 Для отмены введите /cancel',
+  editProductId: 'Введите новый уникальный строковый идентификатор товара (productId) для связи с сайтом:\n\nПримеры: PC-FHD-001, MON-ASUS-001, KB-LOGI-001\n\nВажно: от 3 до 20 символов, только буквы, цифры и дефисы!\n\n💡 Для отмены введите /cancel',
   editProductName: 'Введите новое название товара:\n\n💡 Для отмены введите /cancel',
   editProductPrice: 'Введите новую цену товара (только число):\n\nПример: 150000\n\n💡 Для отмены введите /cancel',
   editProductDescription: 'Введите новое описание товара:\n\n💡 Для отмены введите /cancel',
@@ -259,6 +271,7 @@ module.exports = {
   getCategoryDetailsMessage,
   getCategoryEditMessage,
   getCategoryDeleteConfirmMessage,
+  getCategoryDeleteWithProductsMessage,
   getCategoryCreatedMessage,
   getCategoryDeletedMessage,
   getProductsInCategoryMessage,

@@ -37,8 +37,8 @@ const showCategoriesList = async (ctx, useEdit = true) => {
     // Создаем кнопки для каждой категории
     categories.forEach((cat) => {
       keyboardRows.push([
-        { text: `👁 Просмотреть`, callback_data: `view_category_${cat.id}` },
-        { text: `✏️ Редактировать`, callback_data: `edit_category_${cat.id}` }
+        { text: `👁 Просмотреть "${cat.name}"`, callback_data: `view_category_${cat.id}` },
+        { text: `✏️ Редактировать "${cat.name}"`, callback_data: `edit_category_${cat.id}` }
       ]);
     });
 

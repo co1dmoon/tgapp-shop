@@ -32,7 +32,7 @@ const setupTextHandler = (bot, webAppUrl) => {
       }
 
       // Обработка FSM товаров
-      if (state.includes('product')) {
+      if (state.includes('product') || state.startsWith('edit_') || state.startsWith('wait_product_')) {
         await handleProductFSM(ctx, userId, state, text, webAppUrl);
         return;
       }

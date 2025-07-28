@@ -101,6 +101,84 @@ const handleProductFSM = async (ctx, userId, state, text, webAppUrl) => {
   }
 };
 
+// === Редактирование товаров ===
+
+// Вспомогательная функция для безопасного показа деталей товара
+const safeShowProductDetails = async (ctx, productId) => {
+  try {
+    // Получаем данные товара
+    const product = await productController.getProductById(productId);
+    if (!product) {
+      const { getBackToProductsKeyboard } = require('../../ui/keyboards');
+      const keyboard = getBackToProductsKeyboard(1); // fallback categoryId
+      await ctx.reply('Товар не найден.', keyboard);
+      return;
+    }
+
+    // Формируем сообщение и клавиатуру
+    const { getProductDetailsMessage } = require('../../ui/messages');
+    const { getProductViewKeyboard } = require('../../ui/keyboards');
+    
+    const message = getProductDetailsMessage(product);
+    const keyboard = getProductViewKeyboard(productId, product.categoryId, product.name, product.productId);
+
+    // Отправляем новое сообщение вместо редактирования
+    await ctx.reply(message, {
+      parse_mode: 'HTML',
+      ...keyboard,
+    });
+  } catch (error) {
+    console.warn('Не удалось показать обновленные детали товара:', error.message);
+    // Отправляем простое сообщение с кнопкой возврата
+    const { getBackToProductsKeyboard } = require('../../ui/keyboards');
+    const product = await productController.getProductById(productId);
+    if (product) {
+      const keyboard = getBackToProductsKeyboard(product.categoryId);
+      await ctx.reply(`✅ Товар "${product.name}" обновлен!`, keyboard);
+    }
+  }
+};
+
+// Редактирование productId товара
+const handleEditProductId = async (ctx, userId, state, text) => {
+  const productId = parseInt(state.replace('edit_id_', ''));
+  const newProductId = text.trim();
+  
+  if (!newProductId || newProductId.length < 3 || newProductId.length > 20) {
+    return ctx.reply('❌ ProductId должен быть от 3 до 20 символов!\n\nВведите новый уникальный строковый идентификатор товара (productId) для связи с сайтом:\n\n💡 Для отмены введите /cancel');
+  }
+  
+  // Проверяем уникальность нового productId
+  try {
+    const { PrismaClient } = require('../../../../../generated/prisma');
+    const prisma = new PrismaClient();
+    const existingProduct = await prisma.product.findUnique({
+      where: { productId: newProductId }
+    });
+    await prisma.$disconnect();
+    
+    if (existingProduct && existingProduct.id !== productId) {
+      return ctx.reply(`❌ Товар с productId "${newProductId}" уже существует!\n\nВведите другой уникальный productId для связи с сайтом:\n\n💡 Для отмены введите /cancel`);
+    }
+  } catch (error) {
+    console.error('Ошибка при проверке productId товара:', error);
+  }
+  
+  try {
+    await productController.updateProduct(productId, { productId: newProductId });
+    clearState(userId);
+    await ctx.reply(`✅ ProductId товара для связи с сайтом обновлен на: ${newProductId}`);
+    
+    // Возвращаемся к просмотру товара через новое сообщение
+    await delay(500);
+    await safeShowProductDetails(ctx, productId);
+  } catch (error) {
+    console.error('Ошибка при обновлении productId товара:', error);
+    clearState(userId);
+    await ctx.reply('❌ Произошла ошибка при обновлении productId.');
+  }
+};
+
 // === Создание нового товара ===
 
 // Шаг 1: Обработка productId товара
@@ -109,7 +187,7 @@ const handleProductId = async (ctx, userId, state, text) => {
   const productId = text.trim();
   
   if (!productId || productId.length < 3 || productId.length > 20) {
-    return ctx.reply('❌ ProductId должен быть от 3 до 20 символов!\n\nВведите уникальный строковый идентификатор товара для связи с сайтом:\n\n💡 Для отмены введите /cancel');
+    return ctx.reply('❌ ProductId должен быть от 3 до 20 символов!\n\nВведите уникальный строковый идентификатор товара (productId) для связи с сайтом:\n\n💡 Для отмены введите /cancel');
   }
   
   // Проверяем уникальность productId
@@ -122,7 +200,7 @@ const handleProductId = async (ctx, userId, state, text) => {
     await prisma.$disconnect();
     
     if (exists) {
-      return ctx.reply(`❌ Товар с productId "${productId}" уже существует!\n\nВведите другой уникальный productId:\n\n💡 Для отмены введите /cancel`);
+      return ctx.reply(`❌ Товар с productId "${productId}" уже существует!\n\nВведите другой уникальный productId для связи с сайтом:\n\n💡 Для отмены введите /cancel`);
     }
   } catch (error) {
     console.error('Ошибка при проверке productId товара:', error);
@@ -198,7 +276,7 @@ const handleProductRank = async (ctx, userId, state, text) => {
   if (text !== '-') {
     favoriteRank = parseInt(text);
     if (isNaN(favoriteRank) || favoriteRank < 0 || favoriteRank > 100) {
-      return ctx.reply(getErrorMessages.invalidFavoriteRank);
+      return ctx.reply('❌ Ранг должен быть числом от 0 до 100. Попробуйте еще раз или "-" для 0:\n\n💡 Для отмены введите /cancel');
     }
   }
 
@@ -217,47 +295,6 @@ const handleProductRank = async (ctx, userId, state, text) => {
   });
 };
 
-// === Редактирование товаров ===
-
-// Редактирование productId товара
-const handleEditProductId = async (ctx, userId, state, text) => {
-  const productId = parseInt(state.replace('edit_id_', ''));
-  const newProductId = text.trim();
-  
-  if (!newProductId || newProductId.length < 3 || newProductId.length > 20) {
-    return ctx.reply('❌ ProductId должен быть от 3 до 20 символов!\n\nВведите новый уникальный строковый идентификатор товара:\n\n💡 Для отмены введите /cancel');
-  }
-  
-  // Проверяем уникальность нового productId
-  try {
-    const { PrismaClient } = require('../../../../../generated/prisma');
-    const prisma = new PrismaClient();
-    const existingProduct = await prisma.product.findUnique({
-      where: { productId: newProductId }
-    });
-    await prisma.$disconnect();
-    
-    if (existingProduct && existingProduct.id !== productId) {
-      return ctx.reply(`❌ Товар с productId "${newProductId}" уже существует!\n\nВведите другой уникальный productId:\n\n💡 Для отмены введите /cancel`);
-    }
-  } catch (error) {
-    console.error('Ошибка при проверке productId товара:', error);
-  }
-  
-  try {
-    await productController.updateProduct(productId, { productId: newProductId });
-    clearState(userId);
-    await ctx.reply(`✅ ProductId товара обновлен на: ${newProductId}`);
-    
-    await delay(500);
-    await showProductDetails(ctx, productId);
-  } catch (error) {
-    console.error('Ошибка при обновлении productId товара:', error);
-    clearState(userId);
-    await ctx.reply('❌ Произошла ошибка при обновлении productId.');
-  }
-};
-
 // Редактирование названия товара
 const handleEditProductName = async (ctx, userId, state, text) => {
   const productId = parseInt(state.replace('edit_name_', ''));
@@ -273,7 +310,7 @@ const handleEditProductName = async (ctx, userId, state, text) => {
     await ctx.reply(getSuccessMessages.productUpdated('Название'));
     
     await delay(500);
-    await showProductDetails(ctx, productId);
+    await safeShowProductDetails(ctx, productId);
   } catch (error) {
     console.error('Ошибка при обновлении названия товара:', error);
     clearState(userId);
@@ -296,7 +333,7 @@ const handleEditProductPrice = async (ctx, userId, state, text) => {
     await ctx.reply(`✅ Цена товара обновлена на: ${validation.price.toLocaleString('ru-RU')} ₽`);
     
     await delay(500);
-    await showProductDetails(ctx, productId);
+    await safeShowProductDetails(ctx, productId);
   } catch (error) {
     console.error('Ошибка при обновлении цены товара:', error);
     clearState(userId);
@@ -317,7 +354,7 @@ const handleEditProductDescription = async (ctx, userId, state, text) => {
     await ctx.reply(`✅ Описание товара ${updateMessage}`);
     
     await delay(500);
-    await showProductDetails(ctx, productId);
+    await safeShowProductDetails(ctx, productId);
   } catch (error) {
     console.error('Ошибка при обновлении описания товара:', error);
     clearState(userId);
@@ -346,7 +383,7 @@ const handleEditProductSpecs = async (ctx, userId, state, text) => {
     await ctx.reply(`✅ Характеристики товара ${updateMessage}`);
     
     await delay(500);
-    await showProductDetails(ctx, productId);
+    await safeShowProductDetails(ctx, productId);
   } catch (error) {
     console.error('Ошибка при обновлении характеристик товара:', error);
     clearState(userId);
@@ -362,7 +399,7 @@ const handleEditProductRank = async (ctx, userId, state, text) => {
   if (text !== '-') {
     favoriteRank = parseInt(text);
     if (isNaN(favoriteRank) || favoriteRank < 0 || favoriteRank > 100) {
-      return ctx.reply(getErrorMessages.invalidFavoriteRank);
+      return ctx.reply('❌ Ранг должен быть числом от 0 до 100. Попробуйте еще раз или "-" для 0:\n\n💡 Для отмены введите /cancel');
     }
   }
   
@@ -372,7 +409,7 @@ const handleEditProductRank = async (ctx, userId, state, text) => {
     await ctx.reply(`✅ Ранг избранного обновлен на: ${favoriteRank}`);
     
     await delay(500);
-    await showProductDetails(ctx, productId);
+    await safeShowProductDetails(ctx, productId);
   } catch (error) {
     console.error('Ошибка при обновлении ранга товара:', error);
     clearState(userId);

@@ -46,11 +46,45 @@ const updateCategory = async (id, data) => {
 
 const deleteCategory = async (id) => {
   try {
+    // Сначала проверяем, есть ли товары в категории
+    const category = await prisma.category.findUnique({
+      where: { id: parseInt(id) },
+      include: { products: true },
+    });
+
+    if (!category) {
+      throw new Error('Категория не найдена');
+    }
+
+    if (category.products.length > 0) {
+      throw new Error(`Категория содержит ${category.products.length} товаров. Сначала удалите все товары.`);
+    }
+
     return await prisma.category.delete({
       where: { id: parseInt(id) },
     });
   } catch (error) {
     console.error(`Ошибка при удалении категории с ID ${id}:`, error);
+    throw error;
+  }
+};
+
+// Функция для удаления категории вместе со всеми товарами
+const deleteCategoryWithProducts = async (id) => {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      // Сначала удаляем все товары в категории
+      await tx.product.deleteMany({
+        where: { categoryId: parseInt(id) },
+      });
+      
+      // Затем удаляем саму категорию
+      return await tx.category.delete({
+        where: { id: parseInt(id) },
+      });
+    });
+  } catch (error) {
+    console.error(`Ошибка при удалении категории с товарами с ID ${id}:`, error);
     throw error;
   }
 };
@@ -79,5 +113,6 @@ module.exports = {
   getCategoryById,
   updateCategory,
   deleteCategory,
+  deleteCategoryWithProducts,
   getPriceCategory,
 };

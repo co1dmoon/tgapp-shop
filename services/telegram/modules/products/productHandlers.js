@@ -217,7 +217,7 @@ const deleteProduct = async (ctx, productId) => {
 const startProductCreation = async (ctx, categoryId) => {
   setState(ctx.from.id, `wait_product_id_${categoryId}`);
   await ctx.reply(
-  `🆔 Введите ID нового товара для связи с сайтом.\n\nВажно: ID должен быть уникальным!\n\n💡 Для отмены создания товара введите /cancel`
+  `🆔 Введите уникальный строковый идентификатор товара (productId) для связи с сайтом.\n\nВажно: от 3 до 20 символов, только буквы, цифры и дефисы!\n\n💡 Для отмены создания товара введите /cancel`
   );
 };
 
@@ -292,7 +292,7 @@ const setupProductFieldEditHandlers = (bot) => {
     await ctx.answerCbQuery();
     const productId = parseInt(ctx.match[1]);
     setState(ctx.from.id, `edit_rank_${productId}`);
-    await ctx.reply(getInputPrompts.productFavoriteRank);
+    await ctx.reply(getInputPrompts.editProductRank);
   });
 };
 

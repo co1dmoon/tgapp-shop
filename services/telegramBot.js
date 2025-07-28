@@ -192,8 +192,8 @@ const initBot = async (webAppUrl) => {
         categories.forEach((cat, idx) => {
           message += `${idx + 1}. ${cat.name} (ID: ${cat.id})\n`;
           keyboardRows.push([
-            Markup.button.callback(`👁 Просмотреть`, `view_category_${cat.id}`),
-            Markup.button.callback(`✏️ Редактировать`, `edit_category_${cat.id}`)
+            Markup.button.callback(`👁 Просмотреть "${cat.name}"`, `view_category_${cat.id}`),
+            Markup.button.callback(`✏️ Редактировать "${cat.name}"`, `edit_category_${cat.id}`)
           ]);
         });
       }
@@ -403,8 +403,8 @@ const initBot = async (webAppUrl) => {
             
             // Добавляем кнопки для каждого товара на странице
             keyboardRows.push([
-              Markup.button.callback(`👁 Просмотреть ${globalIndex}`, `view_product_${p.id}`),
-              Markup.button.callback(`✏️ Редактировать ${globalIndex}`, `edit_product_${p.id}`)
+              Markup.button.callback(`👁 Просмотреть "${p.name}"`, `view_product_${p.id}`),
+              Markup.button.callback(`✏️ Редактировать "${p.name}"`, `edit_product_${p.id}`)
             ]);
           });
           
@@ -508,8 +508,8 @@ const initBot = async (webAppUrl) => {
             
             // Добавляем кнопки для каждого найденного товара
             keyboardRows.push([
-              Markup.button.callback(`👁 Просмотреть ${index + 1}`, `view_product_${p.id}`),
-              Markup.button.callback(`✏️ Редактировать ${index + 1}`, `edit_product_${p.id}`)
+              Markup.button.callback(`👁 Просмотреть "${p.name}"`, `view_product_${p.id}`),
+              Markup.button.callback(`✏️ Редактировать "${p.name}"`, `edit_product_${p.id}`)
             ]);
           });
           
@@ -679,7 +679,7 @@ ${specsText}
             [Markup.button.callback('📸 Доп. изображения', `edit_product_all_images_${productId}`)],
             [Markup.button.callback('⭐ Ранг избранного', `edit_product_rank_${productId}`)],
             [
-              Markup.button.callback('👁 Просмотреть', `view_product_${productId}`)
+              Markup.button.callback(`👁 Просмотреть "${product.name}"`, `view_product_${productId}`)
             ],
             [
               Markup.button.callback('📋 К товарам', `products_cat_${product.categoryId}`),

@@ -74,6 +74,16 @@ const getCategoryDeleteKeyboard = (categoryId, categoryName) => {
   ]);
 };
 
+// Клавиатура для удаления категории с товарами
+const getCategoryDeleteWithProductsKeyboard = (categoryId, categoryName) => {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(`🗑 Удалить "${categoryName}" с товарами`, `confirm_delete_category_with_products_${categoryId}`),
+      Markup.button.callback(`❌ Отменить`, `view_category_${categoryId}`)
+    ]
+  ]);
+};
+
 // Клавиатура выбора категорий для товаров
 const getCategorySelectorKeyboard = (categories, actionPrefix = 'products_cat', backAction = 'admin_products') => {
   const buttons = categories.map((cat) =>
@@ -288,6 +298,7 @@ module.exports = {
   getCategoryViewKeyboard,
   getCategoryEditKeyboard,
   getCategoryDeleteKeyboard,
+  getCategoryDeleteWithProductsKeyboard,
   getCategorySelectorKeyboard,
   getCategorySelectionKeyboard,
   getProductManagementKeyboard,
