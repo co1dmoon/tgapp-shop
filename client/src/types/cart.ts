@@ -1,7 +1,8 @@
 import type { Category } from './index';
 
 export type CartItem = {
-  productId: number;
+  productId: number; // Числовой ID для внутренних связей
+  productStringId: string; // Строковый productId для отображения и API
   quantity: number;
   price: number;
   name: string;

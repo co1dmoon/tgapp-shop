@@ -98,23 +98,29 @@ const handleProductFSM = async (ctx, userId, state, text, webAppUrl) => {
 
 // === Создание нового товара ===
 
-// Шаг 1: Обработка ID товара
+// Шаг 1: Обработка productId товара
 const handleProductId = async (ctx, userId, state, text) => {
   const categoryId = parseInt(state.replace('wait_product_id_', ''));
-  const productId = parseInt(text);
+  const productId = text.trim().toUpperCase();
   
-  if (isNaN(productId) || productId <= 0) {
-    return ctx.reply(getErrorMessages.invalidProductId);
+  if (!productId || productId.length < 3 || productId.length > 20) {
+    return ctx.reply('❌ ProductId должен быть от 3 до 20 символов!\n\nВведите уникальный строковый идентификатор товара:\n\n💡 Для отмены введите /cancel');
   }
   
-  // Проверяем уникальность ID
+  // Проверяем уникальность productId
   try {
-    const exists = await validateProductId(productId);
+    const { PrismaClient } = require('../../../../../generated/prisma');
+    const prisma = new PrismaClient();
+    const exists = await prisma.product.findUnique({
+      where: { productId: productId }
+    });
+    await prisma.$disconnect();
+    
     if (exists) {
-      return ctx.reply(`❌ Товар с ID ${productId} уже существует!\n\nВведите другой уникальный ID:\n\n💡 Для отмены введите /cancel`);
+      return ctx.reply(`❌ Товар с productId "${productId}" уже существует!\n\nВведите другой уникальный productId:\n\n💡 Для отмены введите /cancel`);
     }
   } catch (error) {
-    console.error('Ошибка при проверке ID товара:', error);
+    console.error('Ошибка при проверке productId товара:', error);
   }
   
   const { setState } = require('../../core/middlewares');
@@ -194,7 +200,7 @@ const handleProductRank = async (ctx, userId, state, text) => {
   // Создаем товар
   await createProduct(ctx, userId, {
     categoryId: parseInt(categoryId),
-    id: parseInt(productId),
+    productId: productId,
     name: productName,
     price: parseFloat(priceStr),
     description: description === 'null' ? null : description,

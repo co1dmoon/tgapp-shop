@@ -167,7 +167,7 @@ async function main() {
     // Создаем товары для Full HD
     const pcFullHD1 = await prisma.product.create({
       data: {
-        id: 1001,
+        productId: 'PC-FHD-PRO-001',
         name: 'GAMING FULL HD PRO',
         price: 85000,
         specs: JSON.stringify({
@@ -183,7 +183,7 @@ async function main() {
 
     const pcFullHD2 = await prisma.product.create({
       data: {
-        id: 1002,
+        productId: 'PC-FHD-MAX-001',
         name: 'GAMING FULL HD MAX',
         price: 95000,
         specs: JSON.stringify({
@@ -200,7 +200,7 @@ async function main() {
     // Создаем товары для 2K
     const pc2K1 = await prisma.product.create({
       data: {
-        id: 2001,
+        productId: 'PC-2K-PRO-001',
         name: 'GAMING 2K PRO',
         price: 120000,
         specs: JSON.stringify({
@@ -216,7 +216,7 @@ async function main() {
 
     const pc2K2 = await prisma.product.create({
       data: {
-        id: 2002,
+        productId: 'PC-2K-MAX-001',
         name: 'GAMING 2K MAX',
         price: 140000,
         specs: JSON.stringify({
@@ -233,7 +233,7 @@ async function main() {
     // Создаем товары для 4K
     const pc4K1 = await prisma.product.create({
       data: {
-        id: 4001,
+        productId: 'PC-4K-PRO-001',
         name: 'GAMING 4K PRO',
         price: 180000,
         specs: JSON.stringify({
@@ -249,7 +249,7 @@ async function main() {
 
     const pc4K2 = await prisma.product.create({
       data: {
-        id: 4002,
+        productId: 'PC-4K-MAX-001',
         name: 'GAMING 4K MAX',
         price: 220000,
         specs: JSON.stringify({

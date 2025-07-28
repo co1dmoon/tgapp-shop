@@ -9,6 +9,7 @@ export interface Category {
 
 export interface Product {
   id: number;
+  productId: string; // Уникальный строковый идентификатор
   name: string;
   price: number;
   description?: string | null;

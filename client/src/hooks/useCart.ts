@@ -71,6 +71,7 @@ export function useCart() {
 
       const newItem: CartItem = {
         productId: product.id,
+        productStringId: product.productId,
         name: product.name,
         price: product.price,
         image: product.image ?? undefined,

@@ -102,13 +102,18 @@ const showProductDetails = async (ctx, productId) => {
   }
 };
 
-// Функция для валидации ID товара
+// Функция для валидации productId товара
 const validateProductId = async (productId) => {
   try {
-    const existingProduct = await productController.getProductById(productId);
+    const { PrismaClient } = require('../../../../generated/prisma');
+    const prisma = new PrismaClient();
+    const existingProduct = await prisma.product.findUnique({
+      where: { productId: productId }
+    });
+    await prisma.$disconnect();
     return existingProduct !== null;
   } catch (error) {
-    // Если товар не найден - ID свободен
+    // Если товар не найден - productId свободен
     return false;
   }
 };
@@ -116,7 +121,7 @@ const validateProductId = async (productId) => {
 // Функция для форматирования данных товара перед созданием
 const formatProductData = (rawData) => {
   const formattedData = {
-    id: parseInt(rawData.id),
+    productId: rawData.productId, // Строковый productId
     name: rawData.name.trim(),
     price: parseFloat(rawData.price),
     categoryId: parseInt(rawData.categoryId),
@@ -155,14 +160,14 @@ const parseProductCreationState = (state) => {
   if (state.startsWith('wait_product_name_')) {
     return {
       categoryId: parseInt(parts[0].replace('wait_product_name_', '')),
-      productId: parseInt(parts[1]),
+      productId: parts[1], // Строковый productId
     };
   }
   
   if (state.startsWith('wait_product_price_')) {
     return {
       categoryId: parseInt(parts[0].replace('wait_product_price_', '')),
-      productId: parseInt(parts[1]),
+      productId: parts[1], // Строковый productId
       name: parts[2],
     };
   }
@@ -170,7 +175,7 @@ const parseProductCreationState = (state) => {
   if (state.startsWith('wait_product_description_')) {
     return {
       categoryId: parseInt(parts[0].replace('wait_product_description_', '')),
-      productId: parseInt(parts[1]),
+      productId: parts[1], // Строковый productId
       name: parts[2],
       price: parseFloat(parts[3]),
     };
@@ -183,7 +188,7 @@ const parseProductCreationState = (state) => {
 // Функция для создания успешного сообщения о товаре
 const formatProductCreatedMessage = (product, imageCount = 0) => {
   let message = `✅ <b>Товар успешно создан!</b>\n\n`;
-  message += `🆔 <b>ID:</b> ${product.id}\n`;
+  message += `🆔 <b>ProductId:</b> ${product.productId}\n`;
   message += `🏷️ <b>Название:</b> ${product.name}\n`;
   message += `💰 <b>Цена:</b> ${product.price.toLocaleString('ru-RU')} ₽\n`;
   

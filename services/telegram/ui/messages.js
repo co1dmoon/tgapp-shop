@@ -91,7 +91,7 @@ const getProductsInCategoryMessage = (categoryName, products, currentPage, total
 };
 
 const getProductListItemMessage = (product, index) => {
-  return `${index}. ${product.name} - ${formatPrice(product.price)} (ID: ${product.id})`;
+  return `${index}. ${product.name} - ${formatPrice(product.price)} (${product.productId})`;
 };
 
 const getProductDetailsMessage = (product) => {
@@ -110,7 +110,7 @@ const getProductDetailsMessage = (product) => {
 
   return `<b>📋 Детальная информация о товаре</b>
 
-🆔 <b>ID:</b> ${product.id}
+🆔 <b>ProductId:</b> ${product.productId}
 📦 <b>Название:</b> ${product.name}
 💰 <b>Цена:</b> ${formatPrice(product.price)}
 📝 <b>Описание:</b> ${product.description || 'Не указано'}
@@ -138,13 +138,13 @@ const getProductDeleteConfirmMessage = (productName, productId) => {
   return `⚠️ <b>Подтверждение удаления</b>
 
 Вы действительно хотите удалить товар:
-<b>"${productName}"</b> (ID: ${productId})?
+<b>"${productName}"</b> (${productId})?
 
 <i>Это действие нельзя отменить!</i>`;
 };
 
 const getProductDeletedMessage = (productName, productId) => {
-  return `✅ Товар "${productName}" (ID: ${productId}) успешно удален!`;
+  return `✅ Товар "${productName}" (${productId}) успешно удален!`;
 };
 
 const getProductSearchResultsMessage = (categoryName, searchQuery, foundProducts, totalProducts) => {
@@ -168,7 +168,7 @@ const getInputPrompts = {
   categoryDescription: 'Введите описание категории (или "-" для пропуска):\n\n💡 Для отмены введите /cancel',
   categoryImage: 'Отправьте изображение категории (или "-" для пропуска):\n\n💡 Для отмены введите /cancel',
   
-  productId: (categoryId) => `Введите ID нового товара для категории ID ${categoryId}:\n\nВажно: ID должен быть уникальным числом!\n\n💡 Для отмены создания товара введите /cancel`,
+  productId: (categoryId) => `Введите уникальный строковый идентификатор товара (productId):\n\nПримеры: PC-FHD-001, MON-ASUS-001, KB-LOGI-001\n\nВажно: от 3 до 20 символов, только буквы, цифры и дефисы!\n\n💡 Для отмены создания товара введите /cancel`,
   productName: 'Введите название товара:\n\n💡 Для отмены введите /cancel',
   productPrice: 'Введите цену товара (только число, например: 99990):\n\n💡 Для отмены введите /cancel',
   productDescription: 'Введите полное описание товара (или "-" для пропуска):\n\n💡 Для отмены введите /cancel',
@@ -223,7 +223,7 @@ const getErrorMessages = {
   categoryNameLength: 'Название категории должно быть от 2 до 50 символов. Попробуйте еще раз:',
   productNameLength: 'Название товара должно быть от 2 до 100 символов. Попробуйте еще раз:\n\n💡 Для отмены введите /cancel',
   invalidPrice: 'Некорректная цена. Введите положительное число (например: 99990):\n\n💡 Для отмены введите /cancel',
-  invalidProductId: '❌ ID должен быть положительным числом. Попробуйте еще раз:\n\n💡 Для отмены введите /cancel',
+  invalidProductId: '❌ ProductId должен быть от 3 до 20 символов и содержать только буквы, цифры и дефисы. Попробуйте еще раз:\n\n💡 Для отмены введите /cancel',
   invalidFavoriteRank: '❌ Ранг должен быть числом от 0 до 100. Попробуйте еще раз или "-" для 0:\n\n💡 Для отмены введите /cancel',
   idAlreadyExists: (id) => `Товар с ID ${id} уже существует!\n\nВведите другой уникальный ID:\n\n💡 Для отмены введите /cancel`,
   searchQueryTooShort: 'Поисковый запрос не может быть пустым. Введите название товара или его ID:\n\n💡 Для отмены введите /cancel',

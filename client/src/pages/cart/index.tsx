@@ -9,9 +9,8 @@ export default function Cart() {
   const createCheckoutUrl = () => {
     const baseUrl = 'https://example.com/checkout';
 
-
-    const productParams = cart.items.map(item => `${item.productId}:${item.quantity}`).join(',');
-
+    // Используем productStringId для формирования URL
+    const productParams = cart.items.map(item => `${item.productStringId}:${item.quantity}`).join(',');
 
     const total = cart.total;
 
@@ -38,7 +37,7 @@ export default function Cart() {
 
       <div className="flex flex-col gap-4">
         {cart.items.map((item) => (
-          <ProductCard key={item.productId} cartItem={item} />
+          <ProductCard key={`${item.productId}-${item.productStringId}`} cartItem={item} />
         ))}
       </div>
 

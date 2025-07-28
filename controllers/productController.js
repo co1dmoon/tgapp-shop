@@ -69,9 +69,17 @@ const createProduct = async (data) => {
     data.categoryId = parseInt(data.categoryId);
   }
 
+  // Проверяем, что productId передан и уникален
+  if (!data.productId) {
+    throw new Error('productId обязателен для создания товара');
+  }
+
   try {
     return await prisma.product.create({ data });
   } catch (error) {
+    if (error.code === 'P2002' && error.meta?.target?.includes('productId')) {
+      throw new Error('Товар с таким productId уже существует');
+    }
     console.error('Ошибка при создании товара:', error);
     throw error;
   }
