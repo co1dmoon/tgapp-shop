@@ -223,6 +223,14 @@ const startProductCreation = async (ctx, categoryId) => {
 
 // Настройка обработчиков редактирования полей товара
 const setupProductFieldEditHandlers = (bot) => {
+  // Редактирование productId
+  bot.action(/^edit_product_id_(\d+)$/, checkAdmin, async (ctx) => {
+    await ctx.answerCbQuery();
+    const productId = parseInt(ctx.match[1]);
+    setState(ctx.from.id, `edit_id_${productId}`);
+    await ctx.reply(getInputPrompts.editProductId);
+  });
+
   // Редактирование названия
   bot.action(/^edit_product_name_(\d+)$/, checkAdmin, async (ctx) => {
     await ctx.answerCbQuery();

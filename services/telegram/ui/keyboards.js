@@ -198,6 +198,7 @@ const getProductViewKeyboard = (productId, categoryId, productName, productStrin
 const getProductEditKeyboard = (productId, categoryId, productName, productStringId) => {
   const productInfo = `${productName} (${productStringId})`;
   return Markup.inlineKeyboard([
+    [Markup.button.callback(`🆔 ProductId "${productInfo}"`, `edit_product_id_${productId}`)],
     [Markup.button.callback(`📝 Название "${productInfo}"`, `edit_product_name_${productId}`)],
     [Markup.button.callback(`💰 Цена "${productInfo}"`, `edit_product_price_${productId}`)],
     [Markup.button.callback(`📋 Описание "${productInfo}"`, `edit_product_description_${productId}`)],

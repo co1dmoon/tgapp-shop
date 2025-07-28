@@ -112,6 +112,9 @@ const updateProduct = async (id, data) => {
       data,
     });
   } catch (error) {
+    if (error.code === 'P2002' && error.meta?.target?.includes('productId')) {
+      throw new Error('Товар с таким productId уже существует');
+    }
     console.error(`Ошибка при обновлении товара с ID ${id}:`, error);
     throw error;
   }

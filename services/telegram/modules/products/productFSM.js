@@ -56,6 +56,11 @@ const handleProductFSM = async (ctx, userId, state, text, webAppUrl) => {
     }
 
     // FSM для редактирования товаров
+    if (state.startsWith('edit_id_')) {
+      await handleEditProductId(ctx, userId, state, text);
+      return;
+    }
+
     if (state.startsWith('edit_name_')) {
       await handleEditProductName(ctx, userId, state, text);
       return;
@@ -101,7 +106,7 @@ const handleProductFSM = async (ctx, userId, state, text, webAppUrl) => {
 // Шаг 1: Обработка productId товара
 const handleProductId = async (ctx, userId, state, text) => {
   const categoryId = parseInt(state.replace('wait_product_id_', ''));
-  const productId = text.trim().toUpperCase();
+  const productId = text.trim();
   
   if (!productId || productId.length < 3 || productId.length > 20) {
     return ctx.reply('❌ ProductId должен быть от 3 до 20 символов!\n\nВведите уникальный строковый идентификатор товара для связи с сайтом:\n\n💡 Для отмены введите /cancel');
@@ -213,6 +218,45 @@ const handleProductRank = async (ctx, userId, state, text) => {
 };
 
 // === Редактирование товаров ===
+
+// Редактирование productId товара
+const handleEditProductId = async (ctx, userId, state, text) => {
+  const productId = parseInt(state.replace('edit_id_', ''));
+  const newProductId = text.trim();
+  
+  if (!newProductId || newProductId.length < 3 || newProductId.length > 20) {
+    return ctx.reply('❌ ProductId должен быть от 3 до 20 символов!\n\nВведите новый уникальный строковый идентификатор товара:\n\n💡 Для отмены введите /cancel');
+  }
+  
+  // Проверяем уникальность нового productId
+  try {
+    const { PrismaClient } = require('../../../../../generated/prisma');
+    const prisma = new PrismaClient();
+    const existingProduct = await prisma.product.findUnique({
+      where: { productId: newProductId }
+    });
+    await prisma.$disconnect();
+    
+    if (existingProduct && existingProduct.id !== productId) {
+      return ctx.reply(`❌ Товар с productId "${newProductId}" уже существует!\n\nВведите другой уникальный productId:\n\n💡 Для отмены введите /cancel`);
+    }
+  } catch (error) {
+    console.error('Ошибка при проверке productId товара:', error);
+  }
+  
+  try {
+    await productController.updateProduct(productId, { productId: newProductId });
+    clearState(userId);
+    await ctx.reply(`✅ ProductId товара обновлен на: ${newProductId}`);
+    
+    await delay(500);
+    await showProductDetails(ctx, productId);
+  } catch (error) {
+    console.error('Ошибка при обновлении productId товара:', error);
+    clearState(userId);
+    await ctx.reply('❌ Произошла ошибка при обновлении productId.');
+  }
+};
 
 // Редактирование названия товара
 const handleEditProductName = async (ctx, userId, state, text) => {
