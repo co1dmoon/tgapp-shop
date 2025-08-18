@@ -13,6 +13,9 @@ RUN npm ci
 # Копируем исходный код фронтенда
 COPY client/ ./
 
+# Прокидываем продовый API URL в сборку Vite
+ENV VITE_API_URL=/api
+
 # Собираем фронтенд (будет собран в ../public)
 RUN npm run build
 
