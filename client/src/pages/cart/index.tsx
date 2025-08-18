@@ -7,16 +7,14 @@ export default function Cart() {
   const { cart } = useCartContext();
 
   const createCheckoutUrl = () => {
-    const baseUrl = 'https://example.com/checkout';
+    const baseUrl = 'https://b-zone.store/gaming_pc';
 
-    // Используем productStringId для формирования URL
-    const productParams = cart.items.map(item => `${item.productStringId}:${item.quantity}`).join(',');
-
-    const total = cart.total;
+    // Используем productStringId для формирования URL в формате cart=id:quantity,id:quantity
+    const cartParams = cart.items.map(item => `${item.productStringId}:${item.quantity}`).join(',');
 
     const url = new URL(baseUrl);
-    url.searchParams.set('products', productParams);
-    url.searchParams.set('total', total.toString());
+    url.searchParams.set('cart', cartParams);
+    url.hash = 'order';
 
     return url.toString();
   };
