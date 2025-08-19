@@ -1,5 +1,4 @@
 import { BsFillChatLeftTextFill, BsFillGridFill } from "react-icons/bs";
-import { FaClipboardList } from "react-icons/fa";
 import { IoIosInformationCircle } from "react-icons/io";
 import { MdShoppingCart } from "react-icons/md";
 import { useAppContext } from "../store/AppContext";
@@ -15,11 +14,6 @@ export default function Header() {
       id: "catalog" as AppSection,
       title: "Каталог",
       icon: <BsFillGridFill size={24} />,
-    },
-    {
-      id: "orders" as AppSection,
-      title: "Заказы",
-      icon: <FaClipboardList size={24} />,
     },
     {
       id: "contact" as AppSection,
@@ -40,7 +34,7 @@ export default function Header() {
 
   return (
     <div className="py-4">
-      <div className="grid grid-cols-5 gap-3 px-4">
+      <div className="grid grid-cols-4 gap-3 px-4">
         {navButtons.map((button) => (
           <button
             key={button.id}

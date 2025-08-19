@@ -15,11 +15,6 @@ export const NAVIGATION = {
       icon: 'shopping_cart',
     },
     {
-      id: 'orders',
-      title: 'Заказы',
-      icon: 'shopping_bag',
-    },
-    {
       id: 'contact',
       title: 'Связь',
       icon: 'support_agent',
