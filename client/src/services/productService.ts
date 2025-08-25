@@ -39,8 +39,8 @@ export const productService = {
   /**
    * Получение лучших предложений
    */
-  getBestOffersProducts: async (categories: string[]): Promise<Product[]> => {
-    return API.get('/products', { params: { bestOffers: true, categories } });
+  getBestOffersProducts: async (category: 'pc' | 'device'): Promise<Product[]> => {
+    return API.get('/products/best-offers', { params: { category } });
   }
 };
 

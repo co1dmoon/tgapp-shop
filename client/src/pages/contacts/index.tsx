@@ -8,13 +8,8 @@ export default function Contacts() {
       src: "/images/contacts/vk.png",
     },
     {
-      name: "WhatsApp",
-      link: "https://wa.me/example",
-      src: "/images/contacts/whatsapp.png",
-    },
-    {
       name: "Телеграм",
-      link: "https://t.me/example",
+      link: "https://t.me/BZoneStoreBot",
       src: "/images/contacts/telegram.png",
     },
     {

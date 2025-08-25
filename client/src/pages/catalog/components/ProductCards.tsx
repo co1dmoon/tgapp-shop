@@ -9,7 +9,7 @@ export default function ProductCards() {
   const category =
     !selectedCategory || selectedCategory === "игровые пк"
       ? (selectedPcCategory ?? 'pc')
-      : (selectedDeviceCategory ?? null)
+      : (selectedDeviceCategory ?? null);
 
 
   const bestOffers =
@@ -42,10 +42,10 @@ export default function ProductCards() {
       {(!selectedCategory ||
         (selectedCategory === "девайсы" && !selectedDeviceCategory) ||
         (selectedCategory === "игровые пк" && !selectedPcCategory)) && (
-        <p className="text-white text-[16px] font-display">
-          наши лучшие предложения
-        </p>
-      )}
+          <p className="text-white text-[16px] font-display">
+            наши лучшие предложения
+          </p>
+        )}
       <div className="grid grid-cols-2 py-4 gap-4">
         {sortedProducts?.map((product) => (
           <ProductCard key={product.id} product={product} />

@@ -43,8 +43,6 @@ router.get('/products', async (req, res) => {
     let products;
     if (categoryId) {
       products = await productController.getProductsByCategory(categoryId);
-    } else if (bestOffers) {
-      products = await productController.getBestOffersProducts(categories);
     } else if (categories) {
       products = await productController.getProductsByCategories(categories);
     } else {
@@ -54,6 +52,16 @@ router.get('/products', async (req, res) => {
     res.json(products);
   } catch (error) {
     res.status(500).json({ error: 'Ошибка при получении товаров' });
+  }
+});
+
+router.get('/products/best-offers', async (req, res) => {
+  try {
+    const { category } = req.query;
+    const products = await productController.getBestOffersProducts(category);
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: 'Ошибка при получении лучших предложений' });
   }
 });
 

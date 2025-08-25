@@ -43,12 +43,17 @@ const getProductsByCategories = async (categories) => {
   }
   };
 
-const getBestOffersProducts = async (categories) => {
+const getBestOffersProducts = async (category) => {
   try {
+    const pcCategories = ['full hd', '4k', '2k'];
+    const categoryFilter = category === 'pc'
+      ? { name: { in: pcCategories } }
+      : { name: { notIn: pcCategories } };
+
     return await prisma.product.findMany({
       where: {
         favoriteRank: { gt: 0 },
-        category: { name: { in: categories } },
+        category: categoryFilter,
       },
       include: { category: true },
       orderBy: { favoriteRank: "asc" },

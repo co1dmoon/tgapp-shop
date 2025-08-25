@@ -23,11 +23,11 @@ export function useProductsByCategory({ category, bestOffers }: { category: 'pc'
       const [data] = await Promise.all([
         (async () => {
           if (bestOffers) {
-            const categories = category === 'pc' ? ['Full HD', '4K', '2K'] : ['игровые мыши', 'клавиатуры', 'наушники', 'мониторы'];
-            return productService.getBestOffersProducts(categories);
+
+            return productService.getBestOffersProducts(category === 'pc' ? 'pc' : 'device');
           }
           if (category === 'pc') {
-            return productService.getProductsByCategories(['Full HD', '4K', '2K']);
+            return productService.getProductsByCategories(['full hd', '4k', '2k']);
           }
           if (category === null) {
             return productService.getAllProducts();
