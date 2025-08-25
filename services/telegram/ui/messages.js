@@ -3,7 +3,7 @@ const { formatPrice, formatDate, formatDateTime, formatSpecsForDisplay } = requi
 
 // Приветственные сообщения
 const getWelcomeMessage = (userName) => {
-  return `👋 Привет, ${userName}! Добро пожаловать в b.ZONE pc. Выберите действие:`;
+  return `👋 Привет, ${userName}! Добро пожаловать в компьютерный магазин B-ZONE.\n Выберите действие:`;
 };
 
 // Сообщения контактов

@@ -41,10 +41,10 @@ const SUPPORTED_IMAGE_TYPES = [
 
 // Контактная информация (замените на актуальные данные)
 const CONTACT_INFO = {
-  phone: '+7XXXXXXXXXX',
-  email: 'support@bzone.pc',
-  telegram: '@your_support_contact',
-  website: 'https://bzone.pc'
+  phone: ' +7(968)700-94-84',
+  email: 'manager@b-zone.store',
+  telegram: '@BZoneStoreBot',
+  website: 'https://b-zone.store/'
 };
 
 module.exports = {

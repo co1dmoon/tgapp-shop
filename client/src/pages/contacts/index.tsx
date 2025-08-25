@@ -4,7 +4,7 @@ export default function Contacts() {
   const contacts = [
     {
       name: "ВКонтакте",
-      link: "https://vk.com/example",
+      link: "https://vk.com/write-209962380?ref=VisitorUid_fb44825f-4bda-4b11-b7d8-4269b8aa2915&ref_source=",
       src: "/images/contacts/vk.png",
     },
     {
