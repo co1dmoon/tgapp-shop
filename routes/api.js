@@ -39,7 +39,7 @@ router.get("/:categories/:id/price", async (req, res) => {
 // API для товаров
 router.get('/products', async (req, res) => {
   try {
-    const { categoryId, categories, bestOffers } = req.query;
+    const { categoryId, categories } = req.query;
     let products;
     if (categoryId) {
       products = await productController.getProductsByCategory(categoryId);

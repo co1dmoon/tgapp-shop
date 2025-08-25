@@ -45,7 +45,7 @@ const getProductsByCategories = async (categories) => {
 
 const getBestOffersProducts = async (category) => {
   try {
-    const pcCategories = ['full hd', '4k', '2k'];
+    const pcCategories = ['FULL HD', '4K', '2K'];
     const categoryFilter = category === 'pc'
       ? { name: { in: pcCategories } }
       : { name: { notIn: pcCategories } };
