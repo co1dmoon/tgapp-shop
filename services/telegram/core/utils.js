@@ -49,6 +49,30 @@ const validateFileSize = (fileSize, maxSize) => {
   return fileSize <= maxSize;
 };
 
+// Валидация URL
+const validateUrl = (text) => {
+  if (!text || typeof text !== 'string') {
+    return { isValid: false, error: 'Введите ссылку или "-" для пропуска.' };
+  }
+  const trimmed = text.trim();
+  try {
+    // Добавим протокол по умолчанию, если отсутствует
+    const withProtocol = /^(https?:)?\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const url = new URL(withProtocol);
+    // Ограничим только http/https
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      return { isValid: false, error: 'Ссылка должна начинаться с http(s)://' };
+    }
+    // Простая проверка домена и пути
+    if (!url.hostname || url.hostname.length < 3) {
+      return { isValid: false, error: 'Некорректный домен в ссылке.' };
+    }
+    return { isValid: true, url: url.toString() };
+  } catch (e) {
+    return { isValid: false, error: 'Некорректная ссылка. Проверьте формат и попробуйте снова.' };
+  }
+};
+
 // Утилиты для форматирования
 const formatPrice = (price) => {
   return price.toLocaleString('ru-RU') + ' ₽';
@@ -204,4 +228,5 @@ module.exports = {
   delay,
   validatePrice,
   validateSpecs,
+  validateUrl,
 }; 

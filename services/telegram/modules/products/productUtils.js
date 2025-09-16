@@ -80,7 +80,7 @@ const showProductsPage = async (ctx, categoryId, page = 0, useEdit = true) => {
   }
 };
 
-// Функция показа деталей товара
+// Функция показа деталей товара (с фолбэком edit -> reply)
 const showProductDetails = async (ctx, productId) => {
   try {
     const product = await productController.getProductById(productId);
@@ -92,13 +92,28 @@ const showProductDetails = async (ctx, productId) => {
     const message = getProductDetailsMessage(product);
     const keyboard = getProductViewKeyboard(productId, product.categoryId, product.name, product.productId);
 
-    await ctx.editMessageText(message, {
-      parse_mode: 'HTML',
-      ...keyboard,
-    });
+    try {
+      await ctx.editMessageText(message, {
+        parse_mode: 'HTML',
+        ...keyboard,
+      });
+    } catch (editError) {
+      if (editError.description && editError.description.includes("message can't be edited")) {
+        await ctx.reply(message, {
+          parse_mode: 'HTML',
+          ...keyboard,
+        });
+      } else {
+        throw editError;
+      }
+    }
   } catch (error) {
     console.error('Ошибка при просмотре товара:', error);
-    await ctx.editMessageText('Произошла ошибка при получении информации о товаре.');
+    try {
+      await ctx.editMessageText('Произошла ошибка при получении информации о товаре.');
+    } catch (e) {
+      await ctx.reply('Произошла ошибка при получении информации о товаре.');
+    }
   }
 };
 
@@ -147,6 +162,10 @@ const formatProductData = (rawData) => {
 
   if (rawData.allImages && rawData.allImages !== 'null') {
     formattedData.allImages = rawData.allImages;
+  }
+
+  if (rawData.videoUrl && rawData.videoUrl !== 'null') {
+    formattedData.videoUrl = rawData.videoUrl;
   }
 
   return formattedData;

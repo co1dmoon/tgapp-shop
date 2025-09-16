@@ -21,6 +21,7 @@ export interface Product {
   favoriteRank?: number;
   categoryId: number;
   category?: Category;
+  videoUrl?: string | null;
 }
 
 export interface User {

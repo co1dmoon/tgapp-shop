@@ -66,27 +66,48 @@ const showCategoriesList = async (ctx, useEdit = true) => {
   }
 };
 
-// Функция для показа деталей категории
+// Функция для показа деталей категории (с фолбэком edit -> reply)
 const showCategoryDetails = async (ctx, categoryId) => {
   try {
     const category = await categoryController.getCategoryById(categoryId);
     if (!category) {
       const keyboard = getBackToCategoriesKeyboard();
-      return ctx.editMessageText('Категория не найдена.', {
-        ...keyboard,
-      });
+      try {
+        return await ctx.editMessageText('Категория не найдена.', {
+          ...keyboard,
+        });
+      } catch (e) {
+        return await ctx.reply('Категория не найдена.', {
+          ...keyboard,
+        });
+      }
     }
 
     const message = getCategoryDetailsMessage(category);
     const keyboard = getCategoryViewKeyboard(categoryId, category.name);
 
-    await ctx.editMessageText(message, {
-      parse_mode: 'HTML',
-      ...keyboard,
-    });
+    try {
+      await ctx.editMessageText(message, {
+        parse_mode: 'HTML',
+        ...keyboard,
+      });
+    } catch (editError) {
+      if (editError.description && editError.description.includes("message can't be edited")) {
+        await ctx.reply(message, {
+          parse_mode: 'HTML',
+          ...keyboard,
+        });
+      } else {
+        throw editError;
+      }
+    }
   } catch (error) {
     console.error('Ошибка при просмотре категории:', error);
-    await ctx.reply('Ошибка при просмотре категории.');
+    try {
+      await ctx.editMessageText('Ошибка при просмотре категории.');
+    } catch (e) {
+      await ctx.reply('Ошибка при просмотре категории.');
+    }
   }
 };
 

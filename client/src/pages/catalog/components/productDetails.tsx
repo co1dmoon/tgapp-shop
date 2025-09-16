@@ -172,14 +172,16 @@ export default function ProductDetails() {
               ></div>
             ))} */}
         </div>
+        {product.videoUrl && (
         <a
-          href="www.google.com"
+            href={product.videoUrl}
           target="_blank"
           className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto"
         >
           <span className="text-[12px]">Смотреть видеообзор ПК</span>
-          <FaArrowRightLong />
-        </a>
+            <FaArrowRightLong />
+          </a>
+        )}
       </div>
 
       <CartButton product={product} type="large">

@@ -1,5 +1,5 @@
 const { clearState } = require('../../core/middlewares');
-const { validateText, validatePrice, validateSpecs, delay } = require('../../core/utils');
+const { validateText, validatePrice, validateSpecs, validateUrl, delay } = require('../../core/utils');
 const { LIMITS } = require('../../core/config');
 const productController = require('../../../../controllers/productController');
 const { showProductsPage, showProductDetails, validateProductId, formatProductCreatedMessage } = require('./productUtils');
@@ -35,6 +35,11 @@ const handleProductFSM = async (ctx, userId, state, text, webAppUrl) => {
 
     if (state.startsWith('wait_product_specs_')) {
       await handleProductSpecs(ctx, userId, state, text);
+      return;
+    }
+
+    if (state.startsWith('wait_product_video_')) {
+      await handleProductVideo(ctx, userId, state, text);
       return;
     }
 
@@ -83,6 +88,12 @@ const handleProductFSM = async (ctx, userId, state, text, webAppUrl) => {
 
     if (state.startsWith('edit_rank_')) {
       await handleEditProductRank(ctx, userId, state, text);
+      return;
+    }
+
+    // Редактирование видео (videoUrl)
+    if (state.startsWith('edit_video_')) {
+      await handleEditProductVideo(ctx, userId, state, text);
       return;
     }
 
@@ -267,10 +278,29 @@ const handleProductSpecs = async (ctx, userId, state, text) => {
   return ctx.reply(getInputPrompts.productMainImage);
 };
 
-// Шаг 6: Обработка ранга избранного
+// Шаг 6: Обработка видео URL
+const handleProductVideo = async (ctx, userId, state, text) => {
+  const parts = state.replace('wait_product_video_', '').split('|||');
+  const [categoryId, productId, productName, priceStr, description, specs, image, fpsImage, allImages] = parts;
+
+  let videoUrl = null;
+  if (text !== '-') {
+    const validation = validateUrl(text);
+    if (!validation.isValid) {
+      return ctx.reply(`❌ ${validation.error}\n\n💡 Для отмены введите /cancel`);
+    }
+    videoUrl = validation.url;
+  }
+
+  const { setState } = require('../../core/middlewares');
+  setState(userId, `wait_product_rank_${categoryId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImages}|||${videoUrl || 'null'}`);
+  return ctx.reply(getInputPrompts.productRank);
+};
+
+// Шаг 7: Обработка ранга избранного
 const handleProductRank = async (ctx, userId, state, text) => {
   const parts = state.replace('wait_product_rank_', '').split('|||');
-  const [categoryId, productId, productName, priceStr, description, specs, image, fpsImage, allImages] = parts;
+  const [categoryId, productId, productName, priceStr, description, specs, image, fpsImage, allImages, videoUrl] = parts;
   
   let favoriteRank = 0;
   if (text !== '-') {
@@ -291,6 +321,7 @@ const handleProductRank = async (ctx, userId, state, text) => {
     image: image === 'null' ? null : image,
     fpsImage: fpsImage === 'null' ? null : fpsImage,
     allImages: allImages === 'null' ? null : allImages,
+    videoUrl: videoUrl === 'null' ? null : videoUrl,
     favoriteRank
   });
 };
@@ -470,6 +501,7 @@ const createProduct = async (ctx, userId, productData) => {
       image: uploadedImages.mainImageUrl,
       fpsImage: uploadedImages.fpsImageUrl,
       allImages: uploadedImages.additionalImagesUrls,
+      videoUrl: productData.videoUrl || null,
       favoriteRank: productData.favoriteRank,
       categoryId: productData.categoryId,
     };
@@ -562,11 +594,9 @@ const handleProductAdditionalImagesComplete = async (ctx, userId, state, text) =
     }
     
     const { setState } = require('../../core/middlewares');
-    setState(userId, `wait_product_rank_${categoryId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImagesJson || 'null'}`);
-    
-    return ctx.reply(
-      `⭐ Введите ранг товара для "лучших предложений" (0-100, где 0 = обычный товар, 100 = топ предложение):\n\nИли "-" для установки 0:\n\n💡 Для отмены введите /cancel`
-    );
+    setState(userId, `wait_product_video_${categoryId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImagesJson || 'null'}`);
+
+    return ctx.reply(getInputPrompts.productVideoUrl);
   }
   
   // Если не команда завершения, просим отправить изображение или завершить
@@ -678,6 +708,32 @@ const handleProductImageFSM = async (ctx, userId, state, text) => {
   return ctx.reply('❌ Пожалуйста, отправьте изображение (📸 фото или 📎 файл) или "-" для пропуска/удаления.\n\n💡 Для отмены введите /cancel');
 };
 
+// Редактирование видео URL
+const handleEditProductVideo = async (ctx, userId, state, text) => {
+  const productId = parseInt(state.replace('edit_video_', ''));
+  const trimmed = (text || '').trim();
+  let videoUrl = null;
+  if (trimmed !== '-') {
+    const validation = validateUrl(trimmed);
+    if (!validation.isValid) {
+      return ctx.reply(`❌ ${validation.error}\n\n💡 Для отмены введите /cancel`);
+    }
+    videoUrl = validation.url;
+  }
+  try {
+    await productController.updateProduct(productId, { videoUrl });
+    clearState(userId);
+    await ctx.reply(videoUrl ? '✅ Ссылка на видео обновлена' : '✅ Ссылка на видео удалена');
+    await delay(500);
+    await safeShowProductDetails(ctx, productId);
+  } catch (error) {
+    console.error('Ошибка при обновлении videoUrl товара:', error);
+    clearState(userId);
+    await ctx.reply('❌ Произошла ошибка при обновлении ссылки на видео.');
+  }
+};
+
 module.exports = {
   handleProductFSM,
 }; 
+// Добавлены обработчики шага видео и редактирования videoUrl

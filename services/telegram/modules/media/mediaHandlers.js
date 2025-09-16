@@ -450,7 +450,7 @@ const handleImageSkipCommand = async (ctx, userId, state, text) => {
        const stateParts = state.replace('wait_product_all_images_', '').split('|||');
        const [categoryId, productId, productName, priceStr, description, specs, image, fpsImage] = stateParts.slice(0, 8);
        
-       // Если нет накопленных изображений, переходим к рангу
+       // Если нет накопленных изображений, переходим к видео URL
        let allImagesJson = null;
        const existingImages = stateParts.slice(8) || [];
        if (existingImages.length > 0) {
@@ -458,11 +458,10 @@ const handleImageSkipCommand = async (ctx, userId, state, text) => {
        }
        
        const { setState } = require('../../core/middlewares');
-       setState(userId, `wait_product_rank_${categoryId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImagesJson || 'null'}`);
+       setState(userId, `wait_product_video_${categoryId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImagesJson || 'null'}`);
        
-       await ctx.reply(
-         `⭐ Введите ранг товара для "лучших предложений" (0-100, где 0 = обычный товар, 100 = топ предложение):\n\nИли "-" для установки 0:\n\n💡 Для отмены введите /cancel`
-       );
+       const { getInputPrompts } = require('../../ui/messages');
+       await ctx.reply(getInputPrompts.productVideoUrl);
        return true;
      }
      

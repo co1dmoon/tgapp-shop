@@ -41,6 +41,7 @@ model Product {
   image        String?
   fpsImage     String?
   allImages    String?
+  videoUrl     String?
   favoriteRank Int?     @default(0)
   categoryId   Int
   createdAt    DateTime @default(now())

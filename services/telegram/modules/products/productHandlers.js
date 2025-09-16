@@ -284,7 +284,15 @@ const setupProductFieldEditHandlers = (bot) => {
     await ctx.answerCbQuery();
     const productId = parseInt(ctx.match[1]);
     setState(ctx.from.id, `edit_all_images_${productId}`);
-    await ctx.reply(getInputPrompts.productAdditionalImages);
+    await ctx.reply(getInputPrompts.editProductAllImages);
+  });
+
+  // Редактирование видео (videoUrl)
+  bot.action(/^edit_product_video_(\d+)$/, checkAdmin, async (ctx) => {
+    await ctx.answerCbQuery();
+    const productId = parseInt(ctx.match[1]);
+    setState(ctx.from.id, `edit_video_${productId}`);
+    await ctx.reply(getInputPrompts.editProductVideoUrl);
   });
 
   // Редактирование ранга избранного
