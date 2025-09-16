@@ -33,7 +33,7 @@ export default function ProductCard({ product }: { product: Product; }) {
     <div
       onClick={() => setSelectedProductId(product.id)}
       key={product.id}
-      className="rounded-xl text-[12px] bg-[#161616] text-white font-display text-nowrap relative h-[250px] flex flex-col"
+      className="rounded-xl text-[12px] bg-[#161616] text-white font-display text-nowrap relative h-full flex flex-col"
     >
       {isPC(product.category?.name ?? '') && <div className="absolute top-2 left-2">
         <div className="rounded-xl bg-[#222222] px-2 py-1 font-primary text-[10px] text-white overflow-hidden text-ellipsis">
@@ -43,7 +43,7 @@ export default function ProductCard({ product }: { product: Product; }) {
       <img
         src={product.image ?? `/images/device-categories/мониторы.png`}
         alt={product.name}
-        className="w-full h-[140px] object-cover mx-auto rounded-xl bg-[#2F2F2F] py-4"
+        className="w-full h-auto max-h-[170px] object-cover mx-auto rounded-xl bg-[#2F2F2F]"
       />
       <div className="flex flex-col px-1 overflow-hidden mt-3 flex-1 pb-3">
         {/* Верхняя часть - название или спецификации */}
