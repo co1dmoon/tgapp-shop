@@ -51,6 +51,10 @@ COPY . .
 COPY prisma ./prisma
 RUN npx prisma generate
 
+# Копируем entrypoint и делаем исполняемым (выполняем от root)
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Изменяем владельца файлов
 RUN chown -R nextjs:nodejs /app
 
@@ -67,10 +71,5 @@ ENV PORT=3001
 # Проверка здоровья
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
-
-# Команда запуска
-# Копируем entrypoint и делаем исполняемым
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
