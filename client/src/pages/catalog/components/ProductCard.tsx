@@ -43,7 +43,7 @@ export default function ProductCard({ product }: { product: Product; }) {
       <img
         src={product.image ?? `/images/device-categories/мониторы.png`}
         alt={product.name}
-        className="w-full h-[140px] object-cover mx-auto rounded-xl bg-[#2F2F2F] border-t-2 border-white"
+        className="w-full h-[140px] object-cover mx-auto rounded-xl bg-[#2F2F2F] py-4"
       />
       <div className="flex flex-col px-1 overflow-hidden mt-3 flex-1 pb-3">
         {/* Верхняя часть - название или спецификации */}

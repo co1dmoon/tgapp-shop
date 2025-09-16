@@ -14,11 +14,11 @@ export default function PcCategoryCard({ category }: Props) {
   const { data: price, isLoading } = useCategoryPrice(category.id);
   return (
     <div key={category.id} className="flex gap-4 bg-[#161616] rounded-xl pr-2">
-      <div className="bg-[#222222] rounded-xl h-[180px] w-[180px] flex justify-center items-center">
+      <div className="bg-[#222222] rounded-xl h-[180px] w-auto overflow-hidden">
         <img
           src={category.image ?? `/images/categories/pc.png`}
           alt={category.name}
-          className="h-[145px] w-auto object-contain"
+          className="w-full h-full object-cover object-center"
         />
       </div>
       <div className="flex flex-col gap-3">

@@ -164,13 +164,13 @@ export default function ProductDetails() {
               className="w-full h-auto object-contain rounded-xl bg-[#2F2F2F]"
             />
           ))}
-          {images.length === 0 &&
+          {/* {images.length === 0 &&
             ["", "", ""].map((_, i) => (
               <div
                 className="w-full aspect-square bg-[#2f2f2f] flex items-center justify-center rounded-xl"
                 key={i}
               ></div>
-            ))}
+            ))} */}
         </div>
         <a
           href="www.google.com"
