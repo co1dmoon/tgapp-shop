@@ -15,7 +15,7 @@ export function formatPrice(price: number, currencySymbol = '₽'): string {
  * @returns Отформатированная строка с ценой, включающей налог
  */
 export function formatPriceWithTax(price: number, currencySymbol = '₽'): string {
-  const priceWithTax = price * 1.1;
+  const priceWithTax = Math.round(price * 1.1);
   return formatPrice(priceWithTax, currencySymbol);
 }
 
