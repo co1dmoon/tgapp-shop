@@ -37,9 +37,18 @@ export function useCart() {
   // Синхронизация с Telegram при изменении состояния
   useEffect(() => {
     if (webAppReady) {
+      // Отправляем только минимально необходимую информацию, чтобы не превышать лимит Telegram
+      const minimalItems = cartState.items.map(i => ({
+        id: i.productId,
+        q: i.quantity,
+        sid: i.productStringId,
+        p: i.price,
+      }));
       sendData({
         type: 'cart_update',
-        cart: cartState
+        items: minimalItems,
+        total: cartState.total,
+        count: minimalItems.length,
       });
     }
   }, [cartState, webAppReady, sendData]);

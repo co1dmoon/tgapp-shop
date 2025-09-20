@@ -49,7 +49,7 @@ export default function Header() {
             </div>
             {button.id === "cart" && cart.items.length > 0 && (
               <div className="absolute top-2 right-2 bg-[#ffffff] text-black font-display text-[8px] px-1 rounded-full">
-                {cart.items.length}
+                {cart.items.reduce((acc, item) => acc + item.quantity, 0)}
               </div>
             )}
           </button>
