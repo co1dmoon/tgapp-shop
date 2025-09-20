@@ -14,7 +14,7 @@ export default function PcCategoryCard({ category }: Props) {
   const { data: price, isLoading } = useCategoryPrice(category.id);
   return (
     <div key={category.id} className="flex gap-4 bg-[#161616] rounded-xl pr-2">
-      <div className="bg-[#222222] rounded-xl h-[180px] w-auto overflow-hidden">
+      <div className="bg-[#222222] rounded-xl h-[180px] w-auto max-w-[150px] overflow-hidden">
         <img
           src={category.image ?? `/images/categories/pc.png`}
           alt={category.name}

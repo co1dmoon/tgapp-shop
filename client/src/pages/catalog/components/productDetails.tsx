@@ -43,6 +43,8 @@ export default function ProductDetails() {
     },
   ];
 
+  console.log(product?.fpsVideoUrl);
+
   const handleGoBack = () => {
     setSelectedProductId(null);
   };
@@ -65,7 +67,7 @@ export default function ProductDetails() {
         className="w-full aspect-square object-contain mx-auto rounded-xl bg-[#2F2F2F]"
       />
       <div className="flex flex-col gap-4">
-        {!isPc && <h1>{product.name}</h1>}
+        <h1>{product.name}</h1>
         {isPc &&
           cpuAndGpu.map((spec, index) => (
             <div
@@ -144,14 +146,17 @@ export default function ProductDetails() {
             alt={"fps"}
             className="w-full"
           />
-          <a
-            href="www.google.com"
-            target="_blank"
-            className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto"
-          >
-            <span className="text-[12px]">Смотреть видеообзор тестов</span>
-            <FaArrowRightLong />
-          </a>
+          {product.fpsVideoUrl && (
+            <a
+              href={product.fpsVideoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto"
+            >
+              <span className="text-[12px]">Смотреть видеообзор тестов</span>
+              <FaArrowRightLong />
+            </a>
+          )}
         </div>
       )}
       <div className="flex flex-col gap-4">

@@ -458,10 +458,10 @@ const handleImageSkipCommand = async (ctx, userId, state, text) => {
        }
        
        const { setState } = require('../../core/middlewares');
-       setState(userId, `wait_product_video_${categoryId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImagesJson || 'null'}`);
-       
-       const { getInputPrompts } = require('../../ui/messages');
-       await ctx.reply(getInputPrompts.productVideoUrl);
+      setState(userId, `wait_product_video_${categoryId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImagesJson || 'null'}`);
+
+      const { getInputPrompts } = require('../../ui/messages');
+      await ctx.reply(getInputPrompts.productVideoUrl);
        return true;
      }
      

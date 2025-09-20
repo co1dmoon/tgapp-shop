@@ -97,9 +97,21 @@ const handleProductFSM = async (ctx, userId, state, text, webAppUrl) => {
       return;
     }
 
+    // Редактирование FPS видео (fpsVideoUrl)
+    if (state.startsWith('edit_fps_video_')) {
+      await handleEditProductFpsVideo(ctx, userId, state, text);
+      return;
+    }
+
     // FSM для обработки изображений товара
     if (state.includes('image')) {
       await handleProductImageFSM(ctx, userId, state, text);
+      return;
+    }
+
+    // Шаг FPS видео
+    if (state.startsWith('wait_product_fps_video_')) {
+      await handleProductFpsVideo(ctx, userId, state, text);
       return;
     }
 
@@ -293,14 +305,33 @@ const handleProductVideo = async (ctx, userId, state, text) => {
   }
 
   const { setState } = require('../../core/middlewares');
-  setState(userId, `wait_product_rank_${categoryId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImages}|||${videoUrl || 'null'}`);
+  setState(userId, `wait_product_fps_video_${categoryId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImages}|||${videoUrl || 'null'}`);
+  return ctx.reply(getInputPrompts.productFpsVideoUrl);
+};
+
+// Шаг 7: Обработка FPS видео URL
+const handleProductFpsVideo = async (ctx, userId, state, text) => {
+  const parts = state.replace('wait_product_fps_video_', '').split('|||');
+  const [categoryId, productId, productName, priceStr, description, specs, image, fpsImage, allImages, videoUrl] = parts;
+
+  let fpsVideoUrl = null;
+  if (text !== '-') {
+    const validation = validateUrl(text);
+    if (!validation.isValid) {
+      return ctx.reply(`❌ ${validation.error}\n\n💡 Для отмены введите /cancel`);
+    }
+    fpsVideoUrl = validation.url;
+  }
+
+  const { setState } = require('../../core/middlewares');
+  setState(userId, `wait_product_rank_${categoryId}|||${productId}|||${productName}|||${priceStr}|||${description}|||${specs}|||${image}|||${fpsImage}|||${allImages}|||${videoUrl || 'null'}|||${fpsVideoUrl || 'null'}`);
   return ctx.reply(getInputPrompts.productRank);
 };
 
-// Шаг 7: Обработка ранга избранного
+// Шаг 8: Обработка ранга избранного
 const handleProductRank = async (ctx, userId, state, text) => {
   const parts = state.replace('wait_product_rank_', '').split('|||');
-  const [categoryId, productId, productName, priceStr, description, specs, image, fpsImage, allImages, videoUrl] = parts;
+  const [categoryId, productId, productName, priceStr, description, specs, image, fpsImage, allImages, videoUrl, fpsVideoUrl] = parts;
   
   let favoriteRank = 0;
   if (text !== '-') {
@@ -322,6 +353,7 @@ const handleProductRank = async (ctx, userId, state, text) => {
     fpsImage: fpsImage === 'null' ? null : fpsImage,
     allImages: allImages === 'null' ? null : allImages,
     videoUrl: videoUrl === 'null' ? null : videoUrl,
+    fpsVideoUrl: fpsVideoUrl === 'null' ? null : fpsVideoUrl,
     favoriteRank
   });
 };
@@ -730,6 +762,31 @@ const handleEditProductVideo = async (ctx, userId, state, text) => {
     console.error('Ошибка при обновлении videoUrl товара:', error);
     clearState(userId);
     await ctx.reply('❌ Произошла ошибка при обновлении ссылки на видео.');
+  }
+};
+
+// Редактирование FPS видео URL
+const handleEditProductFpsVideo = async (ctx, userId, state, text) => {
+  const productId = parseInt(state.replace('edit_fps_video_', ''));
+  const trimmed = (text || '').trim();
+  let fpsVideoUrl = null;
+  if (trimmed !== '-') {
+    const validation = validateUrl(trimmed);
+    if (!validation.isValid) {
+      return ctx.reply(`❌ ${validation.error}\n\n💡 Для отмены введите /cancel`);
+    }
+    fpsVideoUrl = validation.url;
+  }
+  try {
+    await productController.updateProduct(productId, { fpsVideoUrl });
+    clearState(userId);
+    await ctx.reply(fpsVideoUrl ? '✅ Ссылка на «Видеообзор тестов FPS» обновлена' : '✅ Ссылка на «Видеообзор тестов FPS» удалена');
+    await delay(500);
+    await safeShowProductDetails(ctx, productId);
+  } catch (error) {
+    console.error('Ошибка при обновлении fpsVideoUrl товара:', error);
+    clearState(userId);
+    await ctx.reply('❌ Произошла ошибка при обновлении ссылки на FPS-видео.');
   }
 };
 

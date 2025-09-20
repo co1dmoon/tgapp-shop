@@ -5,26 +5,12 @@ import type { CartItem } from "../../../types/cart";
 import { formatPrice } from "../../../utils/formatters";
 
 export default function ProductCard({ cartItem }: { cartItem: CartItem }) {
-  const allSpecs: Record<string, string> = JSON.parse(cartItem.specs ?? "{}");
+
 
   const { setSelectedProductId, navigateToSection } = useAppContext();
 
   const { removeFromCart, updateQuantity } = useCartContext();
-  const specs = [allSpecs["Видеокарта"], allSpecs["Процессор"]];
 
-  const pcCategories = ["full hd", "2k", "4k"];
-
-  const isDevice = pcCategories.includes(
-    cartItem.category?.name.toLowerCase() ?? ""
-  );
-
-  const specList = specs.map((spec, index) => (
-    <div key={index} className="flex items-center">
-      <span className="text-[10px] px-2 py-1 font-primary rounded-xl bg-[#222222] font-thin">
-        {spec}
-      </span>
-    </div>
-  ));
 
   return (
     <div
@@ -41,13 +27,12 @@ export default function ProductCard({ cartItem }: { cartItem: CartItem }) {
       />
       <div className="flex flex-col gap-2 w-full h-full justify-between">
         <div className="flex gap-2 w-full text-nowrap">
-          {isDevice ? (
-            specList
-          ) : (
-            <p className="text-[12px] font-primary font-thin">
+
+
+          <p className="text-[12px] font-primary font-thin w-full break-words overflow-hidden text-wrap">
               {cartItem.name}
             </p>
-          )}
+
           <button
             className="text-[12px] font-primary font-thin ml-auto"
             onClick={(e) => {

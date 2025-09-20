@@ -295,6 +295,14 @@ const setupProductFieldEditHandlers = (bot) => {
     await ctx.reply(getInputPrompts.editProductVideoUrl);
   });
 
+  // Редактирование FPS видео (fpsVideoUrl)
+  bot.action(/^edit_product_fps_video_(\d+)$/, checkAdmin, async (ctx) => {
+    await ctx.answerCbQuery();
+    const productId = parseInt(ctx.match[1]);
+    setState(ctx.from.id, `edit_fps_video_${productId}`);
+    await ctx.reply(getInputPrompts.editProductFpsVideoUrl);
+  });
+
   // Редактирование ранга избранного
   bot.action(/^edit_product_rank_(\d+)$/, checkAdmin, async (ctx) => {
     await ctx.answerCbQuery();

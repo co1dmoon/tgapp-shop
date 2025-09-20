@@ -22,7 +22,7 @@ export default function DeviceNavigation() {
   return (
     <div
       className={clsx("grid grid-cols-2 p-4 gap-2", {
-        "grid-cols-4": selectedDeviceCategory,
+        "grid-cols-3": selectedDeviceCategory,
       })}
     >
       {deviceCategories?.map((category) => (

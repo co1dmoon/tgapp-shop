@@ -22,6 +22,7 @@ export interface Product {
   categoryId: number;
   category?: Category;
   videoUrl?: string | null;
+  fpsVideoUrl?: string | null;
 }
 
 export interface User {

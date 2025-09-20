@@ -136,6 +136,7 @@ ${specsText}
 • Дополнительные: ${additionalImagesText}
 
 <b>🎬 Видео:</b> ${product.videoUrl ? `<a href="${product.videoUrl}">Ссылка</a>` : 'Нет'}
+<b>🎬 Видеообзор тестов FPS:</b> ${product.fpsVideoUrl ? `<a href="${product.fpsVideoUrl}">Ссылка</a>` : 'Нет'}
 
 ⭐ <b>Ранг избранного:</b> ${product.favoriteRank || 0}
 📅 <b>Создан:</b> ${formatDate(product.createdAt)}
@@ -232,6 +233,8 @@ DPI: 16000
   editProductAllImages: 'Отправьте новые дополнительные изображения:\n\n📸 Можете отправлять по одному или альбомом\n\nКогда закончите, напишите "готово"\nДля удаления всех доп. изображений напишите "удалить"\n\n💡 Для отмены введите /cancel',
   productVideoUrl: 'Отправьте ссылку на видео (http/https) или "-" для пропуска:\n\nПримеры: https://youtu.be/..., https://www.youtube.com/watch?v=...\n\n💡 Для отмены введите /cancel',
   editProductVideoUrl: 'Отправьте новую ссылку на видео (http/https) или "-" для удаления:\n\n💡 Для отмены введите /cancel',
+  productFpsVideoUrl: 'Отправьте ссылку на "Видеообзор тестов FPS" (http/https) или "-" для пропуска:\n\nПримеры: https://youtu.be/..., https://www.youtube.com/watch?v=...\n\n💡 Для отмены введите /cancel',
+  editProductFpsVideoUrl: 'Отправьте новую ссылку на "Видеообзор тестов FPS" (http/https) или "-" для удаления:\n\n💡 Для отмены введите /cancel',
   editProductRank: 'Введите новый ранг избранного (число от 0 до 100):\n\n0 - не избранное\n1-100 - уровень приоритета\n\n💡 Для отмены введите /cancel',
 };
 

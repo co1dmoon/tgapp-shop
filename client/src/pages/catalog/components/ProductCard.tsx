@@ -10,24 +10,24 @@ const isPC = (category: string) => pcCategories.includes(
 );
 
 export default function ProductCard({ product }: { product: Product; }) {
-  const { setSelectedProductId, selectedCategory } = useAppContext();
+  const { setSelectedProductId } = useAppContext();
 
-  const isSpecs = !selectedCategory || selectedCategory === "игровые пк";
+  // const isSpecs = !selectedCategory || selectedCategory === "игровые пк";
 
-  const allSpecs: Record<string, string> = JSON.parse(product.specs ?? "{}");
+  // const allSpecs: Record<string, string> = JSON.parse(product.specs ?? "{}");
 
-  const specs = [allSpecs["Видеокарта"], allSpecs["Процессор"]];
+  // const specs = [allSpecs["Видеокарта"], allSpecs["Процессор"]];
 
-  const specsList = specs?.map((spec, index) => {
-    return (
-      <div
-        key={index}
-        className="flex items-center justify-center rounded-xl bg-[#222222] px-2 py-1 font-primary text-[9px] text-white overflow-hidden text-ellipsis"
-      >
-        {spec}
-      </div>
-    );
-  });
+  // const specsList = specs?.map((spec, index) => {
+  //   return (
+  //     <div
+  //       key={index}
+  //       className="flex items-center justify-center rounded-xl bg-[#222222] px-2 py-1 font-primary text-[9px] text-white overflow-hidden text-ellipsis"
+  //     >
+  //       {spec}
+  //     </div>
+  //   );
+  // });
 
   return (
     <div
@@ -48,14 +48,14 @@ export default function ProductCard({ product }: { product: Product; }) {
       <div className="flex flex-col px-1 overflow-hidden mt-3 flex-1 pb-3">
         {/* Верхняя часть - название или спецификации */}
         <div className="flex-1 mb-2">
-          {!isSpecs && (
-            <h2 className="font-primary max-w-[90%] ml-1 text-[16px] text-left font-thin whitespace-nowrap overflow-hidden text-ellipsis w-full">
+          {/* {!isSpecs && ( */}
+          <h2 className="font-primary max-w-[90%] ml-1 text-[10px] font-thin w-full text-center break-words overflow-hidden text-wrap">
               {product.name}
             </h2>
-          )}
-          {isSpecs && (
+          {/* )} */}
+          {/* {isSpecs && (
             <div className="flex items-center gap-1 justify-around">{specsList}</div>
-          )}
+          )} */}
         </div>
 
         {/* Нижняя часть - цена и кнопка всегда внизу */}
