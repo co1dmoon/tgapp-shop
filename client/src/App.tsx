@@ -9,9 +9,8 @@ import { CartProvider } from "./store/CartContext";
 import type { AppSection } from "./types";
 
 const Info = () => (
-  <div className="p-4 text-white">
-    <h1 className="text-2xl font-bold mb-4">Информация</h1>
-    <p>О компании и услугах</p>
+  <div>
+    <img src="/images/info.png" alt="info" className='w-full h-full' />
   </div>
 );
 
