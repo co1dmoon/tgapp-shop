@@ -46,7 +46,7 @@ export default function DeviceNavigation() {
             <h2
               className={clsx(
                 "overflow-hidden",
-                selectedDeviceCategory ? "text-[6px] mx-auto" : ""
+                selectedDeviceCategory ? "text-[9px] mx-auto" : ""
               )}
             >
               {category.name}
