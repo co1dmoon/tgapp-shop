@@ -9,38 +9,45 @@ export function useTelegram() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [webAppReady, setWebAppReady] = useState(false);
 
-  useEffect(() => {
-    // Инициализация WebApp при монтировании компонента
-    const initWebApp = () => {
-      try {
-        // Убеждаемся, что WebApp API существует
-        if (!WebApp) {
-          throw new Error("Telegram WebApp is not available");
-        }
+  // Ожидаем появления window.Telegram.WebApp (актуально для Android)
+  const waitForTG = async (timeout = 3000): Promise<boolean> => {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((window as any)?.Telegram?.WebApp) return true;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return false;
+  };
 
+  useEffect(() => {
+    let cancelled = false;
+    // Лениво инициализируем WebApp после появления API
+    (async () => {
+      try {
+        const ok = await waitForTG(3000);
+        if (!ok || cancelled) return;
+
+        WebApp.ready();
+        WebApp.expand();
+        WebApp.setHeaderColor("#161616");
+        WebApp.setBackgroundColor("#161616");
         WebApp.disableClosingConfirmation();
-        WebApp.setHeaderColor("#161616"); // Темный цвет заголовка
-        WebApp.setBackgroundColor("#161616"); // Темный цвет фона
-        WebApp.expand(); // Расширяем приложение на весь экран
-        WebApp.ready(); // Говорим Telegram что приложение готово
         setWebAppReady(true);
 
-        // Получаем информацию о пользователе
         if (WebApp.initDataUnsafe?.user) {
-          const telegramUser = WebApp.initDataUnsafe.user;
-          setUser(telegramUser);
+          setUser(WebApp.initDataUnsafe.user);
         }
-
-        setIsInitialized(true);
       } catch (error) {
         console.error('Error initializing Telegram WebApp:', error);
-
-        // Фейковый пользователь для локальной разработки
-
+      } finally {
+        if (!cancelled) setIsInitialized(true);
       }
-    };
+    })();
 
-    initWebApp();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Методы для работы с WebApp
