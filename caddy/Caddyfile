@@ -1,0 +1,29 @@
+{
+	servers {
+		max_header_size 20MB
+	}
+}
+
+{$SERVER_DOMAIN} {
+	encode gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+
+	handle /health {
+		rewrite * /api/health
+		reverse_proxy app:3001
+	}
+
+	handle {
+		reverse_proxy app:3001 {
+			header_up X-Forwarded-Proto {http.request.scheme}
+			header_up X-Forwarded-Host {http.request.host}
+			header_up X-Real-IP {http.request.remote.host}
+		}
+	}
+}

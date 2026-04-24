@@ -67,8 +67,8 @@ nano .env.production.local
 **Обязательные переменные для изменения:**
 
 ```env
-# IP адрес вашего сервера (замените на реальный)
-SERVER_DOMAIN=1.2.3.4
+# Домен (FQDN), A-запись на сервер — для Let's Encrypt в Caddy
+SERVER_DOMAIN=example.ru
 
 # Токен Telegram бота (получить у @BotFather)
 BOT_TOKEN=123456789:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -84,6 +84,8 @@ POSTGRES_PASSWORD=your_very_secure_password_123
 VK_S3_ACCESS_KEY_ID=your_access_key
 VK_S3_SECRET_ACCESS_KEY=your_secret_key
 VK_S3_BUCKET_NAME=your_bucket_name
+VK_S3_ENDPOINT=https://hb.bizmrg.com
+VK_S3_REGION=ru-msk
 ```
 
 ### 2. Получение Telegram Bot токена
@@ -119,13 +121,9 @@ chmod +x scripts/*.sh
 mv .env.production.local .env.production
 ```
 
-### 2. Генерация SSL сертификатов
-```bash
-# Для самоподписанных сертификатов (без домена)
-./scripts/setup-ssl.sh
-```
+### 2. HTTPS (Caddy)
 
-**Важно**: При выполнении скрипта укажите IP адрес вашего сервера в поле "IP адрес или домен сервера"
+Сервис **Caddy** в `docker-compose.prod.yml` сам получает сертификат **Let's Encrypt**, если `SERVER_DOMAIN` — нормальный домен, DNS указывает на сервер, открыты порты **80** и **443**.
 
 ### 3. Запуск развертывания
 ```bash
@@ -148,8 +146,8 @@ docker compose -f docker-compose.prod.yml ps
 # Логи приложения
 docker compose -f docker-compose.prod.yml logs -f app
 
-# Проверка HTTPS
-curl -k https://your-server-ip/health
+# Проверка HTTPS (после выпуска сертификата)
+curl -fsS https://your-domain.ru/health
 ```
 
 ## 🔧 Настройка Telegram бота
@@ -159,11 +157,11 @@ curl -k https://your-server-ip/health
 ### 1. Настройка меню
 1. Откройте [@BotFather](https://t.me/BotFather)
 2. Выберите `/mybots` → Ваш бот → `Bot Settings` → `Menu Button`
-3. Введите URL: `https://your-server-ip`
+3. Введите URL: `https://your-domain.ru`
 
 ### 2. Настройка домена (опционально)
 1. В [@BotFather](https://t.me/BotFather): `Bot Settings` → `Domain`
-2. Добавьте домен: `your-server-ip`
+2. Добавьте домен без `https://`: `your-domain.ru`
 
 ### 3. Первый запуск
 1. Найдите своего бота в Telegram
@@ -204,8 +202,8 @@ docker compose -f docker-compose.prod.yml logs -f
 # Только бот
 docker compose -f docker-compose.prod.yml logs -f app
 
-# Только nginx
-docker compose -f docker-compose.prod.yml logs -f nginx
+# Только Caddy (HTTPS / Let's Encrypt)
+docker compose -f docker-compose.prod.yml logs -f caddy
 
 # Только база данных
 docker compose -f docker-compose.prod.yml logs -f db
@@ -279,12 +277,13 @@ docker compose -f docker-compose.prod.yml ps db
 docker compose -f docker-compose.prod.yml restart db
 ```
 
-**3. SSL сертификат не работает**
+**3. HTTPS / Let's Encrypt (Caddy)**
 ```bash
-# Пересоздайте сертификаты
-rm -rf nginx/ssl/
-./scripts/setup-ssl.sh
-docker compose -f docker-compose.prod.yml restart nginx
+docker compose -f docker-compose.prod.yml logs -f caddy
+# DNS A-запись на сервер, порты 80/443 снаружи. Сброс кэша сертификатов (осторожно):
+# docker compose -f docker-compose.prod.yml down
+# docker volume rm ИМЯ_ПРОЕКТА_caddy_data
+# ./scripts/deploy.sh
 ```
 
 **4. Telegram бот не отвечает**
@@ -313,15 +312,6 @@ docker compose -f docker-compose.prod.yml restart app
 ```
 
 ## 🌟 Дополнительные возможности
-
-### Настройка Let's Encrypt (когда появится домен)
-
-1. Обновите `SERVER_DOMAIN` на ваш домен
-2. Раскомментируйте сервис `certbot` в `docker-compose.prod.yml`
-3. Запустите получение сертификата:
-```bash
-docker-compose -f docker-compose.prod.yml run --rm certbot certonly --webroot --webroot-path /var/www/certbot --email your-email@domain.com --agree-tos --no-eff-email -d your-domain.com
-```
 
 ### Масштабирование
 

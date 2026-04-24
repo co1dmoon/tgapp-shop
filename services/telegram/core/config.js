@@ -1,7 +1,8 @@
 require('dotenv').config();
 
-// Токен бота
-const BOT_TOKEN = process.env.BOT_TOKEN;
+const BOT_TOKEN = (process.env.BOT_TOKEN || '')
+  .trim()
+  .replace(/\r$/, '');
 if (!BOT_TOKEN) {
   console.error('❌ Ошибка: Переменная окружения BOT_TOKEN не установлена!');
   process.exit(1);
