@@ -64,12 +64,18 @@ echo "🔍 Проверка статуса сервисов..."
 docker compose -f docker-compose.prod.yml ps
 
 echo "🔧 Проверка работоспособности..."
-sleep 10
-
-if docker compose -f docker-compose.prod.yml exec -T app node -e "require('http').get('http://127.0.0.1:3001/api/health',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))" 2>/dev/null; then
+app_health_ok=0
+for i in $(seq 1 18); do
+    if docker compose -f docker-compose.prod.yml exec -T app node -e "require('http').get('http://127.0.0.1:3001/api/health',(r)=>{r.resume();process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))" 2>/dev/null; then
+        app_health_ok=1
+        break
+    fi
+    sleep 5
+done
+if [ "$app_health_ok" -eq 1 ]; then
     echo "✅ Приложение отвечает внутри сети Docker"
 else
-    echo "⚠️ Приложение не ответило на /api/health, смотрите логи app"
+    echo "⚠️ Приложение не ответило на /api/health за ~90 с, смотрите: docker compose -f docker-compose.prod.yml logs --tail=80 app"
 fi
 
 if curl -fsS --max-time 45 "https://${SERVER_DOMAIN}/health" >/dev/null 2>&1; then

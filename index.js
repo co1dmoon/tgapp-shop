@@ -68,15 +68,17 @@ const startServer = async () => {
     // Инициализация базы данных
     await initializeDatabase();
     
-    // Запуск Express сервера
-    app.listen(PORT, () => {
-      console.log(`Сервер запущен на порту ${PORT}`);
-      console.log(
-        `Откройте http://localhost:${PORT} в браузере для просмотра сайта`
-      );
+    await new Promise((resolve, reject) => {
+      const server = app.listen(PORT, () => {
+        console.log(`Сервер запущен на порту ${PORT}`);
+        console.log(
+          `Откройте http://localhost:${PORT} в браузере для просмотра сайта`
+        );
+        resolve();
+      });
+      server.on("error", reject);
     });
 
-    // Настройка и запуск ngrok
     if (process.env.NGROK_TOKEN && process.env.NODE_ENV !== "production") {
       await ngrok.authtoken(process.env.NGROK_TOKEN);
       const webAppUrl = await ngrok.connect(WEBAPP_DEV_URL);
