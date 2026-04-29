@@ -65,7 +65,7 @@ export default function DeviceNavigation() {
                 .toLowerCase()
                 .replace(/ /g, "-")}.png`}
               alt={category.name}
-              className="h-[100px] w-[90%] object-contain mx-auto my-2 rounded-lg"
+              className="aspect-square w-full object-contain mt-2 rounded-lg"
             />
           )}
         </button>
