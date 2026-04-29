@@ -87,7 +87,8 @@ export function useCart() {
         specs: product.specs,
         quantity: 1,
         categoryId: product.categoryId,
-        category: product.category
+        category: product.category,
+        tildaUid: product.tildaUid ?? undefined,
       };
 
       const updatedItems = [...prevState.items, newItem];

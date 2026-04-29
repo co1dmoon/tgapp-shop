@@ -44,6 +44,7 @@ model Product {
   videoUrl     String?
   fpsVideoUrl  String?
   favoriteRank Int?     @default(0)
+  tildaUid     String?  // UID товара в Tilda для открытия корзины на b-zone.store
   categoryId   Int
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

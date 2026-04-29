@@ -1,0 +1,27 @@
+{
+  "pcCovers": {
+    "Full HD": {
+      "mainProductName": "PRIME 3",
+      "url": "https://tg-shop.hb.bizmrg.com/categories/full_hd/cover/ab4da7fc-8934-43f9-a239-767d113960d8.webp",
+      "source": "tilda"
+    },
+    "2K": {
+      "mainProductName": "PHANTOM 3",
+      "url": "https://tg-shop.hb.bizmrg.com/categories/2k/cover/00b365b3-7d2b-40f5-8833-e13011dd855d.webp",
+      "source": "tilda"
+    },
+    "4K": {
+      "mainProductName": "PULSAR 2",
+      "url": "https://tg-shop.hb.bizmrg.com/categories/4k/cover/7cdde900-b71c-4212-b6b3-991643f6c23d.webp",
+      "source": "tilda"
+    }
+  },
+  "accessoryCovers": {
+    "клавиатуры": "https://tg-shop.hb.bizmrg.com/categories/клавиатуры/cover/5dfa5d27-571d-4a56-86e5-bbd90dc9ccea.webp",
+    "мыши": "https://tg-shop.hb.bizmrg.com/categories/мыши/cover/72bd7cc0-17c1-49af-a487-67483be717e6.webp",
+    "наушники": "https://tg-shop.hb.bizmrg.com/categories/наушники/cover/fc007520-22e5-4623-b80f-c510a93f776d.webp",
+    "микрофоны": "https://tg-shop.hb.bizmrg.com/categories/микрофоны/cover/d061b3a1-8038-4dc3-9ee9-ca29df99f199.webp",
+    "мониторы": "https://tg-shop.hb.bizmrg.com/categories/мониторы/cover/d5260491-80b9-4aea-bc7d-681882d712e2.webp",
+    "коврики": "https://tg-shop.hb.bizmrg.com/categories/коврики/cover/7a04c772-32f3-46d5-a9b1-95a50c9f485a.webp"
+  }
+}
