@@ -1,20 +1,33 @@
 import { MdArrowOutward } from "react-icons/md";
+import { useSettings } from "../../hooks";
+
+const FALLBACK = {
+  contact_tg: "https://t.me/BZoneStoreBot",
+  contact_vk: "https://vk.com/write-209962380",
+  contact_phone: "+79999999999",
+};
 
 export default function Contacts() {
+  const { data: settings } = useSettings();
+
+  const tg = settings?.contact_tg || FALLBACK.contact_tg;
+  const vk = settings?.contact_vk || FALLBACK.contact_vk;
+  const phone = settings?.contact_phone || FALLBACK.contact_phone;
+
   const contacts = [
     {
       name: "ВКонтакте",
-      link: "https://vk.com/write-209962380?ref=VisitorUid_fb44825f-4bda-4b11-b7d8-4269b8aa2915&ref_source=",
+      link: vk,
       src: "/images/contacts/vk.png",
     },
     {
       name: "Телеграм",
-      link: "https://t.me/BZoneStoreBot",
+      link: tg,
       src: "/images/contacts/telegram.png",
     },
     {
       name: "Телефон",
-      link: "tel:+79999999999",
+      link: `tel:${phone}`,
       src: "/images/contacts/phone.png",
       isPhone: true,
     },
@@ -25,14 +38,8 @@ export default function Contacts() {
     phoneLink: string
   ) => {
     e.preventDefault();
-
-    // Для iOS в Telegram WebApp
     const phoneNumber = phoneLink.replace("tel:", "");
-
-    // Попытка открыть через несколько способов для максимальной совместимости
     window.open(`tel:${phoneNumber}`);
-
-    // Запасной вариант - попытка использовать location
     setTimeout(() => {
       window.location.href = `tel:${phoneNumber}`;
     }, 100);

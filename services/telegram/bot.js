@@ -5,6 +5,9 @@ const { setupTextHandler } = require('./handlers/textHandler');
 const { setupCategoryHandlers } = require('./modules/categories/categoryHandlers');
 const { setupProductHandlers } = require('./modules/products/productHandlers');
 const { setupMediaHandlers } = require('./modules/media/mediaHandlers');
+const { setupSettingsHandlers } = require('./modules/settings/settingsHandlers');
+const { setupMailingHandlers } = require('./modules/mailing/mailingHandlers');
+const { setupAdminsHandlers } = require('./modules/admins/adminsHandlers');
 
 // Главная функция инициализации телеграм бота
 const initTelegramBot = async (webAppUrl) => {
@@ -39,6 +42,18 @@ const initTelegramBot = async (webAppUrl) => {
     // Обработчики медиа
     setupMediaHandlers(bot);
     console.log('[SETUP] ✅ Медиа обработчики подключены');
+
+    // Обработчики настроек сайта
+    setupSettingsHandlers(bot);
+    console.log('[SETUP] ✅ Настройки сайта подключены');
+
+    // Обработчики рассылки
+    setupMailingHandlers(bot);
+    console.log('[SETUP] ✅ Рассылка подключена');
+
+    // Обработчики управления админами
+    setupAdminsHandlers(bot);
+    console.log('[SETUP] ✅ Управление админами подключено');
     
     // Обработчик текстовых сообщений (должен быть последним)
     setupTextHandler(bot, webAppUrl);

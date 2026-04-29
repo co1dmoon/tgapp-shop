@@ -30,8 +30,25 @@ const getAdminPanelKeyboard = () => {
   return Markup.inlineKeyboard([
     [Markup.button.callback('🗂️ Категории', 'admin_categories')],
     [Markup.button.callback('🖥️ Товары', 'admin_products')],
+    [Markup.button.callback('⚙️ Настройки сайта', 'admin_settings')],
+    [Markup.button.callback('📣 Рассылка', 'admin_mailing')],
+    [Markup.button.callback('👥 Админы', 'admin_admins')],
     [Markup.button.callback('🔙 Назад в гл. меню', 'back_to_menu')],
   ]);
+};
+
+// Меню настроек сайта (контакты и т.п.)
+const getSettingsMenuKeyboard = (settings, meta) => {
+  const rows = [];
+  for (const key of Object.keys(meta)) {
+    const label = meta[key].label;
+    const current = settings[key] ?? '—';
+    // Показываем текущее значение в кнопке (обрезано), чтобы было видно что сейчас стоит.
+    const preview = String(current).length > 25 ? String(current).slice(0, 25) + '…' : String(current);
+    rows.push([Markup.button.callback(`${label}: ${preview}`, `edit_setting_${key}`)]);
+  }
+  rows.push([Markup.button.callback('🔙 Назад', 'admin_panel')]);
+  return Markup.inlineKeyboard(rows);
 };
 
 // Клавиатура управления категориями
@@ -296,6 +313,7 @@ module.exports = {
   getMainMenuKeyboard,
   getCatalogKeyboard,
   getAdminPanelKeyboard,
+  getSettingsMenuKeyboard,
   getCategoryManagementKeyboard,
   getCategoryViewKeyboard,
   getCategoryEditKeyboard,

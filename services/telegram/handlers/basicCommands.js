@@ -1,7 +1,8 @@
 const adminController = require('../../../controllers/adminController');
-const { 
-  getMainMenuKeyboard, 
-  getCatalogKeyboard 
+const botUserController = require('../../../controllers/botUserController');
+const {
+  getMainMenuKeyboard,
+  getCatalogKeyboard
 } = require('../ui/keyboards');
 const {
   getWelcomeMessage,
@@ -17,19 +18,44 @@ const setupBasicHandlers = (bot, webAppUrl) => {
     const userId = ctx.from.id.toString();
     const userName = ctx.from.first_name || 'Пользователь';
 
+    // Регистрируем пользователя для рассылок (idempotent upsert).
+    botUserController.trackUser(ctx.from).catch(() => {/* не блокируем /start ошибкой треккинга */});
+
     try {
       const keyboard = await getMainMenuKeyboard(userId, webAppUrl);
       const welcomeMessage = getWelcomeMessage(userName);
-      
+
       return ctx.reply(welcomeMessage, keyboard);
     } catch (error) {
       console.error('Ошибка при показе главного меню:', error);
-      
+
       // Fallback в случае ошибки
       const keyboard = await getMainMenuKeyboard(userId, webAppUrl);
       const welcomeMessage = getWelcomeMessage(userName);
-      
+
       return ctx.reply(welcomeMessage, keyboard);
+    }
+  });
+
+  // /subscribe — вернуться в рассылку, если ранее отписался
+  bot.command('subscribe', async (ctx) => {
+    try {
+      await botUserController.setSubscription(ctx.from.id, true);
+      return ctx.reply('✅ Готово, ты снова получаешь рассылки.');
+    } catch (e) {
+      console.error('[/subscribe] ошибка:', e);
+      return ctx.reply('Что-то пошло не так. Попробуй позже.');
+    }
+  });
+
+  // /unsubscribe — отписаться текстовой командой
+  bot.command('unsubscribe', async (ctx) => {
+    try {
+      await botUserController.setSubscription(ctx.from.id, false);
+      return ctx.reply('🚫 Отписан от рассылок. Чтобы вернуться — /subscribe.');
+    } catch (e) {
+      console.error('[/unsubscribe] ошибка:', e);
+      return ctx.reply('Что-то пошло не так. Попробуй позже.');
     }
   });
 

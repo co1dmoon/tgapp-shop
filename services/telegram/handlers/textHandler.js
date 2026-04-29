@@ -17,11 +17,32 @@ const setupTextHandler = (bot, webAppUrl) => {
     const { handleCategoryFSM } = require('../modules/categories/categoryFSM');
     const { handleProductFSM } = require('../modules/products/productFSM');
     const { handleProductSearch } = require('../modules/products/productSearch');
+    const { handleSettingsFSM } = require('../modules/settings/settingsFSM');
+    const { handleMailingFSM } = require('../modules/mailing/mailingFSM');
+    const { handleAdminsFSM } = require('../modules/admins/adminsFSM');
 
     try {
       // Обработка поиска товаров
       if (state.startsWith('search_in_category_')) {
         await handleProductSearch(ctx, state, text);
+        return;
+      }
+
+      // Обработка FSM настроек сайта
+      if (state.startsWith('wait_setting_')) {
+        await handleSettingsFSM(ctx, userId, state, text);
+        return;
+      }
+
+      // FSM рассылки
+      if (state === 'mailing_compose' || state === 'mailing_pending') {
+        await handleMailingFSM(ctx, userId, state, text);
+        return;
+      }
+
+      // FSM управления админами
+      if (state === 'admin_add_id' || state.startsWith('admin_add_name_')) {
+        await handleAdminsFSM(ctx, userId, state, text);
         return;
       }
 
