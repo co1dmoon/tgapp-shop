@@ -49,3 +49,15 @@
 .smart-img-loaded {
   animation: none;
 }
+
+/* Бегающая жёлтая полоска для SplashLoader. Влево-вправо, плавно. */
+@keyframes splashLoaderBar {
+  0%   { left: -40%; }
+  50%  { left: 100%; }
+  100% { left: -40%; }
+}
+
+.splash-loader-bar {
+  animation: splashLoaderBar 1.6s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(255, 255, 0, 0.6);
+}

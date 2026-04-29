@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import Header from './components/Header';
-import { useTelegram } from './hooks';
+import { SplashLoader } from './components';
+import { useCategories, useTelegram } from './hooks';
 import Cart from "./pages/cart";
 import Catalog from './pages/catalog';
 import Contacts from "./pages/contacts";
@@ -34,21 +36,27 @@ function Main() {
 
 function App() {
   const { isInitialized } = useTelegram();
+  // Дёргаем категории сразу — это первый запрос, который точно нужен
+  // на любом экране каталога. Если он ещё не успел — держим сплеш.
+  const { isLoading: categoriesLoading } = useCategories();
+
+  // Минимальная длительность сплеша, чтобы не моргал у тех, у кого всё
+  // прилетело за 100мс. Делает ощущения «живыми».
+  const [minTimePassed, setMinTimePassed] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setMinTimePassed(true), 600);
+    return () => clearTimeout(t);
+  }, []);
+
+  const showSplash = !isInitialized || categoriesLoading || !minTimePassed;
 
   return (
     <AppProvider>
       <CartProvider>
+        <SplashLoader loading={showSplash} />
         <div className="min-h-screen bg-[#111111] text-stone-100 pb-20 bg">
-          {isInitialized ? (
-            <>
-              <Header />
-              <Main />
-            </>
-          ) : (
-            <div className="flex justify-center items-center h-screen">
-              <p className="text-lg text-white">Загрузка...</p>
-            </div>
-          )}
+          <Header />
+          <Main />
         </div>
       </CartProvider>
     </AppProvider>
