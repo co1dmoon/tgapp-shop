@@ -23,6 +23,7 @@ export interface Product {
   category?: Category;
   videoUrl?: string | null;
   fpsVideoUrl?: string | null;
+  tildaUid?: string | null; // UID товара для корзины на b-zone.store
 }
 
 export interface User {

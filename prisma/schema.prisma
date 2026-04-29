@@ -44,10 +44,39 @@ model Product {
   videoUrl     String?
   fpsVideoUrl  String?
   favoriteRank Int?     @default(0)
+  tildaUid     String?  // UID товара в Tilda для открытия корзины на b-zone.store
   categoryId   Int
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   category     Category @relation("CategoryProducts", fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@map("products")
+}
+
+// Простой key/value-стор для настроек сайта (контакты, ссылки и т.п.).
+// Редактируется через админ-панель в боте.
+model Setting {
+  key       String   @id
+  value     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// Пользователи бота — нужны для рассылки и опт-аута.
+// Заполняем при /start (upsert). subscribedToMailing — для подписки/отписки.
+// blockedBot — автоматом ставим в true, если на отправке сообщения Telegram
+// вернул 403 / chat not found, чтобы не дёргать его в следующих рассылках.
+model BotUser {
+  telegramId          String   @id
+  username            String?
+  firstName           String?
+  lastName            String?
+  subscribedToMailing Boolean  @default(true)
+  blockedBot          Boolean  @default(false)
+  firstSeenAt         DateTime @default(now())
+  lastSeenAt          DateTime @updatedAt
+
+  @@map("bot_users")
 }

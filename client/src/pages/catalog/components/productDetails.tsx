@@ -159,35 +159,30 @@ export default function ProductDetails() {
           )}
         </div>
       )}
-      <div className="flex flex-col gap-4">
-        <h2 className="text-[16px] text-left font-display uppercase">Фото:</h2>
-        <div className="w-full flex flex-col gap-4" key={"images"}>
-          {images.map((url, i) => (
-            <img
-              src={url}
-              key={url ?? i}
-              className="w-full h-auto object-contain rounded-xl bg-[#2F2F2F]"
-            />
-          ))}
-          {/* {images.length === 0 &&
-            ["", "", ""].map((_, i) => (
-              <div
-                className="w-full aspect-square bg-[#2f2f2f] flex items-center justify-center rounded-xl"
-                key={i}
-              ></div>
-            ))} */}
+      {images.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <h2 className="text-[16px] text-left font-display uppercase">Фото:</h2>
+          <div className="w-full flex flex-col gap-4" key={"images"}>
+            {images.map((url, i) => (
+              <img
+                src={url}
+                key={url ?? i}
+                className="w-full h-auto object-contain rounded-xl bg-[#2F2F2F]"
+              />
+            ))}
+          </div>
         </div>
-        {product.videoUrl && (
+      )}
+      {product.videoUrl && (
         <a
-            href={product.videoUrl}
+          href={product.videoUrl}
           target="_blank"
           className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto"
         >
           <span className="text-[12px]">Смотреть видеообзор ПК</span>
-            <FaArrowRightLong />
-          </a>
-        )}
-      </div>
+          <FaArrowRightLong />
+        </a>
+      )}
 
       <CartButton product={product} type="large">
         В корзину

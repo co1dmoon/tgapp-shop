@@ -3,6 +3,7 @@ const router = express.Router();
 
 const categoryController = require('../controllers/categoryController');
 const productController = require('../controllers/productController');
+const settingsController = require('../controllers/settingsController');
 // const orderController = require('../controllers/orderController'); // Удален - заказы не нужны
 // const userController = require('../controllers/userController'); // Удален - пользователи не нужны
 // API для категорий
@@ -74,6 +75,17 @@ router.get('/products/:id', async (req, res) => {
     res.json(product);
   } catch (error) {
     res.status(500).json({ error: 'Ошибка при получении товара' });
+  }
+});
+
+// Публичные настройки сайта (контакты и т.п.)
+router.get('/settings', async (_req, res) => {
+  try {
+    const settings = await settingsController.getAll();
+    res.json(settings);
+  } catch (error) {
+    console.error('Ошибка при получении настроек:', error);
+    res.status(500).json({ error: 'Ошибка при получении настроек' });
   }
 });
 

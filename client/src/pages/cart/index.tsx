@@ -6,18 +6,39 @@ import ProductCard from "./components/ProductCard";
 export default function Cart() {
   const { cart } = useCartContext();
 
+  // Маппинг наших категорий на slug страниц b-zone.store.
+  // PC (Full HD/2K/4K) → /gaming_pc, аксессуары — каждый со своим путём.
+  const STORE_SLUG: Record<string, string> = {
+    'Full HD': 'gaming_pc', '2K': 'gaming_pc', '4K': 'gaming_pc',
+    'клавиатуры': 'keyboards',
+    'мыши': 'mice',
+    'наушники': 'headphones',
+    'микрофоны': 'microphones',
+    'мониторы': 'monitors',
+    'коврики': 'mats',
+  };
+
   const createCheckoutUrl = () => {
-    const baseUrl = 'https://b-zone.store/gaming_pc';
+    // Берём только товары с tildaUid (без него корзина b-zone.store не откроется).
+    const validItems = cart.items.filter(i => i.tildaUid);
+    if (validItems.length === 0) return null;
 
-    // Используем productStringId для формирования URL в формате cart=id:quantity,id:quantity
-    const cartParams = cart.items.map(item => `${item.productStringId}:${item.quantity}`).join(',');
+    // Slug страницы — по категории первого товара. Если в корзине намешано
+    // ПК и аксы — выбираем slug первого, b-zone.store разберётся.
+    const firstCat = validItems[0].category?.name ?? '';
+    const slug = STORE_SLUG[firstCat] ?? 'gaming_pc';
 
-    const url = new URL(baseUrl);
+    const cartParams = validItems
+      .map(item => `${item.tildaUid}:${item.quantity}`)
+      .join(',');
+
+    const url = new URL(`https://b-zone.store/${slug}`);
     url.searchParams.set('cart', cartParams);
     url.hash = 'order';
-
     return url.toString();
   };
+
+  const checkoutUrl = createCheckoutUrl();
 
   if (cart.items.length === 0) {
     return (
@@ -43,13 +64,20 @@ export default function Cart() {
         Итого: {formatPrice(cart.total)}
       </p>
 
-      <a
-        className="bg-[#ffff00] text-black font-display rounded-xl flex items-center justify-center p-2 w-full"
-        href={createCheckoutUrl()}
-        target="_blank"
-      >
-        Перейти к оформлению
-      </a>
+      {checkoutUrl ? (
+        <a
+          className="bg-[#ffff00] text-black font-display rounded-xl flex items-center justify-center p-2 w-full"
+          href={checkoutUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Перейти к оформлению
+        </a>
+      ) : (
+        <div className="bg-[#222222] text-gray-400 font-display rounded-xl flex items-center justify-center p-2 w-full text-center text-[12px]">
+          Не удалось собрать корзину — у товаров нет ID для сайта
+        </div>
+      )}
     </div>
   );
 }

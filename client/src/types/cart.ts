@@ -10,6 +10,7 @@ export type CartItem = {
   specs?: string | null;
   categoryId: number;
   category?: Category;
+  tildaUid?: string | null; // UID для корзины на b-zone.store
 };
 
 export type CartState = {
