@@ -1,6 +1,6 @@
 import { FaArrowRightLong } from "react-icons/fa6";
 import { IoChevronBack } from "react-icons/io5";
-import { CartButton } from "../../../components";
+import { CartButton, SmartImage } from "../../../components";
 import {
   DeliveryIcon,
   SupportIcon,
@@ -61,10 +61,10 @@ export default function ProductDetails() {
         <span className="font-primary text-[14px]">Назад</span>
       </button>
 
-      <img
+      <SmartImage
         src={product.image ?? "/images/categories/игровые-пк.png"}
         alt={product.name}
-        className="w-full aspect-square object-contain mx-auto rounded-xl bg-[#2F2F2F]"
+        className="w-full aspect-square object-contain mx-auto rounded-xl"
       />
       <div className="flex flex-col gap-4">
         <h1>{product.name}</h1>
@@ -141,10 +141,10 @@ export default function ProductDetails() {
           <h2 className="text-[16px] text-left font-display uppercase">
             {`Тесты FPS:`}
           </h2>
-          <img
+          <SmartImage
             src={product.fpsImage ?? "/images/fps.png"}
             alt={"fps"}
-            className="w-full"
+            className="w-full aspect-video object-contain rounded-xl"
           />
           {product.fpsVideoUrl && (
             <a
@@ -164,10 +164,10 @@ export default function ProductDetails() {
           <h2 className="text-[16px] text-left font-display uppercase">Фото:</h2>
           <div className="w-full flex flex-col gap-4" key={"images"}>
             {images.map((url, i) => (
-              <img
+              <SmartImage
                 src={url}
                 key={url ?? i}
-                className="w-full h-auto object-contain rounded-xl bg-[#2F2F2F]"
+                className="w-full aspect-square object-contain rounded-xl"
               />
             ))}
           </div>

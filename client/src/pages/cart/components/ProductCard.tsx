@@ -1,4 +1,5 @@
 import { RiAddLine, RiDeleteBin6Line, RiSubtractLine } from "react-icons/ri";
+import { SmartImage } from "../../../components";
 import { useAppContext } from "../../../store/AppContext";
 import { useCartContext } from "../../../store/CartContext";
 import type { CartItem } from "../../../types/cart";
@@ -20,10 +21,10 @@ export default function ProductCard({ cartItem }: { cartItem: CartItem }) {
         navigateToSection("catalog");
       }}
     >
-      <img
+      <SmartImage
         src={cartItem.image ?? "/images/categories/игровые-пк.png"}
         alt={cartItem.name}
-        className="w-[70px] aspect-square rounded-xl"
+        className="w-[70px] aspect-square rounded-xl object-cover"
       />
       <div className="flex flex-col gap-2 w-full h-full justify-between">
         <div className="flex gap-2 w-full text-nowrap">
