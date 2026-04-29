@@ -1,4 +1,4 @@
-import { CartButton } from "../../../components";
+import { CartButton, SmartImage } from "../../../components";
 import { useAppContext } from "../../../store/AppContext";
 import type { Product } from "../../../types";
 import { formatPrice, formatPriceWithTax } from "../../../utils/formatters";
@@ -40,10 +40,10 @@ export default function ProductCard({ product }: { product: Product; }) {
           {product.category?.name}
         </div>
       </div>}
-      <img
+      <SmartImage
         src={product.image ?? `/images/device-categories/мониторы.png`}
         alt={product.name}
-        className="w-full h-auto max-h-[170px] object-cover mx-auto rounded-xl bg-[#2F2F2F]"
+        className="w-full h-[170px] object-cover mx-auto rounded-xl"
       />
       <div className="flex flex-col px-1 overflow-hidden mt-3 flex-1 pb-3">
         {/* Верхняя часть - название или спецификации */}

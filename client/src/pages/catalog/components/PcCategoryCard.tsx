@@ -1,4 +1,5 @@
 import { FaArrowRightLong } from "react-icons/fa6";
+import { SmartImage } from "../../../components";
 import { useCategoryPrice } from "../../../hooks/useCategoryPrice";
 import { useAppContext } from "../../../store/AppContext";
 import type { Category } from "../../../types";
@@ -15,7 +16,7 @@ export default function PcCategoryCard({ category }: Props) {
   return (
     <div key={category.id} className="flex gap-4 bg-[#161616] rounded-xl pr-2">
       <div className="bg-[#222222] rounded-xl h-[180px] w-auto max-w-[150px] overflow-hidden">
-        <img
+        <SmartImage
           src={category.image ?? `/images/categories/pc.png`}
           alt={category.name}
           className="w-full h-full object-cover object-center"

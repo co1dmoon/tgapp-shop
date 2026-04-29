@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { MdArrowOutward } from "react-icons/md";
+import { SmartImage } from "../../../components";
 import { useCategories } from "../../../hooks";
 import { useAppContext } from "../../../store/AppContext";
 import DeviceNavigationSkeleton from "./skeletons/DeviceNavigationSkeleton";
@@ -59,12 +60,12 @@ export default function DeviceNavigation() {
             )}
           </div>
           {!selectedDeviceCategory && (
-            <img
+            <SmartImage
               src={category.image ?? `/images/device-categories/${category.name
                 .toLowerCase()
                 .replace(/ /g, "-")}.png`}
               alt={category.name}
-              className="h-[80%] w-[90%] object-contain mx-auto my-2"
+              className="h-[100px] w-[90%] object-contain mx-auto my-2 rounded-lg"
             />
           )}
         </button>
