@@ -15,7 +15,7 @@ export function useProducts() {
 /**
  * Хук для получения товаров по категории
  */
-export function useProductsByCategory({ category, bestOffers }: { category: 'pc' | number | null, bestOffers: boolean; }) {
+export function useProductsByCategory({ category, bestOffers, enabled = true }: { category: 'pc' | number | null, bestOffers: boolean; enabled?: boolean; }) {
   return useQuery<Product[]>({
     queryKey: ['products', 'category', category, bestOffers],
     queryFn: async () => {
@@ -37,10 +37,10 @@ export function useProductsByCategory({ category, bestOffers }: { category: 'pc'
         })(),
         new Promise(resolve => setTimeout(resolve, 500))
       ]);
-      
+
       return data;
     },
-    enabled: category !== undefined,
+    enabled: enabled && category !== undefined,
     staleTime: 30000, // Данные считаются свежими 30 секунд
     gcTime: 5 * 60 * 1000, // Кэш хранится 5 минут
   });
