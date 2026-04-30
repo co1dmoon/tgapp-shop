@@ -17,7 +17,7 @@ export default function Header() {
     },
     {
       id: "contact" as AppSection,
-      title: "Связь",
+      title: "Контакты",
       icon: <BsFillChatLeftTextFill size={24} />,
     },
     {

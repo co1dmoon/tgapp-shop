@@ -9,7 +9,7 @@ const getMainMenuKeyboard = async (userId, webAppUrl) => {
 
   const catalogButtonText = isAdmin ? 'Каталог (Web App)' : 'Открыть каталог';
   buttons.push([Markup.button.webApp(catalogButtonText, webAppUrl)]);
-  buttons.push([Markup.button.callback('Связаться с нами', 'contact_us')]);
+  buttons.push([Markup.button.callback('📞 Наши контакты', 'contact_us')]);
 
   if (isAdmin) {
     buttons.push([Markup.button.callback('Админ панель', 'admin_panel')]);

@@ -28,11 +28,16 @@ export function useTelegram() {
         const ok = await waitForTG(3000);
         if (!ok || cancelled) return;
 
-        WebApp.ready();
-        WebApp.expand();
-        WebApp.setHeaderColor("#161616");
-        WebApp.setBackgroundColor("#161616");
-        WebApp.disableClosingConfirmation();
+        // Каждый вызов оборачиваем в try, чтобы один зафейлившийся (например,
+        // setHeaderColor на старом Android-клиенте без поддержки этой версии
+        // Bot API) не валил всю инициализацию и не закрывал мини-аппку.
+        const safe = (fn: () => void) => { try { fn(); } catch (e) { console.warn('[WebApp]', e); } };
+
+        safe(() => WebApp.ready());
+        safe(() => WebApp.expand());
+        safe(() => WebApp.setHeaderColor('#161616'));
+        safe(() => WebApp.setBackgroundColor('#161616'));
+        safe(() => WebApp.disableClosingConfirmation());
         setWebAppReady(true);
 
         if (WebApp.initDataUnsafe?.user) {

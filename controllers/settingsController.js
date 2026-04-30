@@ -3,14 +3,16 @@ const prisma = require('../models/prisma');
 // Дефолты — используются если в БД ещё нет такой настройки.
 const DEFAULTS = {
   contact_tg:    'https://t.me/BZoneStoreBot',
-  contact_vk:    'https://vk.com/write-209962380',
-  contact_phone: '+79999999999',
+  contact_phone: '+7(968)700-94-84',
+  contact_email: 'manager@b-zone.store',
+  contact_site:  'https://b-zone.store/',
 };
 
 const SETTING_META = {
   contact_tg:    { label: 'Telegram', hint: 'Полная ссылка вида https://t.me/...' },
-  contact_vk:    { label: 'ВКонтакте', hint: 'Полная ссылка вида https://vk.com/... или https://vk.com/write-...' },
-  contact_phone: { label: 'Телефон', hint: 'В формате +7XXXXXXXXXX' },
+  contact_phone: { label: 'Телефон',  hint: 'Допустимый формат: +7(XXX)XXX-XX-XX или +7XXXXXXXXXX' },
+  contact_email: { label: 'Email',    hint: 'Адрес электронной почты, например manager@b-zone.store' },
+  contact_site:  { label: 'Сайт',     hint: 'Полная ссылка на сайт, начинается с https://' },
 };
 
 const getAll = async () => {

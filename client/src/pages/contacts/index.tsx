@@ -1,77 +1,110 @@
-import { MdArrowOutward } from "react-icons/md";
+import { FaArrowRightLong } from "react-icons/fa6";
 import { useSettings } from "../../hooks";
 
 const FALLBACK = {
   contact_tg: "https://t.me/BZoneStoreBot",
-  contact_vk: "https://vk.com/write-209962380",
-  contact_phone: "+79999999999",
+  contact_phone: "+7(968)700-94-84",
+  contact_email: "manager@b-zone.store",
+  contact_site: "https://b-zone.store/",
+};
+
+// Достаём имя из URL для отображения, чтобы не показывать длинную ссылку.
+const tgHandleFromUrl = (url: string) => {
+  const m = url.match(/t\.me\/([A-Za-z0-9_]+)/i);
+  return m ? `@${m[1]}` : url;
+};
+
+const siteHostFromUrl = (url: string) => {
+  try {
+    const u = new URL(url);
+    return u.host + u.pathname.replace(/\/$/, "");
+  } catch {
+    return url;
+  }
+};
+
+// Для tel:-ссылок Telegram WebApp иногда требует пинком переоткрыть.
+const openPhone = (
+  e: React.MouseEvent<HTMLAnchorElement>,
+  raw: string
+) => {
+  e.preventDefault();
+  const phoneNumber = raw.replace(/[^\d+]/g, "");
+  window.open(`tel:${phoneNumber}`);
+  setTimeout(() => {
+    window.location.href = `tel:${phoneNumber}`;
+  }, 100);
+};
+
+type Row = {
+  emoji: string;
+  label: string;
+  display: string;
+  href: string;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 };
 
 export default function Contacts() {
   const { data: settings } = useSettings();
 
-  const tg = settings?.contact_tg || FALLBACK.contact_tg;
-  const vk = settings?.contact_vk || FALLBACK.contact_vk;
   const phone = settings?.contact_phone || FALLBACK.contact_phone;
+  const email = settings?.contact_email || FALLBACK.contact_email;
+  const tg = settings?.contact_tg || FALLBACK.contact_tg;
+  const site = settings?.contact_site || FALLBACK.contact_site;
 
-  const contacts = [
+  const rows: Row[] = [
     {
-      name: "ВКонтакте",
-      link: vk,
-      src: "/images/contacts/vk.png",
+      emoji: "📞",
+      label: "Телефон",
+      display: phone,
+      href: `tel:${phone.replace(/[^\d+]/g, "")}`,
+      onClick: (e) => openPhone(e, phone),
     },
     {
-      name: "Телеграм",
-      link: tg,
-      src: "/images/contacts/telegram.png",
+      emoji: "📧",
+      label: "Email",
+      display: email,
+      href: `mailto:${email}`,
     },
     {
-      name: "Телефон",
-      link: `tel:${phone}`,
-      src: "/images/contacts/phone.png",
-      isPhone: true,
+      emoji: "💬",
+      label: "Telegram",
+      display: tgHandleFromUrl(tg),
+      href: tg,
+    },
+    {
+      emoji: "🌐",
+      label: "Сайт",
+      display: siteHostFromUrl(site),
+      href: site,
     },
   ];
-
-  const handlePhoneClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
-    phoneLink: string
-  ) => {
-    e.preventDefault();
-    const phoneNumber = phoneLink.replace("tel:", "");
-    window.open(`tel:${phoneNumber}`);
-    setTimeout(() => {
-      window.location.href = `tel:${phoneNumber}`;
-    }, 100);
-  };
 
   return (
     <div className="p-4">
       <h1 className="text-[16px] font-display mb-4 font-thin">
-        Свяжитесь с нами
+        Наши контакты
       </h1>
-      <div className="grid grid-cols-2 gap-4">
-        {contacts.map((contact) => (
+      <div className="flex flex-col gap-3">
+        {rows.map((row) => (
           <a
+            key={row.label}
+            href={row.href}
             target="_blank"
-            key={contact.name}
-            href={contact.link}
-            onClick={
-              contact.isPhone
-                ? (e) => handlePhoneClick(e, contact.link)
-                : undefined
-            }
-            className="relative flex items-center justify-center gap-2 rounded-xl bg-[#161616] py-4"
+            rel="noopener noreferrer"
+            onClick={row.onClick}
+            className="flex items-center gap-3 rounded-xl bg-[#161616] px-4 py-3 hover:bg-[#1d1d1d] transition-colors"
           >
-            <MdArrowOutward
-              color="#ffff00"
-              className=" w-[20px] h-[20px] absolute right-[5px] top-[5px]"
-            />
-            <img
-              src={contact.src}
-              alt={contact.name}
-              className="h-[50px] aspect-square"
-            />
+            <div className="text-[26px] leading-none">{row.emoji}</div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="text-[10px] font-primary text-gray-500 uppercase tracking-wider">
+                {row.label}
+              </span>
+              <span className="text-[14px] font-display text-white truncate">
+                {row.display}
+              </span>
+            </div>
+            <FaArrowRightLong className="text-[#ffff00] flex-shrink-0" size={16} />
           </a>
         ))}
       </div>

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Product } from '../types';
 import type { CartItem, CartState } from '../types/cart';
-import { useTelegram } from './useTelegram';
 
 const CART_STORAGE_KEY = 'tgapp-shop-cart';
 
@@ -32,26 +31,14 @@ const getInitialCartState = (): CartState => {
 
 export function useCart() {
   const [cartState, setCartState] = useState<CartState>(getInitialCartState);
-  const { webAppReady, sendData } = useTelegram();
 
-  // Синхронизация с Telegram при изменении состояния
-  useEffect(() => {
-    if (webAppReady) {
-      // Отправляем только минимально необходимую информацию, чтобы не превышать лимит Telegram
-      const minimalItems = cartState.items.map(i => ({
-        id: i.productId,
-        q: i.quantity,
-        sid: i.productStringId,
-        p: i.price,
-      }));
-      sendData({
-        type: 'cart_update',
-        items: minimalItems,
-        total: cartState.total,
-        count: minimalItems.length,
-      });
-    }
-  }, [cartState, webAppReady, sendData]);
+  // ВАЖНО: WebApp.sendData() ЗАКРЫВАЕТ мини-приложение по документации Telegram.
+  // Раньше здесь был useEffect, который дёргал sendData на КАЖДОЕ изменение
+  // корзины — на Android аппка из-за этого схлопывалась мгновенно после
+  // добавления товара. На iOS поведение неконсистентное (баг клиента) и
+  // юзеры не замечали. Бот всё равно `web_app_data` не обрабатывает —
+  // никаких ордеров через sendData нет, корзина уезжает на b-zone.store
+  // через обычную ссылку. Поэтому sendData теперь не вызываем вообще.
 
   // Сохранение в localStorage
   useEffect(() => {

@@ -1,4 +1,5 @@
 const { CONTACT_INFO } = require('../core/config');
+const settingsController = require('../../../controllers/settingsController');
 const { formatPrice, formatDate, formatDateTime, formatSpecsForDisplay } = require('../core/utils');
 
 // Приветственные сообщения
@@ -6,14 +7,26 @@ const getWelcomeMessage = (userName) => {
   return `👋 Привет, ${userName}! Добро пожаловать в компьютерный магазин B-ZONE.\n Выберите действие:`;
 };
 
-// Сообщения контактов
-const getContactMessage = () => {
-  return `<b>Свяжитесь с нами:</b>
+// Сообщения контактов. Подтягивает значения из admin-настроек, фолбэк — на CONTACT_INFO из config.js.
+const getContactMessage = async () => {
+  let s = {};
+  try { s = await settingsController.getAll(); } catch (_) { /* fallback ниже */ }
 
-📱 Телефон: <a href="tel:${CONTACT_INFO.phone}">${CONTACT_INFO.phone}</a>
-📧 Email: <a href="mailto:${CONTACT_INFO.email}">${CONTACT_INFO.email}</a>
-💬 Telegram: <a href="https://t.me/${CONTACT_INFO.telegram.replace('@', '')}">${CONTACT_INFO.telegram}</a>
-🌐 Сайт: <a href="${CONTACT_INFO.website}">${CONTACT_INFO.website}</a>`;
+  const phone = (s.contact_phone || CONTACT_INFO.phone || '').trim();
+  const email = (s.contact_email || CONTACT_INFO.email || '').trim();
+  const tg    = (s.contact_tg    || ('https://t.me/' + (CONTACT_INFO.telegram || '').replace('@', ''))).trim();
+  const site  = (s.contact_site  || CONTACT_INFO.website || '').trim();
+
+  const tgHandle = (tg.match(/t\.me\/([A-Za-z0-9_]+)/i) || [])[1];
+  const tgLabel  = tgHandle ? `@${tgHandle}` : tg;
+  const phoneTel = phone.replace(/[^\d+]/g, '');
+
+  return `<b>Наши контакты:</b>
+
+📱 Телефон: <a href="tel:${phoneTel}">${phone}</a>
+📧 Email: <a href="mailto:${email}">${email}</a>
+💬 Telegram: <a href="${tg}">${tgLabel}</a>
+🌐 Сайт: <a href="${site}">${site}</a>`;
 };
 
 // Сообщения каталога

@@ -16,7 +16,7 @@ export const NAVIGATION = {
     },
     {
       id: 'contact',
-      title: 'Связь',
+      title: 'Контакты',
       icon: 'support_agent',
     },
     {

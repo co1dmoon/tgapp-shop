@@ -9,13 +9,19 @@ const validate = (key, value) => {
   if (!v) return { ok: false, error: 'Пустое значение не годится.' };
 
   if (key === 'contact_phone') {
-    // +7XXXXXXXXXX или +XX...
-    if (!/^\+\d{10,15}$/.test(v)) {
-      return { ok: false, error: 'Телефон должен быть в формате +7XXXXXXXXXX (только цифры со знаком плюса).' };
+    // Принимаем форматированные телефоны вида +7(968)700-94-84 или +79687009484.
+    // Достаточно чтобы было >= 10 цифр и стартовал с +.
+    const digits = v.replace(/\D/g, '');
+    if (!/^\+/.test(v) || digits.length < 10 || digits.length > 15) {
+      return { ok: false, error: 'Телефон должен начинаться с + и содержать 10–15 цифр (другие символы не считаются).' };
     }
-  } else if (key === 'contact_tg' || key === 'contact_vk') {
+  } else if (key === 'contact_tg' || key === 'contact_site') {
     if (!/^https?:\/\/\S+$/i.test(v)) {
       return { ok: false, error: 'Ссылка должна начинаться с http:// или https:// и не содержать пробелов.' };
+    }
+  } else if (key === 'contact_email') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+      return { ok: false, error: 'Введи корректный email (формат name@domain.tld).' };
     }
   }
   return { ok: true, value: v };
