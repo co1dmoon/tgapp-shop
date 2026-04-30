@@ -84,22 +84,6 @@ const initTelegramBot = async (webAppUrl) => {
     // Даем небольшую паузу для инициализации
     await new Promise(resolve => setTimeout(resolve, 1000));
     console.log('[LAUNCH] ✅ Бот запущен и готов к работе!');
-
-    // Глобальная chat menu button — иконка слева от поля ввода теперь сразу
-    // открывает каталог как Web App. Установка дефолтная (без chatId — для
-    // всех пользователей и групп, где бот добавлен).
-    try {
-      await bot.telegram.setChatMenuButton({
-        menuButton: {
-          type: 'web_app',
-          text: 'Каталог',
-          web_app: { url: webAppUrl },
-        },
-      });
-      console.log('[LAUNCH] ✅ Chat menu button установлен на каталог');
-    } catch (e) {
-      console.warn('[LAUNCH] ⚠ Не удалось установить chat menu button:', e?.message || e);
-    }
     
     console.log('[INIT] ✅ Модульный Telegram бот успешно запущен!');
     console.log(`[INIT] Бот @${bot.botInfo.username} активен и готов к работе`);

@@ -1,4 +1,3 @@
-const { Markup } = require('telegraf');
 const adminController = require('../../../controllers/adminController');
 const botUserController = require('../../../controllers/botUserController');
 const {
@@ -11,13 +10,6 @@ const {
   getCatalogMessage,
   getSuccessMessages,
 } = require('../ui/messages');
-
-// Постоянная нижняя клавиатура с кнопкой каталога — всегда висит у юзера
-// внизу экрана чата, когда он внутри диалога с ботом.
-const getPersistentCatalogKeyboard = (webAppUrl) =>
-  Markup.keyboard([[Markup.button.webApp('🛍 Каталог ПК', webAppUrl)]])
-    .resize()
-    .persistent();
 
 // Настройка базовых команд пользователя
 const setupBasicHandlers = (bot, webAppUrl) => {
@@ -33,12 +25,7 @@ const setupBasicHandlers = (bot, webAppUrl) => {
       const keyboard = await getMainMenuKeyboard(userId, webAppUrl);
       const welcomeMessage = getWelcomeMessage(userName);
 
-      // Главное приветствие с inline-кнопками (категории/контакты/админка)
-      await ctx.reply(welcomeMessage, keyboard);
-
-      // Сразу же ставим постоянную нижнюю кнопку «Каталог ПК», чтобы у
-      // пользователя был быстрый доступ к веб-аппке в любой момент диалога.
-      await ctx.reply('🛒 Каталог всегда под рукой ниже 👇', getPersistentCatalogKeyboard(webAppUrl));
+      return ctx.reply(welcomeMessage, keyboard);
     } catch (error) {
       console.error('Ошибка при показе главного меню:', error);
 
@@ -46,8 +33,7 @@ const setupBasicHandlers = (bot, webAppUrl) => {
       const keyboard = await getMainMenuKeyboard(userId, webAppUrl);
       const welcomeMessage = getWelcomeMessage(userName);
 
-      await ctx.reply(welcomeMessage, keyboard);
-      await ctx.reply('🛒 Каталог всегда под рукой ниже 👇', getPersistentCatalogKeyboard(webAppUrl));
+      return ctx.reply(welcomeMessage, keyboard);
     }
   });
 
