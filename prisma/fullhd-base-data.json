@@ -1,0 +1,62 @@
+[
+  {
+    "productId": "PC-BASE-1",
+    "name": "BASE 1",
+    "price": 60990,
+    "description": null,
+    "specs": "{\"Процессор\":\"AMD RYZEN 5 5500\",\"Видеокарта\":\"NVIDIA GTX 1660 Super\"}",
+    "image": "https://tg-shop.hb.bizmrg.com/products/pc-base-1/main/22614efb-f775-4dc2-ba5c-a1439d8b4ba7.webp",
+    "fpsImage": null,
+    "allImages": null,
+    "videoUrl": null,
+    "fpsVideoUrl": null,
+    "favoriteRank": 0,
+    "tildaUid": "673413941462",
+    "categoryName": "Full HD"
+  },
+  {
+    "productId": "PC-BASE-2",
+    "name": "BASE 2",
+    "price": 67990,
+    "description": null,
+    "specs": "{\"Процессор\":\"AMD RYZEN 5 5500\",\"Видеокарта\":\"NVIDIA RTX 2060 Super\"}",
+    "image": "https://tg-shop.hb.bizmrg.com/products/pc-base-2/main/d2f55b6f-93e6-4edc-8954-bce9ee04ea51.webp",
+    "fpsImage": null,
+    "allImages": null,
+    "videoUrl": null,
+    "fpsVideoUrl": null,
+    "favoriteRank": 0,
+    "tildaUid": "182555575872",
+    "categoryName": "Full HD"
+  },
+  {
+    "productId": "PC-BASE-3",
+    "name": "BASE 3",
+    "price": 71990,
+    "description": null,
+    "specs": "{\"Процессор\":\"AMD RYZEN 5 5600\",\"Видеокарта\":\"NVIDIA RTX 2060 Super\"}",
+    "image": "https://tg-shop.hb.bizmrg.com/products/pc-base-3/main/f81a8d4c-0c89-48d4-843d-cbbd6b3e4d6e.webp",
+    "fpsImage": null,
+    "allImages": null,
+    "videoUrl": null,
+    "fpsVideoUrl": null,
+    "favoriteRank": 0,
+    "tildaUid": "302431529172",
+    "categoryName": "Full HD"
+  },
+  {
+    "productId": "PC-BASE-4",
+    "name": "BASE 4",
+    "price": 79990,
+    "description": null,
+    "specs": "{\"Процессор\":\"AMD RYZEN 5 5600\",\"Видеокарта\":\"NVIDIA RTX 3060 TI\"}",
+    "image": "https://tg-shop.hb.bizmrg.com/products/pc-base-4/main/ae59aa8a-6979-4166-9b77-7e2999a81e44.webp",
+    "fpsImage": null,
+    "allImages": null,
+    "videoUrl": null,
+    "fpsVideoUrl": null,
+    "favoriteRank": 0,
+    "tildaUid": "680324800362",
+    "categoryName": "Full HD"
+  }
+]

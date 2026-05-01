@@ -27,7 +27,7 @@ export function useProductsByCategory({ category, bestOffers, enabled = true }: 
             return productService.getBestOffersProducts(category === 'pc' ? 'pc' : 'device');
           }
           if (category === 'pc') {
-            return productService.getProductsByCategories(['full hd', '4k', '2k']);
+            return productService.getProductsByCategories(['full hd', 'full hd+', '4k', '2k']);
           }
           if (category === null) {
             return productService.getAllProducts();

@@ -20,7 +20,7 @@ export default function ProductDetails() {
 
   const cpuAndGpu = [specs['Видеокарта'], specs['Процессор']]
 
-  const pcCategories = ["full hd", "2k", "4k"];
+  const pcCategories = ["full hd", "full hd+", "2k", "4k"];
 
   const isPc = pcCategories.includes(
     product?.category?.name.toLowerCase() ?? ""

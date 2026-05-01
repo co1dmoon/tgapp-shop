@@ -10,7 +10,7 @@ export default function DeviceNavigation() {
 
   const { data: categories, isLoading } = useCategories();
 
-  const categoriesName = ["full hd", "2k", "4k"];
+  const categoriesName = ["full hd", "full hd+", "2k", "4k"];
 
   const deviceCategories = categories?.filter((category) =>
     categoriesName.every((name) => name !== category.name.toLowerCase())

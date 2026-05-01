@@ -9,7 +9,7 @@ export default function Cart() {
   // Маппинг наших категорий на slug страниц b-zone.store.
   // PC (Full HD/2K/4K) → /gaming_pc, аксессуары — каждый со своим путём.
   const STORE_SLUG: Record<string, string> = {
-    'Full HD': 'gaming_pc', '2K': 'gaming_pc', '4K': 'gaming_pc',
+    'Full HD': 'gaming_pc', 'Full HD+': 'gaming_pc', '2K': 'gaming_pc', '4K': 'gaming_pc',
     'клавиатуры': 'keyboards',
     'мыши': 'mice',
     'наушники': 'headphones',

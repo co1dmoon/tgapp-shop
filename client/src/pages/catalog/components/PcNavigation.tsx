@@ -9,12 +9,12 @@ export default function PcNavigation() {
 
   const { data: categories, isLoading } = useCategories();
 
-  const categoriesName = ["full hd", "2k", "4k"];
+  const categoriesName = ["full hd", "full hd+", "2k", "4k"];
 
   const pcCategories = categories
     ?.filter((category) => categoriesName.includes(category.name.toLowerCase()))
     .sort((a, b) => {
-      const order = ["full hd", "2k", "4k"];
+      const order = ["full hd", "full hd+", "2k", "4k"];
       return (
         order.indexOf(a.name.toLowerCase()) -
         order.indexOf(b.name.toLowerCase())
@@ -27,7 +27,7 @@ export default function PcNavigation() {
 
   if (selectedPcCategory) {
     return (
-      <div className="grid grid-cols-3 p-4 gap-2">
+      <div className="grid grid-cols-4 p-4 gap-2">
         {pcCategories?.map((category) => (
           <button
             onClick={() => setSelectedPcCategory(category.id)}

@@ -3,7 +3,7 @@ import { useAppContext } from "../../../store/AppContext";
 import type { Product } from "../../../types";
 import { formatPrice, formatPriceWithTax } from "../../../utils/formatters";
 
-const pcCategories = ["full hd", "2k", "4k"];
+const pcCategories = ["full hd", "full hd+", "2k", "4k"];
 
 const isPC = (category: string) => pcCategories.includes(
   category.toLowerCase()
