@@ -14,16 +14,18 @@ export default function PcCategoryCard({ category }: Props) {
 
   const { data: price, isLoading } = useCategoryPrice(category.id);
   return (
-    <div key={category.id} className="flex gap-4 bg-[#161616] rounded-xl pr-2">
-      <div className="bg-[#222222] rounded-xl h-[180px] w-auto max-w-[150px] overflow-hidden">
+    <div key={category.id} className="flex gap-4 bg-[#161616] rounded-xl pr-2 overflow-hidden">
+      {/* Фиксированный 150×180 thumbnail — не сжимается во flex'е (без этого
+          одни обложки рендерились шире других, формочка плыла). */}
+      <div className="bg-[#222222] rounded-xl h-[180px] w-[150px] shrink-0 overflow-hidden">
         <SmartImage
           src={category.image ?? `/images/categories/pc.png`}
           alt={category.name}
           className="w-full h-full object-cover object-center"
         />
       </div>
-      <div className="flex flex-col gap-3">
-        <div className="text-[16px] font-display uppercase mt-[20px]">
+      <div className="flex flex-col gap-2 flex-1 min-w-0 py-3">
+        <div className="text-[16px] font-display uppercase">
           {category.name}
         </div>
         <div className="text-[10px] font-primary text-white opacity-60">
@@ -39,7 +41,7 @@ export default function PcCategoryCard({ category }: Props) {
         )}
         <button
           onClick={() => setSelectedPcCategory(category.id)}
-          className="rounded-2xl bg-[#ffff00] text-[12px] font-display text-[#111111] py-2 px-4 flex items-center justify-between gap-2"
+          className="rounded-2xl bg-[#ffff00] text-[12px] font-display text-[#111111] py-2 px-4 flex items-center justify-between gap-2 mt-auto"
         >
           <span>Выбрать ПК</span>
           <FaArrowRightLong />
