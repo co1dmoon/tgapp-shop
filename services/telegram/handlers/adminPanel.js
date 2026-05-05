@@ -21,7 +21,9 @@ const setupAdminHandlers = (bot, webAppUrl) => {
   // Вход в админ панель (кнопка)
   bot.action('admin_panel', checkAdmin, async (ctx) => {
     await ctx.answerCbQuery();
-    await ctx.deleteMessage(); // Удаляем предыдущее сообщение меню
+    // Удаляем предыдущее сообщение меню. Telegram запрещает ботам удалять
+    // сообщения старше 48 часов, поэтому глотаем ошибку — не критично.
+    try { await ctx.deleteMessage(); } catch (_) { /* старое сообщение, ничего */ }
     await showAdminPanel(ctx);
   });
 
