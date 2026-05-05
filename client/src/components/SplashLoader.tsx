@@ -1,7 +1,7 @@
 /**
- * Полноэкранный лоадер при первом открытии аппки. Чёрный фон, лого b.ZONE,
- * под ним тонкая жёлтая полоска, бегающая туда-сюда. Уезжает плавно через
- * fade-out, когда `loading` становится false.
+ * Полноэкранный лоадер при первом открытии аппки. Чёрный фон, лого B-Zone
+ * (B- жёлтая, Zone белое), под ним тонкая жёлтая полоска, бегающая туда-сюда.
+ * Уезжает плавно через fade-out, когда `loading` становится false.
  */
 import clsx from "clsx";
 
@@ -19,10 +19,10 @@ export default function SplashLoader({ loading }: Props) {
       )}
       aria-hidden={!loading}
     >
-      {/* Лого */}
+      {/* Лого: «B-» жёлтая, «Zone» белая */}
       <div className="font-display text-[44px] tracking-wider leading-none flex items-baseline">
-        <span className="text-[#ffff00]">b.</span>
-        <span className="text-white">ZONE</span>
+        <span className="text-[#ffff00]">B-</span>
+        <span className="text-white">Zone</span>
       </div>
       <div className="font-primary text-[10px] uppercase tracking-[0.4em] text-gray-500 mt-2">
         pc store
