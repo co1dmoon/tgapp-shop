@@ -136,29 +136,35 @@ export default function ProductDetails() {
           ))}
         </div>
       </div>
-      {pcCategories.includes(product.category?.name.toLowerCase() ?? "") && (
-        <div className="flex flex-col gap-4">
-          <h2 className="text-[16px] text-left font-display uppercase">
-            {`Тесты FPS:`}
-          </h2>
-          <SmartImage
-            src={product.fpsImage ?? "/images/fps.png"}
-            alt={"fps"}
-            className="w-full aspect-video object-contain rounded-xl"
-          />
-          {product.fpsVideoUrl && (
-            <a
-              href={product.fpsVideoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto"
-            >
-              <span className="text-[12px]">Смотреть видеообзор тестов</span>
-              <FaArrowRightLong />
-            </a>
-          )}
-        </div>
-      )}
+      {/* Секция «Тесты FPS» рисуется только если у товара явно задана FPS-картинка.
+          Если в админке стоит «FPS изображение: Нет» — на витрине никакого
+          fallback-чарта не показываем (раньше была заглушка /images/fps.png,
+          из-за неё админка и каталог расходились — админ видел «Нет», а юзер
+          видел общий чарт игр). */}
+      {pcCategories.includes(product.category?.name.toLowerCase() ?? "") &&
+        product.fpsImage && (
+          <div className="flex flex-col gap-4">
+            <h2 className="text-[16px] text-left font-display uppercase">
+              {`Тесты FPS:`}
+            </h2>
+            <SmartImage
+              src={product.fpsImage}
+              alt={"fps"}
+              className="w-full aspect-video object-contain rounded-xl"
+            />
+            {product.fpsVideoUrl && (
+              <a
+                href={product.fpsVideoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex items-center gap-4 text-[#ffff00] font-display no-underline mx-auto"
+              >
+                <span className="text-[12px]">Смотреть видеообзор тестов</span>
+                <FaArrowRightLong />
+              </a>
+            )}
+          </div>
+        )}
       {images.length > 0 && (
         <div className="flex flex-col gap-4">
           <h2 className="text-[16px] text-left font-display uppercase">Фото:</h2>
