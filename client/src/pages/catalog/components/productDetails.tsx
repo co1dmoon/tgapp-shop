@@ -136,22 +136,26 @@ export default function ProductDetails() {
           ))}
         </div>
       </div>
-      {/* Секция «Тесты FPS» рисуется только если у товара явно задана FPS-картинка.
-          Если в админке стоит «FPS изображение: Нет» — на витрине никакого
-          fallback-чарта не показываем (раньше была заглушка /images/fps.png,
-          из-за неё админка и каталог расходились — админ видел «Нет», а юзер
-          видел общий чарт игр). */}
+      {/* Секция «Тесты FPS» рисуется если у товара задана хотя бы одна из:
+          fpsImage (FPS-чарт) или fpsVideoUrl (ссылка на видеообзор).
+          Внутри сама картинка и сама ссылка — независимы друг от друга:
+          можно поставить только ссылку без чарта (как у BASE), или только
+          чарт без видео, или оба. Раньше тут стоял fallback /images/fps.png
+          для всех ПК — из-за него у админа в боте писалось «FPS: Нет», а
+          на витрине показывалась общая заглушка. Убрали. */}
       {pcCategories.includes(product.category?.name.toLowerCase() ?? "") &&
-        product.fpsImage && (
+        (product.fpsImage || product.fpsVideoUrl) && (
           <div className="flex flex-col gap-4">
             <h2 className="text-[16px] text-left font-display uppercase">
               {`Тесты FPS:`}
             </h2>
-            <SmartImage
-              src={product.fpsImage}
-              alt={"fps"}
-              className="w-full aspect-video object-contain rounded-xl"
-            />
+            {product.fpsImage && (
+              <SmartImage
+                src={product.fpsImage}
+                alt={"fps"}
+                className="w-full aspect-video object-contain rounded-xl"
+              />
+            )}
             {product.fpsVideoUrl && (
               <a
                 href={product.fpsVideoUrl}
