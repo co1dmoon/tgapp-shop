@@ -26,9 +26,24 @@ export default function ProductCards() {
     enabled: !isDevicesRoot,
   });
 
-  const sortedProducts = products?.sort(
-    (a, b) => (a.favoriteRank ?? 0) - (b.favoriteRank ?? 0)
-  );
+  // Внутри конкретной категории — сортируем по последнему числу в имени:
+  // PRIME 1 / PRIME 2 / PRIME 3 / PRIME 4, PHANTOM 1..4 и т.п. Если число
+  // в имени не нашлось — таких выбрасываем в конец, дальше алфавит.
+  // Для «лучших предложений» порядок определяет API (favoriteRank ASC),
+  // не пересортировываем чтобы не сломать ранги.
+  const trailingNumber = (name: string): number => {
+    const m = String(name).match(/(\d+)(?!.*\d)/);
+    return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
+  };
+
+  const sortedProducts = bestOffers
+    ? products
+    : [...(products ?? [])].sort((a, b) => {
+        const na = trailingNumber(a.name);
+        const nb = trailingNumber(b.name);
+        if (na !== nb) return na - nb;
+        return a.name.localeCompare(b.name, 'ru');
+      });
 
   if (isDevicesRoot) {
     return null;
