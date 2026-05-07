@@ -310,6 +310,20 @@ const setupProductFieldEditHandlers = (bot) => {
     setState(ctx.from.id, `edit_rank_${productId}`);
     await ctx.reply(getInputPrompts.editProductRank);
   });
+
+  // Редактирование Tilda UID — числовой идентификатор товара на b-zone.store,
+  // используется для построения корзинной ссылки вида `?cart=<uid>:1#order`.
+  bot.action(/^edit_product_tilda_uid_(\d+)$/, checkAdmin, async (ctx) => {
+    await ctx.answerCbQuery();
+    const productId = parseInt(ctx.match[1]);
+    setState(ctx.from.id, `edit_tilda_uid_${productId}`);
+    await ctx.reply(
+      '🔗 Введи Tilda UID товара (только цифры, обычно 10–15 знаков).\n\n' +
+      'Этот UID b-zone.store использует для добавления товара в корзину — найди его в Tilda.\n\n' +
+      'Пример: 673413941462\n\n' +
+      'Или "-" чтобы очистить.\n\n💡 Для отмены — /cancel'
+    );
+  });
 };
 
 module.exports = {

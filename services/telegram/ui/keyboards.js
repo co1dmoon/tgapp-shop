@@ -236,6 +236,7 @@ const getProductEditKeyboard = (productId, categoryId, productName, productStrin
     [Markup.button.callback(`🎬 Видеообзор тестов FPS "${productInfo}"`, `edit_product_fps_video_${productId}`)],
     [Markup.button.callback(`🎬 Видео "${productInfo}"`, `edit_product_video_${productId}`)],
     [Markup.button.callback(`⭐ Ранг избранного "${productInfo}"`, `edit_product_rank_${productId}`)],
+    [Markup.button.callback(`🔗 Tilda UID "${productInfo}"`, `edit_product_tilda_uid_${productId}`)],
     [Markup.button.callback(`👁 Просмотреть "${productInfo}"`, `view_product_${productId}`)],
     [
       Markup.button.callback('📋 К товарам', `products_cat_${categoryId}`),

@@ -91,6 +91,11 @@ const handleProductFSM = async (ctx, userId, state, text, webAppUrl) => {
       return;
     }
 
+    if (state.startsWith('edit_tilda_uid_')) {
+      await handleEditProductTildaUid(ctx, userId, state, text);
+      return;
+    }
+
     // Редактирование видео (videoUrl)
     if (state.startsWith('edit_video_')) {
       await handleEditProductVideo(ctx, userId, state, text);
@@ -457,7 +462,7 @@ const handleEditProductSpecs = async (ctx, userId, state, text) => {
 // Редактирование ранга избранного
 const handleEditProductRank = async (ctx, userId, state, text) => {
   const productId = parseInt(state.replace('edit_rank_', ''));
-  
+
   let favoriteRank = 0;
   if (text !== '-') {
     favoriteRank = parseInt(text);
@@ -465,18 +470,48 @@ const handleEditProductRank = async (ctx, userId, state, text) => {
       return ctx.reply('❌ Ранг должен быть числом от 0 до 100. Попробуйте еще раз или "-" для 0:\n\n💡 Для отмены введите /cancel');
     }
   }
-  
+
   try {
     await productController.updateProduct(productId, { favoriteRank });
     clearState(userId);
     await ctx.reply(`✅ Ранг избранного обновлен на: ${favoriteRank}`);
-    
+
     await delay(500);
     await safeShowProductDetails(ctx, productId);
   } catch (error) {
     console.error('Ошибка при обновлении ранга товара:', error);
     clearState(userId);
     await ctx.reply('❌ Произошла ошибка при обновлении ранга.');
+  }
+};
+
+// Редактирование Tilda UID
+const handleEditProductTildaUid = async (ctx, userId, state, text) => {
+  const productId = parseInt(state.replace('edit_tilda_uid_', ''));
+
+  let tildaUid = null;
+  if (text && text.trim() !== '-') {
+    const cleaned = text.trim().replace(/\s+/g, '');
+    if (!/^\d{6,20}$/.test(cleaned)) {
+      return ctx.reply('❌ UID должен содержать только цифры (6–20 знаков). Попробуй ещё раз или "-" чтобы очистить:\n\n💡 Для отмены — /cancel');
+    }
+    tildaUid = cleaned;
+  }
+
+  try {
+    await productController.updateProduct(productId, { tildaUid });
+    clearState(userId);
+    await ctx.reply(tildaUid
+      ? `✅ Tilda UID обновлён на: <code>${tildaUid}</code>`
+      : '✅ Tilda UID очищен',
+      { parse_mode: 'HTML' });
+
+    await delay(500);
+    await safeShowProductDetails(ctx, productId);
+  } catch (error) {
+    console.error('Ошибка при обновлении Tilda UID:', error);
+    clearState(userId);
+    await ctx.reply('❌ Произошла ошибка при обновлении Tilda UID.');
   }
 };
 

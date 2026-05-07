@@ -152,6 +152,7 @@ ${specsText}
 <b>🎬 Видеообзор тестов FPS:</b> ${product.fpsVideoUrl ? `<a href="${product.fpsVideoUrl}">Ссылка</a>` : 'Нет'}
 
 ⭐ <b>Ранг избранного:</b> ${product.favoriteRank || 0}
+🔗 <b>Tilda UID:</b> ${product.tildaUid ? `<code>${product.tildaUid}</code>` : 'Не указан'}
 📅 <b>Создан:</b> ${formatDate(product.createdAt)}
 📅 <b>Обновлен:</b> ${formatDate(product.updatedAt)}`;
 };
